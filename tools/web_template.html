@@ -198,6 +198,86 @@ body.no-motion *, body.no-motion *::before, body.no-motion *::after { animation:
 @media (prefers-reduced-motion: reduce) {
   body:not(.motion-on) *, body:not(.motion-on) *::before, body:not(.motion-on) *::after { animation: none !important; transition: none !important; }
 }
+
+/* ===== Ridisegno: partita a tutto schermo, senza scorrimento della pagina ===== */
+#app:has(.game) { max-width: none; height: calc(100dvh - 44px); }
+body:has(.game) { overflow: hidden; }
+.game { height: 100%; min-height: 0; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; --ch: clamp(120px, 19dvh, 170px); }
+.hud { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.hud .topbar .wordmark { font-size: 15px; }
+.board { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 1px 4px; }
+.board::-webkit-scrollbar { display: none; }
+.seat { flex: 0 0 auto; min-width: 96px; display: grid; grid-template-columns: 1fr auto; column-gap: 8px; align-items: center; padding: 7px 10px; border-radius: 12px; }
+.seat .name { grid-column: 1; }
+.seat .tag { grid-column: 1; font-size: 10.5px; }
+.seat .pts { grid-column: 2; grid-row: 1 / span 2; font-size: 24px; line-height: 1; }
+.roundline { font-size: 13px; }
+
+.stage { min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; overflow: hidden; }
+.stage .black-wrap { flex: 1 1 auto; min-height: 0; width: 100%; align-items: center; container-type: size; }
+.stage .black { width: min(100cqw, 100cqh * 5 / 7); height: auto; aspect-ratio: 5 / 7; padding: 18px 16px;
+  font-size: calc(clamp(15px, 3.1dvh, 24px) * var(--ts) * var(--cs)); }
+.stage > .hidden-msg { text-align: center; font-size: 13px; }
+.stage .banner { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; padding: 10px 14px; }
+.stage .minis { width: 100%; overflow: auto; max-height: 100%; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+.dock { min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.dock .actions { flex: 0 0 auto; }
+.dock .judge-nav { flex: 0 0 auto; }
+.dock > .col { gap: 4px; min-height: 0; flex: 1 1 auto; }
+.dock .rail { flex: 1 1 auto; min-height: 0; align-items: flex-end; padding: 14px 6px 8px; gap: 10px; }
+.rail .card { width: calc(var(--ch) * 5 / 7); height: var(--ch); aspect-ratio: auto;
+  font-size: calc(var(--ch) * 0.09 * var(--ts) * var(--cs)); line-height: 1.22; padding: 9px 9px 10px; border-radius: 10px; }
+.rail .card .txt { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.rail .card .num { width: 22px; height: 22px; font-size: 12px; }
+.card .num { position: absolute; top: 6px; right: 6px; }
+
+/* Ingrandimento di una carta tenuta premuta */
+.zoom-bg { position: fixed; inset: 0; z-index: 60; background: rgba(10,8,6,.72); display: flex; align-items: center; justify-content: center; padding: 24px; animation: fade .2s both; }
+.zoom { height: min(74dvh, calc((100vw - 48px) * 7 / 5)); aspect-ratio: 5 / 7; background: #fff; color: #111; border-radius: 18px; padding: 22px 20px;
+  display: flex; align-items: flex-end; box-shadow: 0 30px 60px -20px rgba(0,0,0,.6); animation: pop .35s cubic-bezier(.2,.9,.3,1.3) both; }
+.zoom .txt { font-family: var(--card-font); font-weight: 700; font-size: clamp(20px, 4.4dvh, 34px); line-height: 1.22; overflow-wrap: anywhere; }
+
+/* Orizzontale: tavolo a sinistra, mano a destra in una griglia che scorre da sola */
+@media (orientation: landscape) and (max-height: 640px) {
+  .game { grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr) minmax(250px, 40%); column-gap: 14px; --ch: 40dvh; }
+  .hud { grid-column: 1 / -1; grid-row: 1; }
+  .stage { grid-column: 1; grid-row: 2; }
+  .dock { grid-column: 2; grid-row: 2; }
+  .dock .rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow-y: auto; overflow-x: hidden; align-content: start; flex-direction: initial; padding: 12px 4px 6px; gap: 10px; }
+  .rail .card { width: 100%; height: auto; aspect-ratio: 5 / 7; font-size: calc(clamp(10px, 2.3dvh, 14px) * var(--ts) * var(--cs)); }
+  .rail .card .txt { -webkit-line-clamp: 7; }
+  .rail .card .num { width: 20px; height: 20px; font-size: 11px; }
+  .stage .black { padding: 14px 12px; }
+  .stage .black-wrap { container-type: size; }
+  .board { padding-bottom: 0; }
+  .seat { padding: 5px 9px; min-width: 88px; }
+  .seat .pts { font-size: 20px; }
+  .roundline { font-size: 12px; }
+}
+
+/* Home: poster, due modalità, pannello sotto */
+.hero { position: relative; overflow: hidden; width: 100%; border-radius: 26px; padding: 22px 18px 20px; background: var(--fg); color: var(--bg);
+  display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.hero::before { content: ""; position: absolute; left: -90px; bottom: -130px; width: 240px; height: 240px; border-radius: 50%; background: var(--accent); opacity: .85; }
+.hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .09;
+  background-image: radial-gradient(#fff 1px, transparent 1.2px); background-size: 9px 9px; }
+.hero > * { position: relative; z-index: 1; }
+.hero .wordmark { color: var(--bg); }
+.hero .wordmark .acc { color: var(--accent); }
+.hero .wordmark i { color: var(--bg); opacity: .65; }
+.tagline { margin: 0; font-size: 14px; opacity: .8; max-width: 320px; }
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+.mode { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 14px 14px; border-radius: 18px; text-align: left; }
+.mode strong { font-family: "Bricolage Grotesque", sans-serif; font-size: 17px; font-weight: 800; }
+.mode .sub { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+.mode[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 10px 22px -12px var(--accent); }
+.mode[aria-pressed="true"] .sub { color: rgba(255,255,255,.85); }
+.mode[aria-pressed="false"] { background: var(--paper); }
+.setup .panel { border-radius: 22px; padding: 18px; }
+.settings-btn { align-self: center; border-radius: 999px; padding: 8px 16px; font-size: 14px; }
+button.primary { padding: 14px 18px; font-size: 16px; }
+.err { color: var(--accent); }
 </style>
 
 <div id="app" class="col" aria-live="polite"></div>

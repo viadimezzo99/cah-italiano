@@ -134,6 +134,23 @@ function logoNode(big = false) {
 function setup() {
   game = null;
   clearTimeout(botTimer); clearTimeout(judgeTimer);
+  const modeBtn = (mode, title, sub) => el("button", {
+    type: "button", class: "mode", "aria-pressed": String(homeTab === mode),
+    onclick: () => { homeTab = mode; setup(); },
+  }, el("strong", {}, title), el("span", { class: "sub" }, sub));
+  app.replaceChildren(
+    el("section", { class: "setup" },
+      el("div", { class: "hero" },
+        logoNode(true),
+        el("p", { class: "tagline" }, "Carte italiane. Gioca sullo stesso telefono, o con gli amici in una stanza.")),
+      el("div", { class: "modes", role: "group", "aria-label": "Modalità" },
+        modeBtn("local", "Stesso telefono", "Con amici e bot"),
+        modeBtn("online", "Online", "Stanza con codice")),
+      homeTab === "online" ? onlinePanel() : localPanel(),
+      el("button", { type: "button", class: "ghost settings-btn", onclick: openSettings }, "⚙ Impostazioni")));
+}
+
+function localPanel() {
   const total = () => cfg.names.length + cfg.bots;
   const hint = el("p", { class: "hidden-msg" });
   const startBtn = el("button", { class: "primary", type: "button", onclick: start }, "Inizia la partita");
@@ -159,26 +176,17 @@ function setup() {
     onclick: () => { cfg.winScore = n; setup(); },
   }, `${n} punti`));
 
-  app.replaceChildren(
-    el("section", { class: "setup" },
-      logoNode(true),
-      el("p", { class: "hidden-msg" }, "Carte italiane. Gioca con amici sullo stesso telefono, o contro i bot."),
-      el("button", { type: "button", class: "primary", onclick: onlineMenu }, "🌐 Gioca online (stanza)"),
-      el("div", { class: "panel" },
-        el("span", { class: "label" }, `Giocatori (${cfg.names.length}/${MAX_HUMANS})`),
-        el("div", { class: "names" }, nameRows()),
-        cfg.names.length < MAX_HUMANS ? el("button", { type: "button", class: "ghost", onclick: () => { cfg.names.push(""); setup(); } }, "+ Aggiungi persona") : null,
-        el("span", { class: "label", style: "margin-top:6px" }, "Bot"),
-        el("div", { class: "seg" }, botBtns),
-        el("span", { class: "label", style: "margin-top:6px" }, "Vittoria"),
-        el("div", { class: "seg" }, winBtns),
-        hint,
-        startBtn,
-        el("button", { type: "button", class: "ghost", onclick: openSettings }, "⚙ Impostazioni"),
-      ),
-    ),
-  );
   refresh();
+  return el("div", { class: "panel" },
+    el("span", { class: "label" }, `Giocatori (${cfg.names.length}/${MAX_HUMANS})`),
+    el("div", { class: "names" }, nameRows()),
+    cfg.names.length < MAX_HUMANS ? el("button", { type: "button", class: "ghost", onclick: () => { cfg.names.push(""); setup(); } }, "+ Aggiungi persona") : null,
+    el("span", { class: "label" }, "Bot"),
+    el("div", { class: "seg" }, botBtns),
+    el("span", { class: "label" }, "Vittoria"),
+    el("div", { class: "seg" }, winBtns),
+    hint,
+    startBtn);
 }
 
 function start() {
@@ -429,12 +437,14 @@ function render() {
       me.hand.map((c, i) => {
         const idx = selected.indexOf(c.id);
         const full = selected.length >= need && idx < 0;
+        const held = { v: false };
         const node = el("button", {
           class: "card" + (idx >= 0 ? " sel" : "") + (deal ? " deal" : ""),
           type: "button",
           disabled: !canSelect || full,
           "aria-pressed": String(idx >= 0),
           onclick: () => {
+            if (held.v) { held.v = false; return; }
             if (idx >= 0) selected.splice(idx, 1);
             else selected.push(c.id);
             Sound.play("pick");
@@ -442,6 +452,7 @@ function render() {
           },
         }, el("span", { class: "num" }, idx >= 0 ? String(idx + 1) : ""), el("span", { class: "txt" }, c.text));
         node.style.setProperty("--i", i);
+        attachHold(node, () => { held.v = true; Sound.play("flip"); showZoom(c.text); });
         return node;
       }));
     if (canSelect) {
@@ -463,17 +474,11 @@ function render() {
       el("button", { class: "primary", type: "button", onclick: () => { curtain = false; Sound.play("deal"); render(); } }, `Sono ${me.name}, mostra le carte`))) : null;
 
   app.replaceChildren(
-    el("div", {},
-      topbar,
-      board,
-      roundline,
-      mainCard,
-      note,
-      actions,
-      railBlock,
-      who,
-    ),
-  );
+    el("div", { class: "game" },
+      el("header", { class: "hud" }, topbar, board, roundline),
+      el("main", { class: "stage" }, mainCard, note),
+      el("footer", { class: "dock" }, actions, railBlock),
+      who));
 }
 
 // Primo gesto dell'utente: sblocca l'audio e applica le impostazioni sonore.
@@ -493,6 +498,7 @@ const SESSION_KEY = "cah-online";
 let onlineSock = null;
 let onlineQueue = [];   // azioni in attesa che la connessione sia aperta
 let onlineWin = 5;
+let homeTab = "local";   // "local" | "online" nella schermata iniziale
 let onlineName = "";
 let onlineError = "";
 
@@ -658,8 +664,7 @@ function exitGame() {
   setup();
 }
 
-function onlineMenu() {
-  game = null;
+function onlinePanel() {
   const nameIn = el("input", { type: "text", maxlength: "20", placeholder: "Il tuo nome", "aria-label": "Il tuo nome", value: onlineName,
     oninput: (e) => { onlineName = e.target.value; } });
   const codeIn = el("input", { type: "text", maxlength: "4", placeholder: "Codice", "aria-label": "Codice stanza",
@@ -672,27 +677,44 @@ function onlineMenu() {
       onlineSock = null;
       if (old) old.close();
     } });
-  app.replaceChildren(
-    el("section", { class: "setup" },
-      logoNode(true),
-      el("p", { class: "hidden-msg" }, "Crea una stanza e condividi il codice: fino a 10 giocatori, ognuno sul proprio telefono."),
-      el("div", { class: "panel" },
-        el("span", { class: "label" }, "Il tuo nome"),
-        nameIn,
-        !ONLINE_OK ? el("span", { class: "label", style: "margin-top:6px" }, "Server online") : null,
-        !ONLINE_OK ? serverIn : null,
-        el("button", { type: "button", class: "primary", onclick: () => {
-          onlineError = ""; onlineName = nameIn.value.trim();
-          withSocket(() => netSend({ type: "create", name: onlineName }));
-        } }, "Crea una stanza"),
-        el("span", { class: "label", style: "margin-top:6px" }, "Entra con un codice"),
-        el("div", { class: "nrow" }, codeIn,
-          el("button", { type: "button", onclick: () => {
-            onlineError = ""; onlineName = nameIn.value.trim();
-            withSocket(() => netSend({ type: "join", code: codeIn.value.trim(), name: onlineName }));
-          } }, "Entra")),
-        onlineError ? el("p", { class: "hidden-msg err" }, onlineError) : null,
-        el("button", { type: "button", class: "ghost", onclick: () => { onlineError = ""; setup(); } }, "← Indietro"))));
+  return el("div", { class: "panel" },
+    el("span", { class: "label" }, "Il tuo nome"),
+    nameIn,
+    !ONLINE_OK ? el("span", { class: "label" }, "Server online") : null,
+    !ONLINE_OK ? serverIn : null,
+    el("button", { type: "button", class: "primary", onclick: () => {
+      onlineError = ""; onlineName = nameIn.value.trim();
+      withSocket(() => netSend({ type: "create", name: onlineName }));
+    } }, "Crea una stanza"),
+    el("span", { class: "label" }, "Entra con un codice"),
+    el("div", { class: "nrow" }, codeIn,
+      el("button", { type: "button", onclick: () => {
+        onlineError = ""; onlineName = nameIn.value.trim();
+        withSocket(() => netSend({ type: "join", code: codeIn.value.trim(), name: onlineName }));
+      } }, "Entra")),
+    onlineError ? el("p", { class: "hidden-msg err" }, onlineError) : null);
+}
+
+function onlineMenu() {
+  homeTab = "online";
+  setup();
+}
+
+// Tenere premuta una carta della mano: la mostra ingrandita, con il testo intero.
+function attachHold(node, fn) {
+  let t = null;
+  const cancel = () => clearTimeout(t);
+  node.addEventListener("pointerdown", () => { t = setTimeout(fn, 380); });
+  node.addEventListener("pointerup", cancel);
+  node.addEventListener("pointerleave", cancel);
+  node.addEventListener("pointercancel", cancel);
+  node.addEventListener("contextmenu", (e) => e.preventDefault());
+}
+
+function showZoom(text) {
+  const card = el("div", { class: "zoom", role: "dialog", "aria-label": "Carta ingrandita" }, el("div", { class: "txt" }, text));
+  const bg = el("div", { class: "zoom-bg", onclick: () => bg.remove() }, card);
+  document.body.append(bg);
 }
 
 function renderLobby() {
