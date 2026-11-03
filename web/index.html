@@ -1,0 +1,1449 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>CAH Italiano</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Fraunces:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=Permanent+Marker&display=swap">
+<style>
+/* Tavolo: carta calda e inchiostro, accento arancio bruciato. Le carte da gioco restano sempre
+   bianche e nere, in qualsiasi tema. */
+:root {
+  --bg: #ece5d6; --fg: #1c1a17; --muted: #6d655a; --line: #d6ccb9;
+  --paper: #fbf8f0; --accent: #c4502a; --ok: #2f7a4d;
+  --ts: 1; --cs: 1; --card-font: "Bricolage Grotesque", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14120f; --fg: #ece5d6; --muted: #a0978a; --line: #36312a;
+    --paper: #2a2620; --accent: #f08a5d; --ok: #6cc08c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14120f; --fg: #ece5d6; --muted: #a0978a; --line: #36312a;
+  --paper: #2a2620; --accent: #f08a5d; --ok: #6cc08c; color-scheme: dark;
+}
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; color: var(--fg);
+  background:
+    radial-gradient(900px 480px at 50% -12%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 62%),
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--fg) 7%, transparent) 1px, transparent 0) 0 0 / 18px 18px,
+    var(--bg);
+  font: 400 15px/1.45 "IBM Plex Sans", system-ui, sans-serif;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 28px;
+}
+.col { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+h1, h2, .display { font-family: "Bricolage Grotesque", system-ui, sans-serif; text-wrap: balance; margin: 0; }
+.label { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.hidden-msg { color: var(--muted); font-size: 14px; margin: 0; }
+button {
+  font: inherit; font-weight: 600; color: inherit; cursor: pointer; touch-action: manipulation;
+  border: 1px solid var(--line); background: var(--paper); border-radius: 12px; padding: 11px 16px;
+  transition: transform .15s, background .15s;
+}
+button:active:not(:disabled) { transform: scale(.97); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:disabled { opacity: .45; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 8px 18px -10px var(--accent); }
+button.ghost { background: transparent; }
+button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+input[type="text"] { font: inherit; color: inherit; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+/* Logo */
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo svg { width: 64px; height: 52px; flex: 0 0 auto; }
+.wordmark { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; line-height: .95; letter-spacing: -.01em; }
+.wordmark span { display: block; }
+.wordmark .acc { color: var(--accent); }
+.wordmark i { display: block; margin-top: 8px; font-style: normal; font-size: 11px; letter-spacing: .2em; color: var(--muted); font-weight: 600; }
+.logo.big svg { width: 120px; height: 96px; }
+.logo.big .wordmark { font-size: 40px; }
+.logo.big .wordmark i { font-size: 13px; }
+
+/* Schermata iniziale */
+.setup { display: flex; flex-direction: column; gap: 18px; padding-top: 18px; align-items: center; text-align: center; }
+.setup .panel { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 10px;
+  background: color-mix(in srgb, var(--paper) 80%, transparent); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+.names { display: flex; flex-direction: column; gap: 8px; }
+.names .nrow { display: flex; gap: 8px; }
+.seg { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Tavolo */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.topbar .logo { gap: 8px; }
+.topbar .logo svg { width: 36px; height: 30px; }
+.topbar .wordmark { font-size: 15px; }
+.topbar .wordmark i { display: none; }
+.topbar .tools { display: flex; gap: 6px; }
+.topbar .tools button { padding: 8px 12px; }
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; }
+.seat {
+  padding: 8px 10px; border-radius: 12px; background: var(--paper); border: 1px solid var(--line);
+  transition: transform .3s cubic-bezier(.2,.9,.3,1.3), border-color .3s, box-shadow .3s;
+}
+.seat.judge { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 10px 18px -12px var(--accent); }
+.seat.won { animation: pop .6s cubic-bezier(.2,.9,.3,1.4); border-color: var(--ok); }
+.seat .name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seat .pts { font-family: "Bricolage Grotesque", sans-serif; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.seat .tag { font-size: 11px; color: var(--muted); }
+.seat.played .tag::after { content: " · pronto"; color: var(--ok); }
+.status { font-size: 14px; color: var(--muted); }
+.status strong { color: var(--fg); }
+.roundline { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+
+/* Carta nera */
+.black-wrap { display: flex; justify-content: center; perspective: 900px; }
+.black {
+  width: min(100%, calc(300px * var(--cs))); aspect-ratio: 5 / 7; background: #111; color: #fff;
+  border-radius: 16px; padding: 20px 18px; display: flex; flex-direction: column; justify-content: space-between;
+  box-shadow: 0 14px 30px -14px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.04);
+  font-family: var(--card-font); font-size: calc(20px * var(--ts) * var(--cs)); line-height: 1.32; font-weight: 500;
+  overflow: hidden; position: relative;
+}
+.black::after { /* grana da carta */
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .07; border-radius: inherit;
+  background-image: radial-gradient(#fff 0.6px, transparent 0.7px); background-size: 4px 4px;
+}
+.black .text { text-wrap: pretty; overflow-wrap: anywhere; position: relative; z-index: 1; }
+.black .foot { font-size: 11px; font-family: "IBM Plex Sans", sans-serif; letter-spacing: .08em; text-transform: uppercase; opacity: .6; position: relative; z-index: 1; }
+.slot {
+  display: inline-block; min-width: 3.6em; border-bottom: 2px dashed color-mix(in srgb, var(--accent) 80%, transparent);
+  color: transparent; padding: 0 3px;
+}
+.slot.lit { animation: pulse 1.6s ease-in-out infinite; border-bottom-style: solid; border-color: var(--accent); }
+.word { display: inline-block; color: inherit; animation: pop .45s cubic-bezier(.2,.9,.3,1.5); }
+@keyframes pulse { 0%,100% { background: transparent; } 50% { background: color-mix(in srgb, var(--accent) 26%, transparent); } }
+@keyframes pop { 0% { transform: scale(.3) rotate(-12deg); opacity: 0; } 70% { transform: scale(1.12) rotate(2deg); opacity: 1; } 100% { transform: scale(1) rotate(0); } }
+@keyframes slam { 0% { transform: translateY(-40px) rotate(-4deg) scale(1.06); opacity: 0; } 60% { transform: translateY(6px) rotate(1deg); opacity: 1; } 100% { transform: none; } }
+.black.slam { animation: slam .55s cubic-bezier(.2,.9,.3,1.2); }
+
+/* Carte bianche: sempre bianche con scritta nera. */
+.rail { display: flex; gap: 12px; overflow-x: auto; padding: 16px 8px 12px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.rail > * { flex: 0 0 auto; scroll-snap-align: center; }
+.card {
+  position: relative; width: calc(138px * var(--cs)); aspect-ratio: 5 / 7; display: flex; align-items: flex-end;
+  text-align: left; font-family: var(--card-font); font-weight: 600; font-size: calc(14px * var(--ts) * var(--cs)); line-height: 1.3; color: #111;
+  background: #fff; border: 1px solid #d6d0c2; border-radius: 12px; padding: 12px 12px 14px;
+  box-shadow: 0 8px 18px -10px rgba(0,0,0,.45); overflow: hidden; overflow-wrap: anywhere;
+  transition: transform .25s cubic-bezier(.2,.9,.3,1.3), box-shadow .25s, border-color .25s;
+}
+.rail .card:nth-child(odd) { --tilt: -1.2deg; }
+.rail .card:nth-child(even) { --tilt: 1deg; }
+.rail .card { transform: rotate(var(--tilt, 0deg)); }
+.card:hover:not(:disabled) { transform: translateY(-6px) rotate(0deg); }
+.card:disabled { opacity: .5; cursor: default; }
+.card.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 16px 26px -14px rgba(0,0,0,.55); transform: translateY(-16px) rotate(0deg) scale(1.03); }
+.card .num {
+  position: absolute; left: 8px; top: 8px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff;
+  display: none; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; animation: pop .35s cubic-bezier(.2,.9,.3,1.5);
+}
+.card.sel .num { display: flex; }
+.card.deal { animation: deal .5s cubic-bezier(.2,.9,.3,1.1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes deal { from { transform: translate(-30vw, -60px) rotate(-18deg) scale(.6); opacity: 0; } to { opacity: 1; } }
+
+/* Risposte del Re: sfogliatura e confronto */
+.judge-nav { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(150px * var(--cs)), 1fr)); gap: 12px; }
+.mini {
+  aspect-ratio: 5 / 7; background: #111; color: #fff; border: 2px solid transparent; border-radius: 14px; padding: 14px;
+  text-align: left; font-family: var(--card-font); font-size: calc(16px * var(--ts) * var(--cs)); line-height: 1.32; font-weight: 500;
+  overflow: hidden; overflow-wrap: anywhere; box-shadow: 0 10px 20px -12px rgba(0,0,0,.55);
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.mini.enter { animation: flip .55s cubic-bezier(.2,.9,.3,1.1) both; animation-delay: calc(var(--i, 0) * 120ms); }
+.mini.sel { border-color: var(--accent); }
+.mini .foot { font-family: "IBM Plex Sans", sans-serif; font-size: 11px; opacity: .6; }
+@keyframes flip { from { transform: rotateY(90deg) scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Banner e messaggi */
+.banner { padding: 16px; border-radius: 16px; background: var(--paper); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.banner.win { border-color: var(--ok); }
+.actions { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+
+/* Passaggio del telefono */
+.curtain {
+  position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; text-align: center;
+  background: color-mix(in srgb, var(--bg) 88%, #000 12%); backdrop-filter: blur(10px);
+  padding: max(24px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) 24px max(24px, env(safe-area-inset-left, 0px));
+  animation: fade .3s ease both;
+}
+.curtain .box { display: flex; flex-direction: column; gap: 18px; align-items: center; max-width: 360px; }
+.curtain .big { font-family: "Permanent Marker", cursive; font-size: 34px; line-height: 1.1; transform: rotate(-3deg); }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Impostazioni */
+.sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; animation: fade .2s both; }
+.sheet {
+  width: 100%; max-width: 640px; max-height: 88vh; overflow: auto; background: var(--bg); color: var(--fg);
+  border-radius: 22px 22px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 16px;
+  animation: slide .35s cubic-bezier(.2,.9,.3,1.1) both; box-shadow: 0 -20px 40px -20px rgba(0,0,0,.5);
+}
+@keyframes slide { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet .group { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.sheet .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.sheet .fonts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.sheet .fonts button { font-family: var(--f); font-size: 16px; text-align: left; }
+.toggle { min-width: 64px; }
+
+/* Coriandoli */
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 30; }
+.confetti i { position: absolute; top: -20px; width: 10px; height: 14px; border-radius: 2px; animation: fall 2.4s cubic-bezier(.3,.1,.6,1) forwards; }
+@keyframes fall { to { transform: translate(var(--dx), 110vh) rotate(var(--rot)); opacity: .9; } }
+
+/* Preferenza: movimento ridotto */
+body.no-motion *, body.no-motion *::before, body.no-motion *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  body:not(.motion-on) *, body:not(.motion-on) *::before, body:not(.motion-on) *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<div id="app" class="col" aria-live="polite"></div>
+
+<script type="module">
+// Motore delle regole di Cards Against Humanity (versione italiana).
+// Nessuna dipendenza esterna: gira identico nel server Node e nel client.
+// Ogni mutazione restituisce una lista di eventi, utile per animare la UI.
+
+export const DEFAULTS = {
+  handSize: 10,
+  winScore: 8, // le regole non fissano una fine: è un'opzione della stanza
+};
+
+// Generatore pseudo-casuale deterministico (mulberry32) per test ripetibili.
+export function seededRng(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function shuffle(items, rng = Math.random) {
+  const a = items.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Divide il testo di una carta nera in segmenti, per disegnare gli spazi.
+export function segments(text) {
+  return text.split("____").flatMap((part, i, arr) => {
+    const out = [{ type: "text", value: part }];
+    if (i < arr.length - 1) out.push({ type: "blank", index: i });
+    return out;
+  });
+}
+
+export class Game {
+  /**
+   * @param {{id:string,name:string,isBot?:boolean}[]} players
+   * @param {{white:{id:string,text:string}[], black:{id:string,text:string,blanks:number}[]}} cards
+   * @param {{handSize?:number, winScore?:number|null, rng?:() => number}} options
+   */
+  constructor(players, cards, options = {}) {
+    if (players.length < 3) throw new Error("Servono almeno 3 giocatori");
+    const ids = new Set(players.map((p) => p.id));
+    if (ids.size !== players.length) throw new Error("ID giocatori duplicati");
+
+    this.opts = { ...DEFAULTS, ...options };
+    this.rng = this.opts.rng ?? Math.random;
+    this.cardText = new Map([...cards.white, ...cards.black].map((c) => [c.id, c.text]));
+    this.whiteById = new Map(cards.white.map((c) => [c.id, c]));
+    this.blackById = new Map(cards.black.map((c) => [c.id, c]));
+
+    this.players = players.map((p) => ({
+      id: p.id,
+      name: p.name,
+      isBot: !!p.isBot,
+      hand: [],
+      score: 0,
+    }));
+    this.deck = shuffle(cards.white.map((c) => c.id), this.rng);
+    this.discard = [];
+    this.blackDeck = shuffle(cards.black.map((c) => c.id), this.rng);
+    this.blackDiscard = [];
+
+    this.phase = "lobby"; // lobby | playing | judging | roundEnd | over
+    this.round = 0;
+    this.judgeIndex = -1;
+    this.currentBlack = null;
+    this.submissions = new Map(); // playerId -> cardIds
+    this.revealOrder = []; // playerIds in ordine mischiato per il giudice
+    this.lastWinner = null;
+    this.winner = null;
+  }
+
+  // ---------------------------------------------------------------- mazzi
+
+  draw() {
+    if (this.deck.length === 0) {
+      this.deck = shuffle(this.discard, this.rng);
+      this.discard = [];
+    }
+    return this.deck.pop() ?? null;
+  }
+
+  drawBlack() {
+    if (this.blackDeck.length === 0) {
+      this.blackDeck = shuffle(this.blackDiscard, this.rng);
+      this.blackDiscard = [];
+    }
+    return this.blackDeck.pop() ?? null;
+  }
+
+  text(cardId) {
+    return this.cardText.get(cardId);
+  }
+
+  get judge() {
+    return this.judgeIndex >= 0 ? this.players[this.judgeIndex] : null;
+  }
+
+  player(id) {
+    const p = this.players.find((x) => x.id === id);
+    if (!p) throw new Error(`Giocatore sconosciuto: ${id}`);
+    return p;
+  }
+
+  // ---------------------------------------------------------------- partita
+
+  start() {
+    if (this.phase !== "lobby") throw new Error("La partita è già iniziata");
+    const events = [];
+    for (const p of this.players) {
+      this.fill(p, events);
+    }
+    this.judgeIndex = Math.floor(this.rng() * this.players.length);
+    this.beginRound(events);
+    return events;
+  }
+
+  fill(player, events) {
+    while (player.hand.length < this.opts.handSize) {
+      const id = this.draw();
+      if (id === null) break;
+      player.hand.push(id);
+      events.push({ type: "draw", playerId: player.id, cardId: id });
+    }
+  }
+
+  beginRound(events) {
+    if (this.currentBlack) this.blackDiscard.push(this.currentBlack.id);
+    this.currentBlack = this.blackById.get(this.drawBlack());
+    this.round += 1;
+    this.submissions = new Map();
+    this.revealOrder = [];
+    this.phase = "playing";
+    events.push({ type: "round", round: this.round, judgeId: this.judge.id, blackId: this.currentBlack.id });
+  }
+
+  /** Il giocatore invia le carte bianche per completare la nera. */
+  play(playerId, cardIds) {
+    if (this.phase !== "playing") throw new Error("Non è il momento di giocare");
+    const p = this.player(playerId);
+    if (p.id === this.judge.id) throw new Error("Il Re delle Carte non gioca carte bianche");
+    if (this.submissions.has(playerId)) throw new Error("Hai già giocato");
+    const need = this.currentBlack.blanks;
+    if (cardIds.length !== need) throw new Error(`Servono ${need} carte`);
+    if (new Set(cardIds).size !== cardIds.length) throw new Error("Carte duplicate");
+    for (const id of cardIds) {
+      if (!p.hand.includes(id)) throw new Error("Carta non in mano");
+    }
+
+    const events = [];
+    for (const id of cardIds) {
+      p.hand.splice(p.hand.indexOf(id), 1);
+      this.discard.push(id);
+    }
+    this.submissions.set(playerId, cardIds.slice());
+    events.push({ type: "played", playerId, cardIds: cardIds.slice() });
+
+    const expected = this.players.length - 1;
+    if (this.submissions.size === expected) {
+      this.phase = "judging";
+      this.revealOrder = shuffle([...this.submissions.keys()], this.rng);
+      events.push({ type: "judging", count: this.revealOrder.length });
+    }
+    return events;
+  }
+
+  /** Versione per il giudice: le risposte senza nome. */
+  reveal() {
+    if (this.phase !== "judging") return [];
+    return this.revealOrder.map((playerId, index) => ({
+      index,
+      cards: this.submissions.get(playerId).map((id) => ({ id, text: this.text(id) })),
+    }));
+  }
+
+  /** Il Re sceglie la risposta preferita. */
+  pick(judgeId, index) {
+    if (this.phase !== "judging") throw new Error("Non ci sono risposte da giudicare");
+    if (judgeId !== this.judge.id) throw new Error("Solo il Re può scegliere");
+    if (!Number.isInteger(index) || index < 0 || index >= this.revealOrder.length) {
+      throw new Error("Scelta non valida");
+    }
+    const winnerId = this.revealOrder[index];
+    const winner = this.player(winnerId);
+    winner.score += 1;
+    this.lastWinner = winnerId;
+    this.phase = "roundEnd";
+
+    const events = [{ type: "picked", winnerId, index, blackId: this.currentBlack.id }];
+    const turnEnd = this.checkWinner();
+    if (turnEnd) events.push(turnEnd);
+    return events;
+  }
+
+  checkWinner() {
+    if (this.opts.winScore == null) return null;
+    const top = this.players.reduce((a, b) => (b.score > a.score ? b : a));
+    if (top.score >= this.opts.winScore) {
+      this.winner = top.id;
+      this.phase = "over";
+      return { type: "gameOver", winnerId: top.id, score: top.score };
+    }
+    return null;
+  }
+
+  /** Dopo la scelta: rimette in mano le carte, passa il Re, apre la nuova nera. */
+  nextRound() {
+    if (this.phase !== "roundEnd") throw new Error("Il round non è ancora concluso");
+    const events = [];
+    this.judgeIndex = (this.judgeIndex + 1) % this.players.length;
+    for (const p of this.players) this.fill(p, events);
+    this.beginRound(events);
+    return events;
+  }
+
+  // ------------------------------------------------ fallback per timeout / bot
+
+  /** Gioca per conto di un giocatore: carte casuali, nell'ordine di pesca. */
+  autoPlay(playerId) {
+    const p = this.player(playerId);
+    const n = this.currentBlack.blanks;
+    const picks = shuffle(p.hand, this.rng).slice(0, n);
+    return this.play(playerId, picks);
+  }
+
+  /** Il giudice non sceglie in tempo: viene scelta una risposta a caso. */
+  autoPick() {
+    const index = Math.floor(this.rng() * this.revealOrder.length);
+    return this.pick(this.judge.id, index);
+  }
+
+  /** Gioca per tutti i bot che devono ancora rispondere. */
+  playBots() {
+    const events = [];
+    if (this.phase !== "playing") return events;
+    for (const p of this.players) {
+      if (!p.isBot || p.id === this.judge.id || this.submissions.has(p.id)) continue;
+      events.push(...this.autoPlay(p.id));
+      if (this.phase !== "playing") break;
+    }
+    return events;
+  }
+
+  /** Se il giudice è un bot, sceglie per lui. */
+  judgeIfBot() {
+    if (this.phase === "judging" && this.judge.isBot) return this.autoPick();
+    return [];
+  }
+
+  /** Stato pubblico: nessuna carta coperta visibile a nessun altro giocatore. */
+  publicState(forPlayerId) {
+    return {
+      phase: this.phase,
+      round: this.round,
+      judgeId: this.judge?.id ?? null,
+      black: this.currentBlack ? { id: this.currentBlack.id, text: this.currentBlack.text, blanks: this.currentBlack.blanks } : null,
+      players: this.players.map((p) => ({
+        id: p.id,
+        name: p.name,
+        score: p.score,
+        isBot: p.isBot,
+        handSize: p.hand.length,
+        hasPlayed: this.submissions.has(p.id),
+        hand: p.id === forPlayerId ? p.hand.map((id) => ({ id, text: this.text(id) })) : undefined,
+      })),
+      reveal: this.reveal(),
+      winner: this.winner,
+    };
+  }
+}
+
+// Anteprima della frase: inserisce la carta bianca nello spazio e aggiusta
+// articoli e preposizioni articolate in base a genere e numero della risposta.
+// Euristica per l'italiano: non è un parser. Dove non è sicura, lascia il testo com'è.
+
+const VOWEL = /^[aeiouàèéìòù]/i;
+// Parole che richiedono "lo/uno/gli" davanti (s+consonante, z, gn, ps, x, y, i+vocale).
+const IMPURE = /^(s[^aeiouàèéìòù\s]|z|gn|ps|x|y|i[aeouàèéìòù])/i;
+const SINGULAR_IN_I = new Set(["analisi", "crisi", "tesi", "ipotesi", "sintesi", "noi"]);
+
+const ART = {
+  il: { g: "m", n: "s" }, lo: { g: "m", n: "s" }, "l'": { g: "m", n: "s" }, la: { g: "f", n: "s" },
+  i: { g: "m", n: "p" }, gli: { g: "m", n: "p" }, le: { g: "f", n: "p" },
+  un: { g: "m", n: "s" }, uno: { g: "m", n: "s" }, "un'": { g: "f", n: "s" }, una: { g: "f", n: "s" },
+};
+
+// Preposizioni articolate: [preposizione, articolo] -> forma unita.
+const CONTRACT = {
+  di: { il: "del", lo: "dello", "l'": "dell'", la: "della", i: "dei", gli: "degli", le: "delle" },
+  a: { il: "al", lo: "allo", "l'": "all'", la: "alla", i: "ai", gli: "agli", le: "alle" },
+  da: { il: "dal", lo: "dallo", "l'": "dall'", la: "dalla", i: "dai", gli: "dagli", le: "dalle" },
+  in: { il: "nel", lo: "nello", "l'": "nell'", la: "nella", i: "nei", gli: "negli", le: "nelle" },
+  su: { il: "sul", lo: "sullo", "l'": "sull'", la: "sulla", i: "sui", gli: "sugli", le: "sulle" },
+};
+const UNCONTRACT = {};
+for (const [prep, forms] of Object.entries(CONTRACT)) {
+  for (const [art, joined] of Object.entries(forms)) UNCONTRACT[joined] = { prep, art };
+}
+
+// Genere e numero della risposta, dalla prima parola (articolo o nome).
+export function whiteAgreement(text) {
+  const words = text.replace(/[^\p{L}'\s-]/gu, " ").trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return null;
+  const first = words[0].toLowerCase();
+  if (ART[first]) return { ...ART[first] };
+  if (SINGULAR_IN_I.has(first)) return { g: null, n: "s" };
+  if (/(zione|sione|tà|ù)$/.test(first) || /a$/.test(first)) return { g: "f", n: "s" };
+  if (/o$/.test(first)) return { g: "m", n: "s" };
+  if (/i$/.test(first)) return { g: null, n: "p" };
+  if (/[^aeiouàèéìòù]$/.test(first)) return { g: "m", n: "s" }; // festival, sport, bar: quasi tutti maschili
+  return null;
+}
+
+function defForm(g, n, next, prep) {
+  const gender = g ?? "m";
+  let form;
+  if (n === "s" && gender === "m") form = VOWEL.test(next) ? "l'" : IMPURE.test(next) ? "lo" : "il";
+  else if (n === "s") form = VOWEL.test(next) ? "l'" : "la";
+  else if (gender === "f") form = "le";
+  else form = VOWEL.test(next) || IMPURE.test(next) ? "gli" : "i";
+  return prep ? CONTRACT[prep][form] : form;
+}
+
+function indefForm(g, n, next) {
+  const gender = g ?? "m";
+  if (n === "s") {
+    if (gender === "f") return VOWEL.test(next) ? "un'" : "una";
+    return IMPURE.test(next) ? "uno" : "un";
+  }
+  if (gender === "f") return "delle";
+  return VOWEL.test(next) || IMPURE.test(next) ? "degli" : "dei";
+}
+
+function matchMirror(s, c) {
+  return s[0] === s[0].toUpperCase() && s[0] !== s[0].toLowerCase() ? c[0].toUpperCase() + c.slice(1) : c;
+}
+
+// Riscrive l'articolo che precede lo spazio, in base alla risposta scelta.
+export function fixArticle(before, white) {
+  const agr = whiteAgreement(white);
+  if (!agr) return { before, consumed: false };
+  const m = before.match(/(^|[\s(])((?:di|a|da|in|su)\s+)?(il|lo|la|l'|i|gli|le|un'|un|uno|una|del|dello|della|dell'|dei|degli|delle|al|allo|alla|all'|ai|agli|alle|dal|dallo|dalla|dall'|dai|dagli|dalle|nel|nello|nella|nell'|nei|negli|nelle|sul|sullo|sulla|sull'|sui|sugli|sulle)(\s*)$/i);
+  if (!m) return { before, consumed: false };
+  const head = before.slice(0, before.length - m[0].length);
+  const lead = m[1];
+  let prep = m[2] ? m[2].trim().toLowerCase() : null;
+  let art = m[3].toLowerCase();
+  if (UNCONTRACT[art]) { prep = UNCONTRACT[art].prep; art = UNCONTRACT[art].art; }
+  const trail = m[4];
+  const next = firstWord(white);
+  const isDef = ["il", "lo", "l'", "la", "i", "gli", "le"].includes(art);
+  let form;
+  if (isDef) form = defForm(agr.g, agr.n, next, prep);
+  else if (!prep) form = indefForm(agr.g, agr.n, next);
+  else return { before, consumed: false }; // "di un ..." non si tocca
+  // La preposizione (se c'era) è già dentro la forma: "a" + "il" diventa "al".
+  form = matchMirror(m[3], form);
+  // Dopo l'elisione ("all'") non c'è spazio: "all'alcolismo".
+  const sep = form.endsWith("'") ? "" : trail;
+  return { before: head + lead + form + sep, consumed: true };
+}
+
+function firstWord(text) {
+  const w = text.replace(/[^\p{L}'\s-]/gu, " ").trim().split(/\s+/)[0] ?? "";
+  return w;
+}
+
+// Togliere la maiuscola se la risposta va in mezzo alla frase, salvo i nomi propri.
+function lowerIfMidSentence(text) {
+  const words = text.trim().split(/\s+/);
+  const twoCaps = words.length > 1 && /^\p{Lu}/u.test(words[0]) && /^\p{Lu}/u.test(words[1]);
+  if (twoCaps) return text;
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+// Per ogni spazio: testo prima, parola inserita, testo dopo.
+// whites[i] = testo della risposta per lo spazio i, oppure null se non ancora scelta.
+export function fillSentence(blackText, whites) {
+  const parts = blackText.split("____");
+  const segs = [];
+  for (let i = 0; i < parts.length; i++) {
+    let before = parts[i];
+    if (i === parts.length - 1) {
+      segs.push({ t: "text", v: before });
+      break;
+    }
+    const white = whites[i];
+    if (white == null) {
+      segs.push({ t: "text", v: before }, { t: "slot", i });
+      continue;
+    }
+    const after = parts[i + 1];
+    const atEnd = after.trim() === "" && i === parts.length - 2;
+    const atStart = before.trim() === "";
+    const fixed = fixArticle(before, white);
+    let w = white.trim();
+    // Se l'articolo è stato riscritto, togli quello della risposta per non averne due.
+    if (fixed.consumed && /^(il|lo|la|l'|i|gli|le|un|uno|una|un')\s+/i.test(w)) {
+      w = w.replace(/^\S+\s+/, "");
+    }
+    if (!atEnd) w = w.replace(/[.!?]+$/, "");
+    if (!atStart && !fixed.consumed) w = lowerIfMidSentence(w);
+    else if (!atStart && fixed.consumed) w = lowerIfMidSentence(w);
+    segs.push({ t: "text", v: fixed.before }, { t: "word", v: w, i });
+    parts[i + 1] = after;
+  }
+  return segs;
+}
+
+export function sentencePlain(blackText, whites) {
+  return fillSentence(blackText, whites).map((s) => (s.t === "slot" ? "____" : s.v)).join("");
+}
+
+
+// Suoni e musica generati con Web Audio: nessun file esterno.
+// La musica è un loop semplice (accordi Am–F–C–G, arpeggio e basso).
+const Sound = (() => {
+  let ctx = null, master = null, sfxBus = null, musicBus = null;
+  let musicOn = false, sfxOn = true, timer = null, step = 0, nextTime = 0;
+  const PROG = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]]; // Am F C G (MIDI)
+  const STEP = 60 / 100 / 2; // ottavi a 100 BPM
+
+  const hz = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
+
+  function ensure() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = 0.8;
+      master.connect(ctx.destination);
+      sfxBus = ctx.createGain();
+      sfxBus.connect(master);
+      musicBus = ctx.createGain();
+      musicBus.gain.value = 0.18;
+      musicBus.connect(master);
+    }
+    if (ctx.state === "suspended") ctx.resume();
+    return true;
+  }
+
+  function blip(freq, t, dur, type, bus, peak, slideTo) {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g);
+    g.connect(bus);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  }
+
+  const SFX = {
+    pick: (t) => blip(880, t, 0.06, "square", sfxBus, 0.05),
+    confirm: (t) => { blip(523, t, 0.12, "triangle", sfxBus, 0.25); blip(784, t + 0.09, 0.16, "triangle", sfxBus, 0.25); },
+    deal: (t) => blip(320, t, 0.08, "triangle", sfxBus, 0.12, 520),
+    flip: (t) => blip(1200, t, 0.09, "sine", sfxBus, 0.12, 600),
+    win: (t) => [523, 659, 784, 1046].forEach((f, i) => blip(f, t + i * 0.09, 0.22, "triangle", sfxBus, 0.28)),
+    slam: (t) => blip(150, t, 0.2, "sawtooth", sfxBus, 0.3, 40),
+    error: (t) => blip(140, t, 0.22, "sawtooth", sfxBus, 0.18, 90),
+  };
+
+  function musicStep(t, s) {
+    const chord = PROG[Math.floor(s / 8) % PROG.length];
+    const n = chord[s % 3] + (s % 4 === 3 ? 12 : 0);
+    blip(hz(n), t, STEP * 0.9, "triangle", musicBus, 0.5);
+    if (s % 8 === 0) blip(hz(chord[0] - 24), t, STEP * 3.5, "sine", musicBus, 0.8);
+  }
+
+  function pump() {
+    while (nextTime < ctx.currentTime + 0.15) {
+      musicStep(nextTime, step);
+      nextTime += STEP;
+      step += 1;
+    }
+  }
+
+  return {
+    unlock() { return ensure(); },
+    play(name) {
+      if (!sfxOn || !ensure()) return;
+      SFX[name]?.(ctx.currentTime + 0.01);
+    },
+    setSfx(on) { sfxOn = !!on; },
+    setVolume(v) { if (ensure()) musicBus.gain.value = 0.18 * v; },
+    setMusic(on) {
+      musicOn = !!on;
+      if (!musicOn) { clearInterval(timer); timer = null; if (ctx) musicBus.gain.value = 0; return; }
+      if (!ensure()) return;
+      musicBus.gain.value = 0.18;
+      if (!timer) {
+        nextTime = ctx.currentTime + 0.05;
+        step = 0;
+        timer = setInterval(pump, 60);
+      }
+    },
+  };
+})();
+
+
+const CARDS = {"white": [{"id": "w001", "text": "Una maledizione di un Gitano."}, {"id": "w002", "text": "Un momento di silenzio."}, {"id": "w003", "text": "Un festival della salsiccia."}, {"id": "w004", "text": "Un poliziotto onesto che non ha niente da perdere."}, {"id": "w005", "text": "Carestia."}, {"id": "w006", "text": "Batteri Mangia-Carne."}, {"id": "w007", "text": "Serpenti volanti che fanno sesso."}, {"id": "w008", "text": "Non fregarsene un cazzo del Terzo Mondo."}, {"id": "w009", "text": "Sexting."}, {"id": "w010", "text": "Benny Benassi."}, {"id": "w011", "text": "Pornostar."}, {"id": "w012", "text": "Stupro e Saccheggio."}, {"id": "w013", "text": "72 vergini."}, {"id": "w014", "text": "Sparatoria da auto in corsa."}, {"id": "w015", "text": "Un paradosso da viaggio nel tempo."}, {"id": "w016", "text": "Cucina autentica messicana."}, {"id": "w017", "text": "Gioielli da rapper."}, {"id": "w018", "text": "Consulente."}, {"id": "w019", "text": "Oberato dai debiti."}, {"id": "w020", "text": "Problemi col babbo."}, {"id": "w021", "text": "Avere l'approvazione di Lapo Elkan."}, {"id": "w022", "text": "Far cadere un lampadario sopra ai tuoi nemici e farsi sollevare dalla corda che lo sosteneva."}, {"id": "w023", "text": "L'Ex presidente George W. Bush."}, {"id": "w024", "text": "Nudità completa."}, {"id": "w025", "text": "Iniezioni ormonali."}, {"id": "w026", "text": "Covare un uovo."}, {"id": "w027", "text": "Spogliarsi e mettersi a guardare l'Albero Azzurro."}, {"id": "w028", "text": "Far finta di interessarsi."}, {"id": "w029", "text": "Ridicolizzarsi in pubblico."}, {"id": "w030", "text": "Scambiarsi le siringhe."}, {"id": "w031", "text": "Caccole."}, {"id": "w032", "text": "L'inevitabile morte termica dell'universo."}, {"id": "w033", "text": "Il miracolo della nascita."}, {"id": "w034", "text": "Il rapimento alieno."}, {"id": "w035", "text": "Tirarlo fuori."}, {"id": "w036", "text": "I privilegi dei bianchi."}, {"id": "w037", "text": "Compiti da moglie."}, {"id": "w038", "text": "La banda Bassotti."}, {"id": "w039", "text": "Deodorante AXE."}, {"id": "w040", "text": "Il sangue di Cristo."}, {"id": "w041", "text": "Orribili incidenti dovuti alla depilazione laser."}, {"id": "w042", "text": "BATMAN!!!"}, {"id": "w043", "text": "Agricoltura."}, {"id": "w044", "text": "Un robusto mongoloide."}, {"id": "w045", "text": "Selezione naturale."}, {"id": "w046", "text": "Aborti fatti con l'appendiabiti."}, {"id": "w047", "text": "Mangiarsi tutti i dolci prima dell'inizio della cena di beneficenza per i malati di AIDS."}, {"id": "w048", "text": "Le braccia di Michelle Obama."}, {"id": "w049", "text": "World of Warcraft."}, {"id": "w050", "text": "Andare in picchiata."}, {"id": "w051", "text": "Obesità."}, {"id": "w052", "text": "Un montaggio pallavolistico omoerotico."}, {"id": "w053", "text": "Tetano."}, {"id": "w054", "text": "Una dimostrazione di un accoppiamento."}, {"id": "w055", "text": "Torsione del testicolo."}, {"id": "w056", "text": "Cena a buffet per 5 euro."}, {"id": "w057", "text": "Pizza con la nutella."}, {"id": "w058", "text": "Gigi D'Alessio."}, {"id": "w059", "text": "Formaggio piccante."}, {"id": "w060", "text": "Attacchi da Velociraptor."}, {"id": "w061", "text": "Togliersi la maglietta."}, {"id": "w062", "text": "Smegma."}, {"id": "w063", "text": "Alcolismo."}, {"id": "w064", "text": "Un uomo di mezza eta' con un paio di pattini in linea."}, {"id": "w065", "text": "Lo sguardo fisso di una Winx."}, {"id": "w066", "text": "Abbuffarsi e vomitare."}, {"id": "w067", "text": "Lecca-Lecca giganti."}, {"id": "w068", "text": "Disgusto di sé."}, {"id": "w069", "text": "Bambini al guinzaglio."}, {"id": "w070", "text": "Preliminari meschini."}, {"id": "w071", "text": "La sacra Bibbia."}, {"id": "w072", "text": "Porno in un sotterraneo tedesco."}, {"id": "w073", "text": "Essere in fiamme."}, {"id": "w074", "text": "Gravidanza in età adolescenziale."}, {"id": "w075", "text": "Gandhi."}, {"id": "w076", "text": "Lasciare un messaggio imbarazzante in segreteria."}, {"id": "w077", "text": "Montanti."}, {"id": "w078", "text": "Agente del servizio clienti."}, {"id": "w079", "text": "Un'erezione che dura più di quattro ore."}, {"id": "w080", "text": "I miei genitali."}, {"id": "w081", "text": "Rimorchiare ragazze all'ospedale dopo un aborto."}, {"id": "w082", "text": "Scienza."}, {"id": "w083", "text": "Sesso orale non ricambiato."}, {"id": "w084", "text": "Uccelli incapaci di volare."}, {"id": "w085", "text": "Una buona sniffata."}, {"id": "w086", "text": "Tortura cinese."}, {"id": "w087", "text": "Una colazione bilanciata."}, {"id": "w088", "text": "Scuole gestite da suore."}, {"id": "w089", "text": "Rubare veramente una caramella ad un bambino."}, {"id": "w090", "text": "La fondazione Make-A-Wish."}, {"id": "w091", "text": "Una grattata di culo clandestina."}, {"id": "w092", "text": "Post-it passivi aggressivi."}, {"id": "w093", "text": "La squadra di ginnastica artistica cinese."}, {"id": "w094", "text": "Passare a Vodafone."}, {"id": "w095", "text": "Fare solo un pochino di pipì."}, {"id": "w096", "text": "Video di Barbara D'Urso in lacrime mentre ascolta una storia triste."}, {"id": "w097", "text": "Polluzione notturna."}, {"id": "w098", "text": "Gli ebrei."}, {"id": "w099", "text": "Le mie tette."}, {"id": "w100", "text": "Cosce poderose."}, {"id": "w101", "text": "Fare I'occhioIino a persone anziane."}, {"id": "w102", "text": "Mr. Muscolo, giusto dietro di te."}, {"id": "w103", "text": "Una gentile carezza nell'interno della coscia."}, {"id": "w104", "text": "Tensione sessuale."}, {"id": "w105", "text": "Il frutto proibito."}, {"id": "w106", "text": "Skeletor."}, {"id": "w107", "text": "KiteKat."}, {"id": "w108", "text": "Essere ricco."}, {"id": "w109", "text": "Dolce, dolce vendetta."}, {"id": "w110", "text": "Popolo delle Libertà."}, {"id": "w111", "text": "Centauri."}, {"id": "w112", "text": "Un'antiIope che soffre di flatulenza."}, {"id": "w113", "text": "Natalie Portman."}, {"id": "w114", "text": "Toccare una tetta senza dare nell'occhio."}, {"id": "w115", "text": "Piloti Kamikaze."}, {"id": "w116", "text": "Sean Connery."}, {"id": "w117", "text": "Obbiettivi politici degli omosessuali."}, {"id": "w118", "text": "Un operoso cinese."}, {"id": "w119", "text": "Un falco con un cappuccio in testa."}, {"id": "w120", "text": "Chierichetti."}, {"id": "w121", "text": "Pac--Man."}, {"id": "w122", "text": "Diventare così arrabbiati da farsi venire un'erezione."}, {"id": "w123", "text": "Campioni gratuiti."}, {"id": "w124", "text": "Un gran rumore per nulla."}, {"id": "w125", "text": "Fare la cosa giusta."}, {"id": "w126", "text": "I patti Lateranensi."}, {"id": "w127", "text": "Allattamento."}, {"id": "w128", "text": "La pace nel mondo."}, {"id": "w129", "text": "RoboCop."}, {"id": "w130", "text": "Faccia tosta."}, {"id": "w131", "text": "Justin Bieber."}, {"id": "w132", "text": "Oompa-Loompa."}, {"id": "w133", "text": "Gorgheggi in momenti inappropriati."}, {"id": "w134", "text": "Pubertà."}, {"id": "w135", "text": "Fantasmi."}, {"id": "w136", "text": "Una spagnola non simmetrica."}, {"id": "w137", "text": "Mani vigorose da jazzista."}, {"id": "w138", "text": "Ditalini."}, {"id": "w139", "text": "Bruno Vespa che si impiglia con lo scroto in un gancio per le tende."}, {"id": "w140", "text": "Polaretti."}, {"id": "w141", "text": "Violenza della polizia."}, {"id": "w142", "text": "Totò Riina."}, {"id": "w143", "text": "Preadolescente."}, {"id": "w144", "text": "Scalpare."}, {"id": "w145", "text": "Mascherare una risata quando vengono menzionati gli Hutu e i Tutsi."}, {"id": "w146", "text": "Twittare."}, {"id": "w147", "text": "Darth Fenner."}, {"id": "w148", "text": "Una pugnetta triste."}, {"id": "w149", "text": "Esattamente quello che ti aspetti."}, {"id": "w150", "text": "Aspettarsi un rutto e invece vomitare sul pavimento."}, {"id": "w151", "text": "Psicofarmaci."}, {"id": "w152", "text": "Cellule staminali embrionali."}, {"id": "w153", "text": "Un succulento seno."}, {"id": "w154", "text": "Sesso tra panda."}, {"id": "w155", "text": "Una Iobotomia fatta con un punteruolo."}, {"id": "w156", "text": "Tom Cruise."}, {"id": "w157", "text": "Herpes labiale."}, {"id": "w158", "text": "Capodogli."}, {"id": "w159", "text": "Barboni."}, {"id": "w160", "text": "Petting duro."}, {"id": "w161", "text": "Incesto."}, {"id": "w162", "text": "Pac-Man che trangugia sperma."}, {"id": "w163", "text": "Un mimo che ha un infarto."}, {"id": "w164", "text": "Hulk Hogan."}, {"id": "w165", "text": "Dio."}, {"id": "w166", "text": "Esfoliarsi la pelle sotto i rotoli di grasso."}, {"id": "w167", "text": "Doccia di piscio."}, {"id": "w168", "text": "Emozioni."}, {"id": "w169", "text": "Leccare cose per rivendicarle come proprie."}, {"id": "w170", "text": "Birra Moretti."}, {"id": "w171", "text": "La placenta."}, {"id": "w172", "text": "Combustione umana spontanea."}, {"id": "w173", "text": "Scopamici."}, {"id": "w174", "text": "Dipingere con le dita."}, {"id": "w175", "text": "L'odore delle persone vecchie."}, {"id": "w176", "text": "Avere soltanto un pollo di gomma con una carrucola in mezzo."}, {"id": "w177", "text": "I miei demoni interiori."}, {"id": "w178", "text": "Un Liquidator pieno di piscio di gatto."}, {"id": "w179", "text": "Giuseppe Mazzini."}, {"id": "w180", "text": "Coccolarsi."}, {"id": "w181", "text": "Rosso relativo."}, {"id": "w182", "text": "Combattimenti tra galli."}, {"id": "w183", "text": "Fuoco amico."}, {"id": "w184", "text": "Ronald Reagan."}, {"id": "w185", "text": "Un compleanno deludente."}, {"id": "w186", "text": "Una sfacciata donna di colore."}, {"id": "w187", "text": "Ragazzini che partecipano alle olimpiadi della matematica."}, {"id": "w188", "text": "Un minuscolo cavallo."}, {"id": "w189", "text": "Diego Abatantuono."}, {"id": "w190", "text": "Cavalcare al tramonto."}, {"id": "w191", "text": "Un colpo di scena degno di M. Night Shyamalan."}, {"id": "w192", "text": "Dredlock."}, {"id": "w193", "text": "Distruzione reciproca."}, {"id": "w194", "text": "Pedofili."}, {"id": "w195", "text": "Lievito."}, {"id": "w196", "text": "Saccheggiare tombe."}, {"id": "w197", "text": "Mangiare I'ultimo bisonte."}, {"id": "w198", "text": "Catapulte."}, {"id": "w199", "text": "Persone povere."}, {"id": "w200", "text": "Il nome della rosa."}, {"id": "w201", "text": "Hustle — I signori della truffa."}, {"id": "w202", "text": "La forza."}, {"id": "w203", "text": "Pulirle il culo."}, {"id": "w204", "text": "Creazionismo."}, {"id": "w205", "text": "Bocca larga."}, {"id": "w206", "text": "AIDS."}, {"id": "w207", "text": "Foto di tette."}, {"id": "w208", "text": "Il superuomo."}, {"id": "w209", "text": "Sarah Palin."}, {"id": "w210", "text": "Giochi senza frontiere."}, {"id": "w211", "text": "Sballarsi."}, {"id": "w212", "text": "Scientology."}, {"id": "w213", "text": "L'invidia per il pene."}, {"id": "w214", "text": "Curare l'omosessualità pregando."}, {"id": "w215", "text": "Spassarsela."}, {"id": "w216", "text": "Due nani che stanno cagando in un secchio."}, {"id": "w217", "text": "Il KKK."}, {"id": "w218", "text": "Gengis Khan."}, {"id": "w219", "text": "Cristalli di metanfetamina."}, {"id": "w220", "text": "Servi della gleba. Il pericolo degli sconosciuti."}, {"id": "w221", "text": "Bop it"}, {"id": "w222", "text": "La carriera di attore di Shaquille O'NeaI."}, {"id": "w223", "text": "Baldanzoso."}, {"id": "w224", "text": "La giustizia spicciola."}, {"id": "w225", "text": "Un bukkake censurato."}, {"id": "w226", "text": "Una vita di tristezza."}, {"id": "w227", "text": "Razzismo."}, {"id": "w228", "text": "Lancio dei nani."}, {"id": "w229", "text": "Sole e arcobaleni."}, {"id": "w230", "text": "Una scimmia che fuma un sigaro."}, {"id": "w231", "text": "Inondazione improvvisa."}, {"id": "w232", "text": "Il testicolo mancante di Lance Armstrong."}, {"id": "w233", "text": "Conati di vomito."}, {"id": "w234", "text": "I terroristi."}, {"id": "w235", "text": "Britney Spears a 55 anni."}, {"id": "w236", "text": "Atteggiamento."}, {"id": "w237", "text": "Entrare a canzone iniziata e mettersi a ballare selvaggiamente."}, {"id": "w238", "text": "Lebbra."}, {"id": "w239", "text": "Gloryholes."}, {"id": "w240", "text": "Lame nei capezzoli."}, {"id": "w241", "text": "Il cuore di un bambino."}, {"id": "w242", "text": "Cuccioli!"}, {"id": "w243", "text": "Svegliarsi mezzo nudo nel parcheggio di un McDonald."}, {"id": "w244", "text": "Dighe dentali."}, {"id": "w245", "text": "La vagina di Oriana Fallaci."}, {"id": "w246", "text": "Il perineo."}, {"id": "w247", "text": "Ascolto interessato."}, {"id": "w248", "text": "Pulizia etnica."}, {"id": "w249", "text": "Il brutto anatroccolo."}, {"id": "w250", "text": "La mano invisibile."}, {"id": "w251", "text": "Aspettare fino al matrimonio."}, {"id": "w252", "text": "Stupidita' incomprensibile."}, {"id": "w253", "text": "Euphoria di Calvin Klein"}, {"id": "w254", "text": "Riciclare regali."}, {"id": "w255", "text": "Disfunzione erettile."}, {"id": "w256", "text": "Sovracompensazione."}, {"id": "w257", "text": "Autocannibalismo."}, {"id": "w258", "text": "La mia collezione di giocattoli erotici high-tech."}, {"id": "w259", "text": "Il Papa."}, {"id": "w260", "text": "Le persone non di colore."}, {"id": "w261", "text": "Porno Tentacolari."}, {"id": "w262", "text": "Giuliano Ferrara che vomita convulsamente mentre una nidiata di granchi-ragno si schiude nel suo cervello e fuoriesce dai suoi condotti lacrimali."}, {"id": "w263", "text": "Troppo gel per capelli."}, {"id": "w264", "text": "Seppuku."}, {"id": "w265", "text": "Ballare su ghiaccio con persone dello stesso sesso."}, {"id": "w266", "text": "Barare alle Paraolimpiadi."}, {"id": "w267", "text": "Carisma."}, {"id": "w268", "text": "Keanu Reeves."}, {"id": "w269", "text": "Dario Argento."}, {"id": "w270", "text": "Nickelback."}, {"id": "w271", "text": "Una rapida occhiata."}, {"id": "w272", "text": "Cagarsi l'anima."}, {"id": "w273", "text": "Bambini con il cancro al culo."}, {"id": "w274", "text": "Una sorpresa salata."}, {"id": "w275", "text": "Il sud."}, {"id": "w276", "text": "La violazione dei nostri diritti umani basilari."}, {"id": "w277", "text": "DEVI COSTRUIRE ALTRI PILONI."}, {"id": "w278", "text": "Stupro su appuntamento."}, {"id": "w279", "text": "Essere fantastici."}, {"id": "w280", "text": "Necrofilia."}, {"id": "w281", "text": "Super Quark."}, {"id": "w282", "text": "Le persone di colore."}, {"id": "w283", "text": "Codice cavalleresco."}, {"id": "w284", "text": "Lunchables."}, {"id": "w285", "text": "Stronze."}, {"id": "w286", "text": "Le persone totalmente handicappate."}, {"id": "w287", "text": "Orfani commoventi."}, {"id": "w288", "text": "Hitler."}, {"id": "w289", "text": "Cacca che fa bruciare il culo."}, {"id": "w290", "text": "Un altro dannato film sui vampiri."}, {"id": "w291", "text": "Molle Slinky attorcigliate."}, {"id": "w292", "text": "Il vero significato del Natale."}, {"id": "w293", "text": "Estrogeni."}, {"id": "w294", "text": "Un'aspra marmellata per colazione."}, {"id": "w295", "text": "Quella cosa che dà la scossa agli addominali."}, {"id": "w296", "text": "Espellere un calcolo renale."}, {"id": "w297", "text": "Un buco del culo sbiancato."}, {"id": "w298", "text": "Michael Jackson."}, {"id": "w299", "text": "Impianti cibernetici."}, {"id": "w300", "text": "Ragazzi che non telefonano."}, {"id": "w301", "text": "Untori."}, {"id": "w302", "text": "Masturbazione."}, {"id": "w303", "text": "Allusione sul ceto sociale."}, {"id": "w304", "text": "Flato vaginale."}, {"id": "w305", "text": "Nascondere un'erezione."}, {"id": "w306", "text": "Intimo commestibile."}, {"id": "w307", "text": "Viagra."}, {"id": "w308", "text": "Zuppa che è troppo calda."}, {"id": "w309", "text": "Maometto."}, {"id": "w310", "text": "Sesso a sorpresa!"}, {"id": "w311", "text": "Mac."}, {"id": "w312", "text": "Bere da solo."}, {"id": "w313", "text": "Dita a forma di cazzo."}, {"id": "w314", "text": "Ferite da arma da taglio multiple."}, {"id": "w315", "text": "Farsela addosso."}, {"id": "w316", "text": "Abusi infantili."}, {"id": "w317", "text": "Palline anali."}, {"id": "w318", "text": "Morti civili."}, {"id": "w319", "text": "Salto della quaglia."}, {"id": "w320", "text": "Christian De Sica."}, {"id": "w321", "text": "Carne di cavallo."}, {"id": "w322", "text": "Un cappello davvero alla moda."}, {"id": "w323", "text": "Kim Jong-il."}, {"id": "w324", "text": "Peli pubici sul bordo del cesso."}, {"id": "w325", "text": "Testimoni di Geova."}, {"id": "w326", "text": "Discriminazione politica."}, {"id": "w327", "text": "Farlo dall'entrata posteriore."}, {"id": "w328", "text": "Imboccare Platinette."}, {"id": "w329", "text": "Insegnare a un robot ad amare."}, {"id": "w330", "text": "Un mare di guai."}, {"id": "w331", "text": "Un mulino a vento pieno di cadaveri."}, {"id": "w332", "text": "La tigre dei KeIIogg's."}, {"id": "w333", "text": "Indossare la biancheria al contrario per evitare di lavarla."}, {"id": "w334", "text": "Un raggio della morte."}, {"id": "w335", "text": "Il soffitto di vetro."}, {"id": "w336", "text": "Un frigorifero pieno di organi."}, {"id": "w337", "text": "Il sogno americano."}, {"id": "w338", "text": "Bere un barile di birra a testa in giù."}, {"id": "w339", "text": "Quando scoreggi ma ti esce anche una sgommata."}, {"id": "w340", "text": "Rimangiarsi quello che si è detto."}, {"id": "w341", "text": "Neonati morti."}, {"id": "w342", "text": "Prepuzio."}, {"id": "w343", "text": "Assoli di Sassofoni."}, {"id": "w344", "text": "Americani."}, {"id": "w345", "text": "Un feto."}, {"id": "w346", "text": "Sparare fucilate al cielo mentre stai penetrando fino alle palle un cinghiale urlante."}, {"id": "w347", "text": "Giorgio Napolitano."}, {"id": "w348", "text": "Mutilati."}, {"id": "w349", "text": "Eugenetica."}, {"id": "w350", "text": "La mia situazione sentimentale."}, {"id": "w351", "text": "Christopher Walken."}, {"id": "w352", "text": "Api?"}, {"id": "w353", "text": "Harry Potter erotica."}, {"id": "w354", "text": "Scuole Superiori."}, {"id": "w355", "text": "Sbronzarsi di collutorio."}, {"id": "w356", "text": "Nazisti."}, {"id": "w357", "text": "1 kg di eroina Messicana di scarsa qualità."}, {"id": "w358", "text": "Stephen Hawking che parla sporco."}, {"id": "w359", "text": "Genitori morti."}, {"id": "w360", "text": "Permanenza degli oggetti nella sviluppo cognitivo."}, {"id": "w361", "text": "Pollici opponibili."}, {"id": "w362", "text": "Test di intelligenza con domande razziste."}, {"id": "w363", "text": "Parlare a vanvera."}, {"id": "w364", "text": "Motoseghe al posto delle mani."}, {"id": "w365", "text": "Nicolas Cage."}, {"id": "w366", "text": "Una sfilata di bellezza per bambini."}, {"id": "w367", "text": "Esplosioni."}, {"id": "w368", "text": "Sniffare colla."}, {"id": "w369", "text": "Bruno Vespa molestato da uno stormo di avvoltoi."}, {"id": "w370", "text": "Repressione."}, {"id": "w371", "text": "Rufis."}, {"id": "w372", "text": "La mia vagina."}, {"id": "w373", "text": "Pantaloni da cowboy senza sedere."}, {"id": "w374", "text": "Psyco."}, {"id": "w375", "text": "Dare il 110\\%."}, {"id": "w376", "text": "Sua altezza reale, regina Elisabetta ll."}, {"id": "w377", "text": "I Rhapsody of Fire."}, {"id": "w378", "text": "Essere tenuto in disparte."}, {"id": "w379", "text": "Goblin."}, {"id": "w380", "text": "Speranza."}, {"id": "w381", "text": "Martin Luther King."}, {"id": "w382", "text": "Un micropene."}, {"id": "w383", "text": "La mia anima."}, {"id": "w384", "text": "Un'orgia."}, {"id": "w385", "text": "Vichinghi."}, {"id": "w386", "text": "Persone eccitanti."}, {"id": "w387", "text": "Seduzione."}, {"id": "w388", "text": "Il complesso di Edipo."}, {"id": "w389", "text": "Oche."}, {"id": "w390", "text": "Riscaldamento globale."}, {"id": "w391", "text": "Musica New Age."}, {"id": "w392", "text": "Scaldamani tascabili."}, {"id": "w393", "text": "Fare il labbrino."}, {"id": "w394", "text": "Omicidio mediante veicolo a motore."}, {"id": "w395", "text": "Suffragio femminile."}, {"id": "w396", "text": "Un profilattico difettoso."}, {"id": "w397", "text": "Forum."}, {"id": "w398", "text": "Bambini africani."}, {"id": "w399", "text": "Massacro di Utoya in Norvegia."}, {"id": "w400", "text": "Barack Obama."}, {"id": "w401", "text": "Asiatici che non sono bravi in matematica."}, {"id": "w402", "text": "Anziani uomini giapponesi."}, {"id": "w403", "text": "Scambiarsi battute divertenti."}, {"id": "w404", "text": "Coppie omosessuali."}, {"id": "w405", "text": "Dividere le acque del Mar Rosso."}, {"id": "w406", "text": "Arnold Schwarzenegger."}, {"id": "w407", "text": "Pompino alla guida."}, {"id": "w408", "text": "Addominali spettacolari."}, {"id": "w409", "text": "Panettone."}, {"id": "w410", "text": "Un leone depresso."}, {"id": "w411", "text": "Un sacchetto di fagioli magici."}, {"id": "w412", "text": "Scelte di vita sbagliate."}, {"id": "w413", "text": "La mia vita sessuale."}, {"id": "w414", "text": "Auschwitz."}, {"id": "w415", "text": "Una tartaruga alligatore che ti sta mordendo la punta del pene."}, {"id": "w416", "text": "Una detonazione termonucleare."}, {"id": "w417", "text": "Il clitoride."}, {"id": "w418", "text": "II Big Bang."}, {"id": "w419", "text": "Mine antiuomo."}, {"id": "w420", "text": "Amici che si mangiano tutti i salatini."}, {"id": "w421", "text": "Capre che si stanno mangiando lattine."}, {"id": "w422", "text": "Lo Schiaccianoci: La danza della Fata Cofanetto."}, {"id": "w423", "text": "Farsi una sega in una piscina di lacrime di bambini."}, {"id": "w424", "text": "Flauto a pelle."}, {"id": "w425", "text": "Il mio momento."}, {"id": "w426", "text": "La metropolitana."}, {"id": "w427", "text": "Battute fuori luogo sull'olocausto."}, {"id": "w428", "text": "Un mare di guai."}, {"id": "w429", "text": "Fantasie di un taglialegna."}, {"id": "w430", "text": "Voce di Morgan Freeman."}, {"id": "w431", "text": "Donne nelle pubblicità di yogurt."}, {"id": "w432", "text": "Metodo naturale di allungamento del pene."}, {"id": "w433", "text": "Essere un fottuto stregone."}, {"id": "w434", "text": "Piercing nei genitali."}, {"id": "w435", "text": "Travestiti passabili"}, {"id": "w436", "text": "Combattimenti sexy con i cuscini."}, {"id": "w437", "text": "Palle."}, {"id": "w438", "text": "Nonna."}, {"id": "w439", "text": "Attrito."}, {"id": "w440", "text": "Rompicoglioni."}, {"id": "w441", "text": "Scoreggiare e andarsene via."}, {"id": "w442", "text": "Essere uno stronzo con i bambini."}, {"id": "w443", "text": "Installare, in casa, trappole esplosive per ostacolare i ladri."}, {"id": "w444", "text": "Sistema Oasi Tecnologica del Riposo materassi Eminflex."}, {"id": "w445", "text": "Morire."}, {"id": "w446", "text": "L'uragano Katrina."}, {"id": "w447", "text": "I gay."}, {"id": "w448", "text": "La follia di un uomo."}, {"id": "w449", "text": "Uomini."}, {"id": "w450", "text": "Gli Amish."}, {"id": "w451", "text": "Uova di pterodattilo."}, {"id": "w452", "text": "Esercizi di “costruzione del gruppo”."}, {"id": "w453", "text": "Un tumore al cervello."}, {"id": "w454", "text": "Carte contro l'umanità."}, {"id": "w455", "text": "Aver paura di se stesso."}, {"id": "w456", "text": "Lady Gaga"}, {"id": "w457", "text": "L'uomo del latte."}, {"id": "w458", "text": "Essere sboccati."}, {"id": "w459", "text": "Mestruazioni."}], "black": [{"id": "b001", "text": "La nuova norma sulla sicurezza ora proibisce ____ sugli aerei.", "blanks": 1}, {"id": "b002", "text": "È un peccato che i ragazzini al giorno d'oggi partecipino a ____", "blanks": 1}, {"id": "b003", "text": "Fra 1.000 anni, quando le banconote saranno soltanto un ricordo lontano, ____ sarà il nostro denaro.", "blanks": 1}, {"id": "b004", "text": "La lega serie A ha vietato ____ poiché dà un vantaggio ingiusto ai giocatori.", "blanks": 1}, {"id": "b005", "text": "Qual è il vizio segreto di Batman? ____", "blanks": 1}, {"id": "b006", "text": "Il prossimo romanzo di J.K.Rowling. Harry Potter e la camera dei ____", "blanks": 1}, {"id": "b007", "text": "Si, ho ucciso ____ Ti domandi come? ____", "blanks": 2}, {"id": "b008", "text": "Prof. mi dispiace ma non ho potuto finire i compiti per colpa di ____", "blanks": 1}, {"id": "b009", "text": "E il premio Oscar per ____ va a ____", "blanks": 2}, {"id": "b010", "text": "Per il mio prossimo numero tirerò fuori ____ da ____", "blanks": 2}, {"id": "b011", "text": "____ + ____ = ____", "blanks": 3}, {"id": "b012", "text": "Cosa ho portato dal Messico? ____", "blanks": 1}, {"id": "b013", "text": "____? C'è un app per quello.", "blanks": 1}, {"id": "b014", "text": "Passo 1: ____ Passo 2: ____ Passo 3: Guadagno!", "blanks": 2}, {"id": "b015", "text": "____ Scommetto che non ne desideri soltanto uno!", "blanks": 1}, {"id": "b016", "text": "Qual è il mio antidroga? ____", "blanks": 1}, {"id": "b017", "text": "Mentre gli USA e la Russia gareggiavano per la conquista della Luna, il Messico ha investito milioni di pesos in ____", "blanks": 1}, {"id": "b018", "text": "Nel nuovo film della Disney, Hannah Montana si scontra per la prima volta contro ____", "blanks": 1}, {"id": "b019", "text": "Qual è il mio potere segreto? ____", "blanks": 1}, {"id": "b020", "text": "Qual è la nuova dieta del momento? ____", "blanks": 1}, {"id": "b021", "text": "Cosa si mangia Vin Diesel per cena? ____", "blanks": 1}, {"id": "b022", "text": "Quando il faraone rimase impassibile, Mosè scateno la piaga ____", "blanks": 1}, {"id": "b023", "text": "Come faccio a mantenere la mia attuale relazione? ____", "blanks": 1}, {"id": "b024", "text": "Qual è la cosa più incrostata? ____", "blanks": 1}, {"id": "b025", "text": "Mentre ero sotto gli effetti di acidi, ____ si trasformò in ____", "blanks": 2}, {"id": "b026", "text": "Nel carcere di Los Angeles le voci dicono che puoi scambiare 200 sigarette per ____", "blanks": 1}, {"id": "b027", "text": "Dopo il terremoto Sean Penn portò ____ alle persone di Haiti.", "blanks": 1}, {"id": "b028", "text": "Invece del carbone la Befana ora porta ai bambini cattivi ____", "blanks": 1}, {"id": "b029", "text": "La vita degli indiani d'America cambiò per sempre quando gli uomini bianchi Ii introdussero a ____", "blanks": 1}, {"id": "b030", "text": "Cosa usano gli insegnanti per ispirare al successo i ragazzi? ____", "blanks": 1}, {"id": "b031", "text": "Amaro Montenegro. Sapore di ____", "blanks": 1}, {"id": "b032", "text": "Negli ultimi istanti di vita di Michael Jackson lui pensò a ____", "blanks": 1}, {"id": "b033", "text": "Ai neri piace ____", "blanks": 1}, {"id": "b034", "text": "____ è una tendenza pericolosa che porta a ____", "blanks": 2}, {"id": "b035", "text": "Perché ho male ovunque? ____", "blanks": 1}, {"id": "b036", "text": "Una romantica cena a lume di candela è incompleta senza ____", "blanks": 1}, {"id": "b037", "text": "Cosa posso andare a prendere dal passato per convincere la gente di essere un potente stregone? ____", "blanks": 1}, {"id": "b038", "text": "Sono Valerio Staffelli e sono qui per parlavi di ____", "blanks": 1}, {"id": "b039", "text": "La gita scolastica fu completamente rovinata da ____", "blanks": 1}, {"id": "b040", "text": "Qual è il miglior amico di una ragazza? ____", "blanks": 1}, {"id": "b041", "text": "Cara TopGirl, ho difficoltà con ____ e vorrei qualche consiglio.", "blanks": 1}, {"id": "b042", "text": "Quando sarò il capo del governo creerò il Ministero del ____", "blanks": 1}, {"id": "b043", "text": "Cosa mi stanno nascondendo i miei genitori? ____", "blanks": 1}, {"id": "b044", "text": "Cosa non fallisce mai nel ravvivare una festa? ____", "blanks": 1}, {"id": "b045", "text": "In un mondo depredato da ____ il nostro unico conforto è ____", "blanks": 2}, {"id": "b046", "text": "Inventa un haiku. ____", "blanks": 1}, {"id": "b047", "text": "Nel nuovo film di Shyamalan Bruce Willis scopre che ____ era invece ____ per tutto il tempo.", "blanks": 2}, {"id": "b048", "text": "Cosa migliora con l'età? ____", "blanks": 1}, {"id": "b049", "text": "____ buono fino all'ultima goccia.", "blanks": 1}, {"id": "b050", "text": "Ho un sacco di problemi ma ____ non è fra questi.", "blanks": 1}, {"id": "b051", "text": "____ è una trappola!", "blanks": 1}, {"id": "b052", "text": "Il nuovo reality show di MTV presenterà otto celebrità sull'orlo dello sfinimento che vivranno con ____", "blanks": 1}, {"id": "b053", "text": "Cos'è che mia nonna troverebbe allarmante ma nello stesso tempo anche stranamente affascinante? ____", "blanks": 1}, {"id": "b054", "text": "Chi è il più emo? ____", "blanks": 1}, {"id": "b055", "text": "Non avevo veramente compreso ____ finché non incontrai ____", "blanks": 2}, {"id": "b056", "text": "Durante il sesso mi piace pensare a ____", "blanks": 1}, {"id": "b057", "text": "Cosa fece finire la mia passata relazione? ____", "blanks": 1}, {"id": "b058", "text": "Cos'è questo suono? ____", "blanks": 1}, {"id": "b059", "text": "____ Così è come voglio morire!", "blanks": 1}, {"id": "b060", "text": "Perché sono appiccicoso? ____", "blanks": 1}, {"id": "b061", "text": "Quale sarà il prossimo giocattolo dell'Happy Meal? ____", "blanks": 1}, {"id": "b062", "text": "Cosa sarà disponibile a volontà in paradiso? ____", "blanks": 1}, {"id": "b063", "text": "Non so con che armi sarà combattuta la terza guerra mondiale. Ma nella quarta si useranno ____", "blanks": 1}, {"id": "b064", "text": "Cosa ti permette di portarti a letto, con assoluta certezza, una ragazza? ____", "blanks": 1}, {"id": "b065", "text": "Voci dicono che il piatto preferito di Vladimir Putin è ____ ripieno di ____", "blanks": 2}, {"id": "b066", "text": "LA7D presenta ____ la storia di ____", "blanks": 2}, {"id": "b067", "text": "____: testato dai bambini, approvato dalle madri.", "blanks": 1}, {"id": "b068", "text": "Perché non riesco a dormire? ____", "blanks": 1}, {"id": "b069", "text": "Cos'è questo odore? ____", "blanks": 1}, {"id": "b070", "text": "Cosa aiuterebbe Monti a rilassarsi? ____", "blanks": 1}, {"id": "b071", "text": "Questo è come il mondo finirà, non con una esplosione ma con ____", "blanks": 1}, {"id": "b072", "text": "In arrivo a Broadway quest'anno, ____: il musical.", "blanks": 1}, {"id": "b073", "text": "Gli antropologi hanno recentemente scoperto un'antica tribù che venera ____", "blanks": 1}, {"id": "b074", "text": "Ma prima che la uccida Signor Bond le voglio mostrare ____", "blanks": 1}, {"id": "b075", "text": "Recenti studi hanno mostrato che topi di laboratorio impiegano il 50\\% in meno per uscire da un labirinto se sono stati esposti a ____", "blanks": 1}, {"id": "b076", "text": "Quale sarà la prossima coppia di supereroi? ____", "blanks": 1}, {"id": "b077", "text": "Prossimamente su Rai Sport 2: i mondiali di ____", "blanks": 1}, {"id": "b078", "text": "Quando sarò milionario erigerò una statua di 30 metri per commemorare ____", "blanks": 1}, {"id": "b079", "text": "Nel tentativo di attrarre nuove persone, il museo nazionale di Storia Naturale inaugurerà una mostra interattiva su ____", "blanks": 1}, {"id": "b080", "text": "Guerra! A cosa ci serve? ____", "blanks": 1}, {"id": "b081", "text": "Cosa mi crea flatulenze incontrollabili? ____", "blanks": 1}, {"id": "b082", "text": "Di cosa odorano le persone anziane? ____", "blanks": 1}, {"id": "b083", "text": "A cosa rinuncio per la quaresima? ____", "blanks": 1}, {"id": "b084", "text": "La medicina alternativa sta ora adottando i poteri curativi di ____", "blanks": 1}, {"id": "b085", "text": "Quale cosa l'Italia ha paracadutato ai bambini afghani? ____", "blanks": 1}, {"id": "b086", "text": "Cosa piace a Silvio Berlusconi? ____", "blanks": 1}, {"id": "b087", "text": "Durante il trascurato Periodo Marrone, Picasso ha prodotto centinai di quadri su ____", "blanks": 1}, {"id": "b088", "text": "Cosa non vuoi trovare nel tuo cibo cinese? ____", "blanks": 1}, {"id": "b089", "text": "Bevo per dimenticare ____", "blanks": 1}, {"id": "b090", "text": "____ Dammi un cinque fratello!", "blanks": 1}]};
+
+// Interfaccia da tavolo: logo, setup, partita locale (più persone e bot), impostazioni, animazioni.
+const app = document.getElementById("app");
+const MAX_HUMANS = 6;
+
+const FONTS = {
+  moderno: { label: "Moderno", css: '"Bricolage Grotesque", system-ui, sans-serif' },
+  classico: { label: "Classico", css: 'Fraunces, Georgia, serif' },
+  tecnico: { label: "Tecnico", css: '"IBM Plex Sans", system-ui, sans-serif' },
+  fumetto: { label: "Fumetto", css: '"Permanent Marker", cursive' },
+};
+const DEFAULT_SETTINGS = { theme: "system", font: "moderno", textScale: 1, cardScale: 1, music: false, musicVol: 0.6, sfx: true, motion: true };
+
+function loadSettings() {
+  try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("cah-settings") || "{}") }; }
+  catch (e) { return { ...DEFAULT_SETTINGS }; }
+}
+function saveSettings() {
+  try { localStorage.setItem("cah-settings", JSON.stringify(settings)); } catch (e) { /* memoria del browser non disponibile */ }
+}
+
+let settings = loadSettings();
+let unlocked = false;   // l'audio parte solo dopo un gesto dell'utente
+let game = null;
+let cfg = { names: ["Tu"], bots: 2, winScore: 5 };
+let viewer = null;      // chi sta guardando lo schermo in questo momento
+let lastViewer = null;
+let curtain = false;    // schermata "passa il telefono" da chiudere prima di vedere le carte
+let selected = [];      // ids delle carte scelte da chi guarda, in ordine di click
+let judgeSel = null;    // combinazione scelta dal Re, prima della conferma
+let judgeView = 0;
+let judgeMode = "browse";
+let judgeRound = -1;
+let dealPending = false;
+let slamPending = false;
+let enterPending = false;
+let wonRound = -1;
+let botTimer = null;
+let judgeTimer = null;
+let online = null;      // partita online: { code, you, state, offline, winScore } oppure null
+
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v;
+    else if (k === "style") n.setAttribute("style", v);
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else if (v !== undefined && v !== null && v !== false) n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid === null || kid === undefined || kid === false) continue;
+    n.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return n;
+};
+
+// ------------------------------------------------------------------ impostazioni
+
+function applySettings() {
+  const root = document.documentElement;
+  root.style.setProperty("--ts", settings.textScale);
+  root.style.setProperty("--cs", settings.cardScale);
+  root.style.setProperty("--card-font", FONTS[settings.font].css);
+  if (settings.theme === "system") root.removeAttribute("data-theme");
+  else root.setAttribute("data-theme", settings.theme);
+  document.body.classList.toggle("no-motion", !settings.motion);
+  document.body.classList.toggle("motion-on", settings.motion);
+  Sound.setSfx(settings.sfx);
+  Sound.setVolume(settings.musicVol);
+  Sound.setMusic(unlocked && settings.music);
+}
+
+function openSettings() {
+  const close = () => { bg.remove(); };
+  const set = (key, value) => { settings[key] = value; saveSettings(); applySettings(); rebuild(); };
+  const seg = (key, options) => el("div", { class: "seg" }, options.map(([v, label]) =>
+    el("button", { type: "button", "aria-pressed": String(settings[key] === v), onclick: () => set(key, v) }, label)));
+  const toggle = (key, label) => el("div", { class: "row" },
+    el("span", {}, label),
+    el("button", { class: "toggle", type: "button", "aria-pressed": String(!!settings[key]), onclick: () => set(key, !settings[key]) }, settings[key] ? "Attivo" : "Spento"));
+  const slider = (key, label, min, max, step, fmt) => el("div", { class: "row", style: "flex-direction:column;align-items:stretch" },
+    el("div", { class: "row" }, el("span", {}, label), el("span", { class: "status" }, fmt(settings[key]))),
+    el("input", { type: "range", min, max, step, value: settings[key], "aria-label": label,
+      oninput: (e) => { settings[key] = Number(e.target.value); applySettings(); saveSettings(); e.target.parentElement.querySelector(".status").textContent = fmt(settings[key]); } }));
+
+  const rebuild = () => {
+    sheet.replaceChildren(...buildSheetContent());
+  };
+  const buildSheetContent = () => [
+    el("div", { class: "row" }, el("h2", { style: "font-size:22px" }, "Impostazioni"),
+      el("button", { type: "button", class: "ghost", onclick: close }, "Chiudi")),
+    el("div", { class: "group" }, el("span", { class: "label" }, "Tema"),
+      seg("theme", [["system", "Sistema"], ["light", "Chiaro"], ["dark", "Scuro"]])),
+    el("div", { class: "group" }, el("span", { class: "label" }, "Font delle carte"),
+      el("div", { class: "fonts" }, Object.entries(FONTS).map(([k, f]) =>
+        el("button", { type: "button", style: `font-family:${f.css}`, "aria-pressed": String(settings.font === k), onclick: () => set("font", k) }, f.label)))),
+    el("div", { class: "group" }, el("span", { class: "label" }, "Dimensioni"),
+      slider("textScale", "Testo sulle carte", 0.8, 1.4, 0.05, (v) => `${Math.round(v * 100)}%`),
+      slider("cardScale", "Grandezza delle carte", 0.8, 1.3, 0.05, (v) => `${Math.round(v * 100)}%`)),
+    el("div", { class: "group" }, el("span", { class: "label" }, "Audio"),
+      toggle("music", "Musica di sottofondo"),
+      slider("musicVol", "Volume musica", 0, 1, 0.05, (v) => `${Math.round(v * 100)}%`),
+      toggle("sfx", "Effetti sonori")),
+    el("div", { class: "group" }, el("span", { class: "label" }, "Movimento"),
+      toggle("motion", "Animazioni")),
+    el("button", { type: "button", class: "ghost", onclick: () => { settings = { ...DEFAULT_SETTINGS }; saveSettings(); applySettings(); rebuild(); } }, "Ripristina predefiniti"),
+  ];
+
+  const sheet = el("div", { class: "sheet", role: "dialog", "aria-label": "Impostazioni" }, buildSheetContent());
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) close(); } }, sheet);
+  document.body.append(bg);
+}
+
+// ------------------------------------------------------------------ logo
+
+function logoNode(big = false) {
+  const svg = `<svg viewBox="0 0 120 96" aria-hidden="true">
+    <rect x="10" y="14" width="56" height="76" rx="9" fill="#111" transform="rotate(-10 38 52)"/>
+    <rect x="50" y="10" width="56" height="76" rx="9" fill="#fff" stroke="#111" stroke-width="3" transform="rotate(8 78 48)"/>
+    <circle cx="30" cy="36" r="5" fill="#c4502a" transform="rotate(-10 38 52)"/>
+    <text x="78" y="62" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="30" fill="#111" text-anchor="middle" transform="rotate(8 78 48)">?</text>
+  </svg>`;
+  const wrap = el("div", { class: "logo" + (big ? " big" : "") });
+  wrap.innerHTML = svg;
+  wrap.append(el("div", { class: "wordmark" },
+    el("span", {}, "Cards"),
+    el("span", { class: "acc" }, "Against"),
+    el("span", {}, "Humanity"),
+    el("i", {}, "EDIZIONE ITALIANA")));
+  return wrap;
+}
+
+// ------------------------------------------------------------------ setup
+
+function setup() {
+  game = null;
+  clearTimeout(botTimer); clearTimeout(judgeTimer);
+  const total = () => cfg.names.length + cfg.bots;
+  const hint = el("p", { class: "hidden-msg" });
+  const startBtn = el("button", { class: "primary", type: "button", onclick: start }, "Inizia la partita");
+
+  const refresh = () => {
+    const ok = total() >= 3;
+    startBtn.disabled = !ok;
+    hint.textContent = ok ? `${total()} giocatori in tutto (${cfg.names.length} ${cfg.names.length === 1 ? "persona" : "persone"}, ${cfg.bots} bot).`
+      : "Servono almeno 3 giocatori: aggiungi una persona o un bot.";
+  };
+
+  const nameRows = () => cfg.names.map((n, i) => el("div", { class: "nrow" },
+    el("input", { type: "text", value: n, maxlength: "16", placeholder: `Giocatore ${i + 1}`, "aria-label": `Nome giocatore ${i + 1}`,
+      oninput: (e) => { cfg.names[i] = e.target.value; refresh(); } }),
+    cfg.names.length > 1 ? el("button", { type: "button", class: "ghost", "aria-label": "Rimuovi", onclick: () => { cfg.names.splice(i, 1); setup(); } }, "✕") : null));
+
+  const botBtns = [0, 1, 2, 3].map((n) => el("button", {
+    type: "button", "aria-pressed": String(cfg.bots === n),
+    onclick: () => { cfg.bots = n; setup(); },
+  }, n === 0 ? "Nessuno" : `${n} bot`));
+  const winBtns = [3, 5, 8].map((n) => el("button", {
+    type: "button", "aria-pressed": String(cfg.winScore === n),
+    onclick: () => { cfg.winScore = n; setup(); },
+  }, `${n} punti`));
+
+  app.replaceChildren(
+    el("section", { class: "setup" },
+      logoNode(true),
+      el("p", { class: "hidden-msg" }, "Carte italiane. Gioca con amici sullo stesso telefono, o contro i bot."),
+      el("button", { type: "button", class: "primary", onclick: onlineMenu }, "🌐 Gioca online (stanza)"),
+      el("div", { class: "panel" },
+        el("span", { class: "label" }, `Giocatori (${cfg.names.length}/${MAX_HUMANS})`),
+        el("div", { class: "names" }, nameRows()),
+        cfg.names.length < MAX_HUMANS ? el("button", { type: "button", class: "ghost", onclick: () => { cfg.names.push(""); setup(); } }, "+ Aggiungi persona") : null,
+        el("span", { class: "label", style: "margin-top:6px" }, "Bot"),
+        el("div", { class: "seg" }, botBtns),
+        el("span", { class: "label", style: "margin-top:6px" }, "Vittoria"),
+        el("div", { class: "seg" }, winBtns),
+        hint,
+        startBtn,
+        el("button", { type: "button", class: "ghost", onclick: openSettings }, "⚙ Impostazioni"),
+      ),
+    ),
+  );
+  refresh();
+}
+
+function start() {
+  unlocked = true;
+  applySettings();
+  const names = cfg.names.map((n, i) => (n || "").trim().slice(0, 16) || `Giocatore ${i + 1}`);
+  const players = names.map((name, i) => ({ id: `h${i}`, name }));
+  for (let i = 1; i <= cfg.bots; i++) players.push({ id: `bot${i}`, name: `Bot ${i}`, isBot: true });
+  game = new Game(players, CARDS, { winScore: cfg.winScore });
+  selected = [];
+  judgeSel = null;
+  viewer = null;
+  lastViewer = null;
+  dealPending = true;
+  slamPending = true;
+  game.start();
+  Sound.play("deal");
+  step();
+}
+
+// ------------------------------------------------------------------ partita
+
+const readingMs = (n) => Math.min(60000, 15000 + 8000 * n);
+const humanIds = () => game.players.filter((p) => !p.isBot).map((p) => p.id);
+
+// Chi deve guardare lo schermo adesso: chi deve giocare, o il Re.
+function viewerFor() {
+  if (online) return online.you;
+  const humans = humanIds();
+  if (game.phase === "playing") {
+    return humans.find((id) => id !== game.judge.id && !game.submissions.has(id)) ?? humans[0];
+  }
+  return game.judge.isBot ? humans[0] : game.judge.id;
+}
+
+function step() {
+  clearTimeout(botTimer); clearTimeout(judgeTimer);
+  if (online) return render();   // online: il server decide tutto, la UI segue lo stato
+  if (!game) return;
+  if (game.phase === "playing") {
+    const botsPending = game.players.some((p) => p.isBot && p.id !== game.judge.id && !game.submissions.has(p.id));
+    if (botsPending) botTimer = setTimeout(() => { game.playBots(); step(); }, 650);
+  } else if (game.phase === "judging" && game.judge.isBot) {
+    judgeTimer = setTimeout(() => { game.judgeIfBot(); step(); }, readingMs(game.revealOrder.length));
+  }
+  render();
+}
+
+function humanPlay() {
+  if (selected.length !== game.currentBlack.blanks) return;
+  try {
+    game.play(viewer, selected);
+    selected = [];
+    Sound.play("confirm");
+  } catch (err) {
+    Sound.play("error");
+    render();
+    return;
+  }
+  step();
+}
+
+function humanConfirmJudge() {
+  if (judgeSel === null) return;
+  game.pick(viewer, judgeSel);
+  judgeSel = null;
+  Sound.play("confirm");
+  step();
+}
+
+function nextRound() {
+  game.nextRound();
+  selected = [];
+  judgeSel = null;
+  dealPending = true;
+  slamPending = true;
+  Sound.play("slam");
+  step();
+}
+
+function resetJudgeIfNewRound() {
+  if (judgeRound !== game.round) {
+    judgeRound = game.round;
+    judgeView = 0;
+    judgeMode = "browse";
+    judgeSel = null;
+  }
+}
+
+function previewWhites(s) {
+  const out = new Array(s.black.blanks).fill(null);
+  if (s.phase === "judging" && s.judgeId === viewer) {
+    const r = s.reveal[judgeView];
+    if (r) r.cards.forEach((c, i) => { out[i] = c.text; });
+  } else if (s.phase === "playing") {
+    selected.forEach((id, i) => { out[i] = game.text(id); });
+  }
+  return out;
+}
+
+function blackCard(s, whites, { canPlay, label, slam } = {}) {
+  const segs = fillSentence(s.black.text, whites);
+  const nodes = segs.map((x) => {
+    if (x.t === "text") return x.v;
+    if (x.t === "word") return el("span", { class: "word" }, x.v);
+    return el("span", { class: canPlay ? "slot lit" : "slot" }, "_____");
+  });
+  return el("div", { class: "black-wrap" },
+    el("div", { class: "black" + (slam ? " slam" : ""), role: "region", "aria-label": "Carta nera" },
+      el("div", { class: "text" }, ...nodes),
+      el("div", { class: "foot" }, label ?? (s.black.blanks > 1 ? `${s.black.blanks} risposte` : "1 risposta"))));
+}
+
+function confetti() {
+  const box = el("div", { class: "confetti", "aria-hidden": "true" });
+  const colors = ["#c4502a", "#2f7a4d", "#f6c445", "#3b7dd8", "#e95b8a", "#ffffff"];
+  for (let k = 0; k < 70; k++) {
+    const piece = el("i", {});
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[k % colors.length];
+    piece.style.animationDelay = `${Math.random() * 0.6}s`;
+    piece.style.setProperty("--dx", `${(Math.random() - 0.5) * 180}px`);
+    piece.style.setProperty("--rot", `${Math.random() * 720 - 360}deg`);
+    box.append(piece);
+  }
+  document.body.append(box);
+  setTimeout(() => box.remove(), 3300);
+}
+
+function render() {
+  if (online && !online.state?.game) return renderLobby();
+  if (!game) return setup();
+  const next = viewerFor();
+  if (next !== lastViewer) {
+    lastViewer = next;
+    viewer = next;
+    selected = [];
+    judgeSel = null;
+    curtain = !online && humanIds().length > 1;
+  }
+  viewer = next;
+  const s = game.publicState(viewer);
+  const isJudge = s.judgeId === viewer;
+  const me = s.players.find((p) => p.id === viewer);
+  const need = s.black ? s.black.blanks : 1;
+  const judging = s.phase === "judging" && isJudge;
+  if (judging) resetJudgeIfNewRound();
+  const showPrivate = !curtain;
+
+  const board = el("div", { class: "board", role: "list" },
+    s.players.map((p) => {
+      const won = s.phase === "roundEnd" && game.lastWinner === p.id && wonRound === s.round;
+      return el("div", {
+        class: ["seat", p.id === s.judgeId ? "judge" : "", p.hasPlayed ? "played" : "", won ? "won" : ""].join(" "),
+        role: "listitem",
+      },
+        el("div", { class: "name" }, p.name),
+        el("div", { class: "pts" }, p.score),
+        el("div", { class: "tag" }, p.id === s.judgeId ? "Re" : `${p.handSize} carte`));
+    }));
+
+  const topbar = el("div", { class: "topbar" },
+    logoNode(false),
+    el("div", { class: "tools" },
+      el("button", { type: "button", class: "ghost", "aria-label": "Impostazioni", onclick: openSettings }, "⚙"),
+      el("button", { type: "button", class: "ghost", onclick: exitGame }, "Esci")));
+
+  const roundline = el("div", { class: "roundline" },
+    el("span", { class: "status" }, el("strong", {}, `Round ${s.round}`), `  ·  Re: ${game.judge.name}`),
+    el("span", { class: "status" }, `Vittoria a ${game.opts.winScore} punti`));
+
+  let mainCard = null;
+  let note = null;
+  let actions = null;
+  let rail = null;
+  let railLabel = "";
+
+  if (s.phase === "over") {
+    const w = game.player(game.winner);
+    note = el("div", { class: "banner win" },
+      el("h2", {}, `Ha vinto ${w.name}`),
+      el("p", { class: "hidden-msg" }, `Punteggio finale: ${w.score} punti.`),
+      el("button", { class: "primary", type: "button", onclick: exitGame }, "Nuova partita"));
+  } else if (judging && showPrivate) {
+    const total = s.reveal.length;
+    if (judgeMode === "browse") {
+      const r = s.reveal[judgeView];
+      mainCard = blackCard(s, r.cards.map((c) => c.text), { label: `Combinazione ${judgeView + 1} di ${total}` });
+      note = el("p", { class: "hidden-msg" }, "Leggi tutte le combinazioni. Non sai chi le ha giocate.");
+      actions = el("div", { class: "judge-nav" },
+        el("button", { type: "button", disabled: judgeView === 0, onclick: () => { judgeView -= 1; render(); } }, "← Precedente"),
+        judgeView < total - 1
+          ? el("button", { class: "primary", type: "button", onclick: () => { judgeView += 1; Sound.play("flip"); render(); } }, "Successiva →")
+          : el("button", { class: "primary", type: "button", onclick: () => { judgeMode = "compare"; enterPending = true; Sound.play("flip"); render(); } }, "Vedi tutte e tre"));
+    } else {
+      note = el("p", { class: "hidden-msg" }, "Tutte le combinazioni. Scegli quella che ti ha fatto ridere di più.");
+      const enter = enterPending;
+      enterPending = false;
+      rail = el("div", { class: "minis", role: "group", "aria-label": "Combinazioni" },
+        s.reveal.map((r) => {
+          const text = fillSentence(s.black.text, r.cards.map((c) => c.text)).map((x) => (x.t === "slot" ? "_____" : x.v)).join("");
+          const node = el("button", {
+            class: "mini" + (judgeSel === r.index ? " sel" : "") + (enter ? " enter" : ""),
+            type: "button",
+            "aria-pressed": String(judgeSel === r.index),
+            onclick: () => { judgeSel = judgeSel === r.index ? null : r.index; Sound.play("pick"); render(); },
+          }, el("span", {}, text), el("span", { class: "foot" }, `Combinazione ${r.index + 1}`));
+          node.style.setProperty("--i", r.index);
+          return node;
+        }));
+      actions = el("div", { class: "judge-nav" },
+        el("button", { type: "button", onclick: () => { judgeMode = "browse"; judgeView = 0; render(); } }, "Rivedi una per una"),
+        el("button", { class: "primary", type: "button", disabled: judgeSel === null, onclick: humanConfirmJudge }, "Scegli questa risposta"));
+    }
+  } else if (s.phase === "judging") {
+    note = el("p", { class: "hidden-msg" }, `${game.judge.name} sta leggendo le risposte…`);
+  } else if (s.phase === "roundEnd") {
+    const last = game.lastWinner ? game.player(game.lastWinner) : null;
+    if (wonRound !== s.round && last) {
+      wonRound = s.round;
+      confetti();
+      Sound.play("win");
+    }
+    note = el("div", { class: "banner" },
+      el("p", { style: "margin:0" }, last ? `Round vinto da ${last.name}.` : ""),
+      el("button", { class: "primary", type: "button", onclick: nextRound }, "Prossimo round"));
+  } else if (isJudge) {
+    note = el("p", { class: "hidden-msg" }, "Sei il Re: aspetta che gli altri confermino.");
+  } else if (me.hasPlayed) {
+    note = el("p", { class: "hidden-msg" }, "Risposta confermata. Aspetta gli altri giocatori.");
+  }
+
+  // Carta nera in cima, tranne nella vista "tutte e tre" del Re.
+  if (!(judging && judgeMode === "compare" && showPrivate)) {
+    const canPlay = s.phase === "playing" && !isJudge && !me.hasPlayed && showPrivate;
+    const slam = slamPending;
+    slamPending = false;
+    mainCard = blackCard(s, previewWhites(s), { canPlay, slam });
+  }
+
+  // Mano: fila di default quando non stai giudicando e lo schermo è tuo.
+  if (s.phase !== "over" && !judging && me.hand && showPrivate) {
+    const canSelect = s.phase === "playing" && !isJudge && !me.hasPlayed;
+    railLabel = `La tua mano · ${me.hand.length} carte`;
+    const deal = dealPending;
+    dealPending = false;
+    rail = el("div", { class: "rail", role: "group", "aria-label": "La tua mano" },
+      me.hand.map((c, i) => {
+        const idx = selected.indexOf(c.id);
+        const full = selected.length >= need && idx < 0;
+        const node = el("button", {
+          class: "card" + (idx >= 0 ? " sel" : "") + (deal ? " deal" : ""),
+          type: "button",
+          disabled: !canSelect || full,
+          "aria-pressed": String(idx >= 0),
+          onclick: () => {
+            if (idx >= 0) selected.splice(idx, 1);
+            else selected.push(c.id);
+            Sound.play("pick");
+            render();
+          },
+        }, el("span", { class: "num" }, idx >= 0 ? String(idx + 1) : ""), el("span", { class: "txt" }, c.text));
+        node.style.setProperty("--i", i);
+        return node;
+      }));
+    if (canSelect) {
+      actions = el("div", { class: "actions" },
+        el("span", { class: "status" }, need > 1 ? `${selected.length}/${need} · nell'ordine di lettura` : `${selected.length}/${need}`),
+        el("button", { class: "primary", type: "button", disabled: selected.length !== need, onclick: humanPlay }, "Conferma e gioca"));
+    }
+  }
+
+  const railBlock = rail ? el("div", { class: "col", style: "gap:6px" },
+    railLabel ? el("span", { class: "label" }, railLabel) : null,
+    rail) : null;
+
+  const who = curtain ? el("div", { class: "curtain", role: "dialog", "aria-label": "Passa il telefono" },
+    el("div", { class: "box" },
+      el("span", { class: "label" }, "Passa il telefono"),
+      el("div", { class: "big" }, `Tocca per ${me.name}`),
+      el("p", { class: "hidden-msg" }, "Le tue carte sono nascoste finché non tocchi."),
+      el("button", { class: "primary", type: "button", onclick: () => { curtain = false; Sound.play("deal"); render(); } }, `Sono ${me.name}, mostra le carte`))) : null;
+
+  app.replaceChildren(
+    el("div", {},
+      topbar,
+      board,
+      roundline,
+      mainCard,
+      note,
+      actions,
+      railBlock,
+      who,
+    ),
+  );
+}
+
+// Primo gesto dell'utente: sblocca l'audio e applica le impostazioni sonore.
+document.addEventListener("pointerdown", () => {
+  if (unlocked) return;
+  unlocked = true;
+  Sound.unlock();
+  applySettings();
+}, { once: false });
+
+// ------------------------------------------------------------------ online
+// Il server tiene stanze, mani e turni. Qui c'è solo la connessione e una "partita"
+// che legge lo stato ricevuto, con gli stessi metodi del motore locale.
+
+const ONLINE_OK = /^https?:$/.test(location.protocol);
+const SESSION_KEY = "cah-online";
+let onlineSock = null;
+let onlineQueue = [];   // azioni in attesa che la connessione sia aperta
+let onlineWin = 5;
+let onlineName = "";
+let onlineError = "";
+
+const loadSession = () => {
+  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null"); } catch { return null; }
+};
+const saveSession = (v) => {
+  try {
+    if (v) sessionStorage.setItem(SESSION_KEY, JSON.stringify(v));
+    else sessionStorage.removeItem(SESSION_KEY);
+  } catch { /* nessuno storage: si perde solo la riconnessione */ }
+};
+
+function toast(msg) {
+  const t = el("div", { class: "toast", role: "status" }, msg);
+  document.body.append(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function netSend(obj) {
+  if (onlineSock && onlineSock.readyState === 1) onlineSock.send(JSON.stringify(obj));
+}
+
+function withSocket(fn) {
+  if (onlineSock && onlineSock.readyState === 1) return fn();
+  onlineQueue.push(fn);
+  if (!onlineSock || onlineSock.readyState > 1) openSocket();
+}
+
+function openSocket() {
+  if (!ONLINE_OK) {
+    onlineError = "Il gioco online funziona aprendo la pagina dal server (npm start).";
+    onlineQueue = [];
+    return;
+  }
+  let ws;
+  try {
+    ws = new WebSocket(`${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws`);
+  } catch {
+    onlineError = "Connessione online non disponibile qui.";
+    onlineQueue = [];
+    return;
+  }
+  onlineSock = ws;
+  ws.onopen = () => {
+    const q = onlineQueue;
+    onlineQueue = [];
+    q.forEach((f) => f());
+  };
+  ws.onmessage = (e) => {
+    try { onMessage(JSON.parse(e.data)); } catch { /* messaggio non valido: ignorato */ }
+  };
+  ws.onclose = () => {
+    if (onlineSock !== ws) return;
+    onlineSock = null;
+    const hadQueue = onlineQueue.length > 0;
+    onlineQueue = [];
+    if (online) {
+      online.offline = true;
+      render();
+      if (loadSession()) setTimeout(() => withSocket(resumeSaved), 2000);
+      return;
+    }
+    if (hadQueue) {
+      onlineError = "Non riesco a collegarmi al server. Il gioco online va aperto dal server (npm start).";
+      onlineMenu();
+    }
+  };
+}
+
+function resumeSaved() {
+  const s = loadSession();
+  if (s) netSend({ type: "resume", code: s.code, token: s.token });
+}
+
+function onMessage(m) {
+  if (m.type === "error") {
+    Sound.play("error");
+    if (m.message === "Sessione non valida") {
+      saveSession(null);
+      online = null;
+      game = null;
+      onlineError = "";
+      setup();
+      return;
+    }
+    if (online) toast(m.message);
+    else { onlineError = m.message; onlineMenu(); }
+    return;
+  }
+  if (m.type === "joined") {
+    online = { ...(online || {}), code: m.code, you: m.playerId, state: online?.state ?? null, offline: false, winScore: onlineWin };
+    saveSession({ code: m.code, token: m.token });
+    onlineError = "";
+    return;
+  }
+  if (m.type === "state") {
+    const prev = online?.state?.game ?? null;
+    online = { ...(online || {}), code: m.code, you: m.you, state: m, offline: false, winScore: onlineWin };
+    if (m.game) {
+      if (!prev || prev.round !== m.game.round) {
+        dealPending = true;
+        slamPending = true;
+        selected = [];
+        judgeSel = null;
+      }
+      game = makeAdapter(m);
+    } else {
+      game = null;
+    }
+    render();
+  }
+}
+
+// Stesso contratto del motore locale, ma i dati arrivano dal server e le azioni vanno via rete.
+function makeAdapter(m) {
+  const s = m.game;
+  const handOf = () => s.players.find((p) => p.id === m.you)?.hand ?? [];
+  return {
+    phase: s.phase,
+    round: s.round,
+    judge: s.players.find((p) => p.id === s.judgeId) ?? { id: s.judgeId, name: "?" },
+    players: s.players.map((p) => ({ ...p, isBot: false })),
+    currentBlack: s.black,
+    winner: s.winner,
+    lastWinner: s.lastWinner,
+    opts: { winScore: s.winScore },
+    publicState: () => s,
+    player: (id) => s.players.find((p) => p.id === id),
+    text: (id) => [...handOf(), ...(s.reveal || []).flatMap((r) => r.cards)].find((c) => c.id === id)?.text ?? "",
+    play: (_id, ids) => netSend({ type: "play", cards: ids }),
+    pick: (_id, index) => netSend({ type: "pick", index }),
+    nextRound: () => netSend({ type: "next" }),
+  };
+}
+
+function exitGame() {
+  if (online) {
+    netSend({ type: "leave" });
+    saveSession(null);
+    online = null;
+  }
+  clearTimeout(botTimer); clearTimeout(judgeTimer);
+  game = null;
+  setup();
+}
+
+function onlineMenu() {
+  game = null;
+  const nameIn = el("input", { type: "text", maxlength: "20", placeholder: "Il tuo nome", "aria-label": "Il tuo nome", value: onlineName,
+    oninput: (e) => { onlineName = e.target.value; } });
+  const codeIn = el("input", { type: "text", maxlength: "4", placeholder: "Codice", "aria-label": "Codice stanza",
+    style: "text-transform:uppercase", oninput: (e) => { e.target.value = e.target.value.toUpperCase(); } });
+  app.replaceChildren(
+    el("section", { class: "setup" },
+      logoNode(true),
+      el("p", { class: "hidden-msg" }, "Crea una stanza e condividi il codice: fino a 10 giocatori, ognuno sul proprio telefono."),
+      el("div", { class: "panel" },
+        el("span", { class: "label" }, "Il tuo nome"),
+        nameIn,
+        el("button", { type: "button", class: "primary", onclick: () => {
+          onlineError = ""; onlineName = nameIn.value.trim();
+          withSocket(() => netSend({ type: "create", name: onlineName }));
+        } }, "Crea una stanza"),
+        el("span", { class: "label", style: "margin-top:6px" }, "Entra con un codice"),
+        el("div", { class: "nrow" }, codeIn,
+          el("button", { type: "button", onclick: () => {
+            onlineError = ""; onlineName = nameIn.value.trim();
+            withSocket(() => netSend({ type: "join", code: codeIn.value.trim(), name: onlineName }));
+          } }, "Entra")),
+        onlineError ? el("p", { class: "hidden-msg err" }, onlineError) : null,
+        el("button", { type: "button", class: "ghost", onclick: () => { onlineError = ""; setup(); } }, "← Indietro"))));
+}
+
+function renderLobby() {
+  const st = online.state;
+  if (!st) {
+    app.replaceChildren(el("section", { class: "setup" }, logoNode(true),
+      el("p", { class: "hidden-msg" }, online.offline ? "Riconnessione in corso…" : "Mi collego alla stanza…")));
+    return;
+  }
+  const isHost = st.hostId === online.you;
+  const total = st.players.length;
+  const ok = total >= 3;
+  const seg = [3, 5, 8].map((n) => el("button", {
+    type: "button", "aria-pressed": String(onlineWin === n),
+    onclick: () => { onlineWin = n; render(); },
+  }, `${n} punti`));
+  app.replaceChildren(
+    el("section", { class: "setup" },
+      logoNode(true),
+      el("div", { class: "panel" },
+        el("span", { class: "label" }, "Codice della stanza"),
+        el("div", { class: "code" }, st.code),
+        el("button", { type: "button", class: "ghost", onclick: () => {
+          navigator.clipboard?.writeText(st.code).catch(() => {});
+          toast("Codice copiato");
+        } }, "Copia codice"),
+        el("span", { class: "label", style: "margin-top:6px" }, `Giocatori (${total}/10)`),
+        el("ul", { class: "plist" }, st.players.map((p) => el("li", {},
+          el("span", { class: "dot" + (p.connected ? " on" : "") }),
+          `${p.name}${p.id === st.hostId ? " · host" : ""}${p.id === online.you ? " (tu)" : ""}`))),
+        isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Vittoria") : null,
+        isHost ? el("div", { class: "seg" }, seg) : null,
+        isHost
+          ? el("button", { type: "button", class: "primary", disabled: !ok, onclick: () => netSend({ type: "start", winScore: onlineWin }) }, "Avvia partita")
+          : el("p", { class: "hidden-msg" }, ok ? "In attesa che l'host avvii la partita." : "Servono almeno 3 giocatori per iniziare."),
+        isHost && !ok ? el("p", { class: "hidden-msg" }, "Servono almeno 3 giocatori.") : null,
+        el("button", { type: "button", class: "ghost", onclick: exitGame }, "Esci dalla stanza"))));
+}
+
+function boot() {
+  const s = loadSession();
+  if (s && ONLINE_OK) {
+    online = { code: s.code, you: null, state: null, offline: true, winScore: onlineWin };
+    render();
+    withSocket(resumeSaved);
+    return;
+  }
+  setup();
+}
+
+document.head.append(el("style", {}, `
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;z-index:50}
+.code{font-family:var(--card-font,inherit);font-size:44px;letter-spacing:.2em;font-weight:800;text-align:center;padding:8px 0}
+.plist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.plist li{display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted);display:inline-block}
+.dot.on{background:var(--ok)}
+.err{color:var(--accent)}
+`));
+
+applySettings();
+boot();
+
+</script>

@@ -1,0 +1,14 @@
+{
+  "name": "cah-italiano",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "play": "node tools/play_local.js",
+    "start": "node server/index.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
