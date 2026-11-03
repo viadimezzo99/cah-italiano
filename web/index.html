@@ -1240,15 +1240,33 @@ function withSocket(fn) {
   if (!onlineSock || onlineSock.readyState > 1) openSocket();
 }
 
+const SERVER_KEY = "cah-server";
+const loadServer = () => {
+  try { return localStorage.getItem(SERVER_KEY) || ""; } catch { return ""; }
+};
+const saveServer = (v) => {
+  try { localStorage.setItem(SERVER_KEY, v); } catch { /* nessuno storage */ }
+};
+
+// Indirizzo del WebSocket: stesso server se la pagina è servita da lì, altrimenti quello scelto (app).
+function socketUrl() {
+  if (ONLINE_OK) return `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws`;
+  let base = loadServer().trim().replace(/\/+$/, "");
+  if (!base) return null;
+  if (!/^(https?|wss?):\/\//.test(base)) base = `https://${base}`;
+  return base.replace(/^http/, "ws") + "/ws";
+}
+
 function openSocket() {
-  if (!ONLINE_OK) {
-    onlineError = "Il gioco online funziona aprendo la pagina dal server (npm start).";
+  const url = socketUrl();
+  if (!url) {
+    onlineError = "Inserisci l'indirizzo del server qui sotto.";
     onlineQueue = [];
     return;
   }
   let ws;
   try {
-    ws = new WebSocket(`${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws`);
+    ws = new WebSocket(url);
   } catch {
     onlineError = "Connessione online non disponibile qui.";
     onlineQueue = [];
@@ -1364,6 +1382,14 @@ function onlineMenu() {
     oninput: (e) => { onlineName = e.target.value; } });
   const codeIn = el("input", { type: "text", maxlength: "4", placeholder: "Codice", "aria-label": "Codice stanza",
     style: "text-transform:uppercase", oninput: (e) => { e.target.value = e.target.value.toUpperCase(); } });
+  const serverIn = el("input", { type: "url", placeholder: "https://… indirizzo del server", "aria-label": "Indirizzo del server",
+    value: loadServer(), oninput: (e) => {
+      saveServer(e.target.value.trim());
+      // cambiato server: chiudo la connessione vecchia, la prossima azione apre quella nuova
+      const old = onlineSock;
+      onlineSock = null;
+      if (old) old.close();
+    } });
   app.replaceChildren(
     el("section", { class: "setup" },
       logoNode(true),
@@ -1371,6 +1397,8 @@ function onlineMenu() {
       el("div", { class: "panel" },
         el("span", { class: "label" }, "Il tuo nome"),
         nameIn,
+        !ONLINE_OK ? el("span", { class: "label", style: "margin-top:6px" }, "Server online") : null,
+        !ONLINE_OK ? serverIn : null,
         el("button", { type: "button", class: "primary", onclick: () => {
           onlineError = ""; onlineName = nameIn.value.trim();
           withSocket(() => netSend({ type: "create", name: onlineName }));
@@ -1424,7 +1452,7 @@ function renderLobby() {
 
 function boot() {
   const s = loadSession();
-  if (s && ONLINE_OK) {
+  if (s && socketUrl()) {
     online = { code: s.code, you: null, state: null, offline: true, winScore: onlineWin };
     render();
     withSocket(resumeSaved);

@@ -1,2 +1,6 @@
 node_modules/
 *.log
+android/app/src/main/assets/
+android/build/
+android/app/build/
+android/.gradle/
