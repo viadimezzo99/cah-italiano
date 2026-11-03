@@ -51,6 +51,7 @@ export class Game {
     this.opts = { ...DEFAULTS, ...options };
     this.rng = this.opts.rng ?? Math.random;
     this.cardText = new Map([...cards.white, ...cards.black].map((c) => [c.id, c.text]));
+    this.catById = new Map([...cards.white, ...cards.black].map((c) => [c.id, c.cat ?? "Originali"]));
     this.whiteById = new Map(cards.white.map((c) => [c.id, c]));
     this.blackById = new Map(cards.black.map((c) => [c.id, c]));
 
@@ -267,10 +268,47 @@ export class Game {
         isBot: p.isBot,
         handSize: p.hand.length,
         hasPlayed: this.submissions.has(p.id),
-        hand: p.id === forPlayerId ? p.hand.map((id) => ({ id, text: this.text(id) })) : undefined,
+        hand: p.id === forPlayerId ? p.hand.map((id) => ({ id, text: this.text(id), cat: this.catById.get(id) })) : undefined,
       })),
       reveal: this.reveal(),
       winner: this.winner,
     };
   }
+}
+
+// ------------------------------------------------------------ carte personali
+
+const BLANK = "____";
+
+/** Pulisce le carte personali: testo corto, nere con 1–3 spazi, id nuovi e sicuri. */
+export function sanitizeCustom(c) {
+  const clean = (x) => String(x?.text ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
+  const catOf = (x) => String(x?.cat ?? "").replace(/\s+/g, " ").trim().slice(0, 20) || "Altro";
+  const white = (Array.isArray(c?.white) ? c.white : []).slice(0, 300)
+    .map((x) => ({ text: clean(x), cat: catOf(x) })).filter((x) => x.text)
+    .map((x, i) => ({ id: `u${i}`, ...x }));
+  const black = (Array.isArray(c?.black) ? c.black : []).slice(0, 150)
+    .map((x) => {
+      let text = clean(x);
+      if (!text) return null;
+      if (!text.includes(BLANK)) text += ` ${BLANK}`;
+      const blanks = text.split(BLANK).length - 1;
+      return blanks <= 3 ? { text, blanks, cat: catOf(x) } : null;
+    })
+    .filter(Boolean)
+    .map((x, i) => ({ id: `ub${i}`, ...x }));
+  return { white, black };
+}
+
+/** Mazzo completo: carte originali più quelle personali. */
+export function mergeCustom(cards, custom) {
+  const extra = sanitizeCustom(custom);
+  return { white: [...cards.white, ...extra.white], black: [...cards.black, ...extra.black] };
+}
+
+/** Carte personali attive: solo le categorie abilitate (default: tutte). */
+export function enabledCustom(custom) {
+  const enabled = custom?.enabled ?? {};
+  const on = (c) => enabled[c.cat] !== false;
+  return { white: (custom?.white ?? []).filter(on), black: (custom?.black ?? []).filter(on) };
 }

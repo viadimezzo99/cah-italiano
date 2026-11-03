@@ -4,7 +4,7 @@ import { randomBytes, randomInt } from "node:crypto";
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
-import { Game } from "../src/game.js";
+import { Game, mergeCustom } from "../src/game.js";
 import { handshake } from "./ws.js";
 
 export const MIN_PLAYERS = 3;
@@ -198,7 +198,7 @@ export function createApp({ cards, pageHtml, turnSeconds = 60, reconnectMs = 10 
         const winScore = WIN_SCORES.includes(msg.winScore) ? msg.winScore : 5;
         room.game = new Game(
           room.players.map((p) => ({ id: p.id, name: p.name, isBot: false })),
-          cards,
+          mergeCustom(cards, msg.custom),
           { winScore },
         );
         room.game.start();

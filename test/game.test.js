@@ -192,3 +192,39 @@ test("segments: spazi come segmenti separati", () => {
   assert.equal(blanks.length, 2);
   assert.deepEqual(blanks.map((b) => b.index), [0, 1]);
 });
+
+import { sanitizeCustom, mergeCustom } from "../src/game.js";
+
+test("carte personali: nere con spazi corretti, limiti e id separati", () => {
+  const c = sanitizeCustom({
+    white: [{ text: "  Un   gatto " }, { text: "" }, null],
+    black: [{ text: "Ieri ____ e oggi ____" }, { text: "Senza spazi" }, { text: "____ ____ ____ ____" }],
+  });
+  assert.deepEqual(c.white, [{ id: "u0", text: "Un gatto", cat: "Altro" }]);
+  assert.equal(c.black.length, 2, "quattro spazi scartati");
+  assert.equal(c.black[0].blanks, 2);
+  assert.equal(c.black[1].text, "Senza spazi ____");
+  assert.equal(c.black[1].blanks, 1);
+});
+
+test("mazzo unito: originali più personali, senza collisioni di id", () => {
+  const base = { white: [{ id: "w001", text: "a" }], black: [{ id: "b001", text: "x ____", blanks: 1 }] };
+  const m = mergeCustom(base, { white: [{ text: "nuova" }], black: [] });
+  assert.equal(m.white.length, 2);
+  assert.equal(new Set(m.white.map((c) => c.id)).size, 2);
+  assert.equal(mergeCustom(base, undefined).white.length, 1);
+});
+
+test("categorie: ogni carta personale porta la sua categoria fino in mano", () => {
+  const c = sanitizeCustom({ white: [{ text: "Un gatto", cat: "Soggetti" }], black: [{ text: "Qui ____", cat: "Luoghi" }] });
+  assert.equal(c.white[0].cat, "Soggetti");
+  assert.equal(c.black[0].cat, "Luoghi");
+  const g = new Game(
+    [{ id: "a", name: "A" }, { id: "b", name: "B" }, { id: "c", name: "C" }],
+    mergeCustom({ white: [{ id: "w1", text: "x" }], black: [{ id: "b1", text: "y ____", blanks: 1 }] }, { white: [{ text: "Un gatto", cat: "Soggetti" }] }),
+    { rng: () => 0.5 },
+  );
+  g.start();
+  const hand = g.publicState("a").players.find((p) => p.id === "a").hand;
+  assert.ok(hand.every((card) => typeof card.cat === "string"));
+});
