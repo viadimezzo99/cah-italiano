@@ -79,19 +79,12 @@ export class Game {
 
   // ---------------------------------------------------------------- mazzi
 
+  // Le carte già giocate non tornano nel mazzo: a mazzo esaurito la pesca si ferma.
   draw() {
-    if (this.deck.length === 0) {
-      this.deck = shuffle(this.discard, this.rng);
-      this.discard = [];
-    }
     return this.deck.pop() ?? null;
   }
 
   drawBlack() {
-    if (this.blackDeck.length === 0) {
-      this.blackDeck = shuffle(this.blackDiscard, this.rng);
-      this.blackDiscard = [];
-    }
     return this.blackDeck.pop() ?? null;
   }
 
@@ -114,12 +107,49 @@ export class Game {
   start() {
     if (this.phase !== "lobby") throw new Error("La partita è già iniziata");
     const events = [];
+    this.dealOpening(events);
     for (const p of this.players) {
       this.fill(p, events);
     }
     this.judgeIndex = Math.floor(this.rng() * this.players.length);
     this.beginRound(events);
     return events;
+  }
+
+  // Pescata iniziale: per ogni giocatore almeno 4 Soggetti e 4 Azioni,
+  // le altre carte a caso in categorie diverse. Nessuna carta è data a due giocatori.
+  dealOpening(events) {
+    const cat = (id) => this.catById.get(id);
+    const pool = this.deck.slice();
+    const takeOne = (pred) => {
+      const i = pool.findIndex(pred);
+      return i < 0 ? null : pool.splice(i, 1)[0];
+    };
+    for (const p of this.players) {
+      const picks = [];
+      for (let k = 0; k < 4; k++) {
+        const id = takeOne((x) => cat(x) === "Soggetti");
+        if (id !== null) picks.push(id);
+      }
+      for (let k = 0; k < 4; k++) {
+        const id = takeOne((x) => cat(x) === "Azioni");
+        if (id !== null) picks.push(id);
+      }
+      const usedCats = new Set();
+      const others = Math.max(0, this.opts.handSize - picks.length);
+      for (let k = 0; k < others; k++) {
+        const id = takeOne((x) => !usedCats.has(cat(x)) && cat(x) !== "Soggetti" && cat(x) !== "Azioni")
+          ?? takeOne(() => true);
+        if (id === null) break;
+        usedCats.add(cat(id));
+        picks.push(id);
+      }
+      for (const id of picks) {
+        p.hand.push(id);
+        events.push({ type: "draw", playerId: p.id, cardId: id });
+      }
+    }
+    this.deck = pool;
   }
 
   fill(player, events) {

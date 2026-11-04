@@ -135,9 +135,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   box-shadow: 0 8px 18px -10px rgba(0,0,0,.45); overflow: hidden; overflow-wrap: anywhere;
   transition: transform .25s cubic-bezier(.2,.9,.3,1.3), box-shadow .25s, border-color .25s;
 }
-.rail .card:nth-child(odd) { --tilt: -1.2deg; }
-.rail .card:nth-child(even) { --tilt: 1deg; }
-.rail .card { transform: rotate(var(--tilt, 0deg)); }
+.rail .card { transform: none; }
 .card:hover:not(:disabled) { transform: translateY(-6px) rotate(0deg); }
 .card:disabled { opacity: .5; cursor: default; }
 .card.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 16px 26px -14px rgba(0,0,0,.55); transform: translateY(-16px) rotate(0deg) scale(1.03); }
@@ -227,7 +225,11 @@ body:has(.game) { overflow: hidden; }
 .stage .minis { width: 100%; overflow: auto; max-height: 100%; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 
 .dock { min-height: 0; display: flex; flex-direction: column; gap: 6px; }
-.dock .actions { flex: 0 0 auto; }
+.dock .actions { flex: 0 0 auto; justify-content: flex-end; }
+.dock .actions button.primary { width: auto; padding: 6px 12px; font-size: 13px; }
+*, *::before, *::after { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+input, textarea { -webkit-user-select: text; user-select: text; }
+::selection { background: transparent; }
 .dock .judge-nav { flex: 0 0 auto; }
 .dock > .col { gap: 4px; min-height: 0; flex: 1 1 auto; }
 .dock .rail { flex: 1 1 auto; min-height: 0; align-items: flex-end; padding: 14px 6px 8px; gap: 10px; }
@@ -290,6 +292,39 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 .card { line-height: 1.28; letter-spacing: -.003em; }
 .black { line-height: 1.34; }
 .rail .card .txt { line-height: 1.28; }
+/* Nomi giocatori come gli spazi da riempire: fondo tenue e sottolineatura arancio. Carte senza bordi colorati. */
+.seat {
+  border: none; border-bottom: 3px solid var(--accent); border-radius: 8px 8px 0 0;
+  background: color-mix(in srgb, var(--accent) 12%, var(--paper));
+}
+.seat.judge { border-color: var(--accent); background: var(--accent); color: #fff; box-shadow: none; }
+.seat.judge .tag, .seat.judge .name, .seat.judge .pts { color: #fff; }
+.seat.won { border-bottom-color: var(--ok); }
+.card, .pcard, .zoom, .rail .card { border-color: color-mix(in srgb, var(--muted) 45%, transparent) !important; }
+.rail .card.sel { border-color: var(--accent) !important; }
+/* Mano a scorrimento orizzontale: le carte restano su una riga e si scorrono con il dito. */
+@media (orientation: portrait) {
+  .dock .rail { display: flex; flex-direction: row; overflow-x: auto; overflow-y: hidden; gap: 10px; padding: 14px 10px 10px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+  .dock .rail > * { flex: 0 0 auto; scroll-snap-align: start; }
+  .game, .dock, .stage { min-width: 0; max-width: 100%; }
+  .dock .rail { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; }
+  .dock > .col { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; align-items: stretch; }
+}
+/* Il Re confronta le combinazioni: elenco leggibile nello spazio centrale, scorribile. */
+.stage .minis { display: flex; flex-direction: column; gap: 10px; width: 100%; height: 100%; min-height: 0; overflow-y: auto; grid-template-columns: none; padding: 4px 2px; }
+.stage .mini { flex: 0 0 auto; height: auto; aspect-ratio: auto; text-align: left; padding: 14px 16px 12px; font-size: 15px; line-height: 1.32; border-radius: 14px; }
+.stage .mini .foot { position: static; margin-top: 6px; font-size: 11px; }
+/* Apertura e marchio in alto a sinistra. */
+.intro { position: fixed; inset: 0; background: #000; z-index: 900; overflow: hidden; }
+.intro .iw { position: absolute; left: 26px; top: 36%; transform-origin: 0 0; color: #fff; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: clamp(44px, 15vw, 76px); line-height: .95; letter-spacing: -.02em; text-align: left; white-space: nowrap; }
+.intro .iw > span { display: block; }
+.intro .iw .acc { color: #ff7a3d; }
+.intro .iw .gap { height: .9em; width: 4.2em; margin: .04em 0; border-radius: .08em; background: rgba(255,122,61,.22); border-bottom: .07em solid #ff7a3d; }
+.home .home-top { display: flex; align-items: center; justify-content: flex-start; padding-top: 6px; }
+.hdr-logo { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: 34px; line-height: .95; letter-spacing: -.01em; color: var(--fg); transform-origin: 0 0; }
+.hdr-logo > span { display: block; }
+.hdr-logo .acc { color: var(--accent); }
+.home .menu { margin-top: 18px; }
 </style>
 
 <div id="app" class="col" aria-live="polite"></div>

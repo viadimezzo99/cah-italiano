@@ -97,9 +97,18 @@ function firstWord(text) {
 // Togliere la maiuscola se la risposta va in mezzo alla frase, salvo i nomi propri.
 function lowerIfMidSentence(text) {
   const words = text.trim().split(/\s+/);
-  const twoCaps = words.length > 1 && /^\p{Lu}/u.test(words[0]) && /^\p{Lu}/u.test(words[1]);
+  // Sigle e acronimi in maiuscolo (BATMAN!!!) restano così come sono.
+  if (/^\p{Lu}{2,}[\p{Lu}\p{P}\d]*$/u.test(words[0].replace(/[.,!?]+$/, ""))) return text;
+  // Un articolo all'inizio non è un nome proprio: va in minuscolo anche se la parola dopo è maiuscola.
+  const article = /^(Una|Un|Uno|Il|Lo|La|Gli|Le|I)$/.test(words[0]);
+  const twoCaps = !article && words.length > 1 && /^\p{Lu}/u.test(words[0]) && /^\p{Lu}/u.test(words[1]);
   if (twoCaps) return text;
   return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+// "una" davanti a vocale diventa "un'" anche dopo la minuscola.
+function elideUna(text) {
+  return text.replace(/^una (?=[aeiouàèéìòùAEIOUÀÈÉÌÒÙ])/i, "un'");
 }
 
 // Per ogni spazio: testo prima, parola inserita, testo dopo.
@@ -128,12 +137,12 @@ export function fillSentence(blackText, whites) {
       w = w.replace(/^\S+\s+/, "");
     }
     if (!atEnd) w = w.replace(/[.!?]+$/, "");
-    if (!atStart && !fixed.consumed) w = lowerIfMidSentence(w);
-    else if (!atStart && fixed.consumed) w = lowerIfMidSentence(w);
+    if (!atStart) w = elideUna(lowerIfMidSentence(w));
     segs.push({ t: "text", v: fixed.before }, { t: "word", v: w, i });
     parts[i + 1] = after;
   }
-  return segs;
+  // Anche nel testo fisso della carta nera: "una" davanti a vocale diventa "un'".
+  return segs.map((x) => (x.t === "text" ? { ...x, v: x.v.replace(/\buna (?=[aeiouàèéìòùAEIOUÀÈÉÌÒÙ])/gi, (m) => (m[0] === "U" ? "Un'" : "un'")) } : x));
 }
 
 export function sentencePlain(blackText, whites) {

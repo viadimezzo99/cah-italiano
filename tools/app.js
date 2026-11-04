@@ -155,11 +155,11 @@ function openSettings() {
 // ------------------------------------------------------------------ logo
 
 function logoNode(big = false) {
-  const svg = `<svg viewBox="0 0 120 96" aria-hidden="true">
-    <rect x="10" y="14" width="56" height="76" rx="9" fill="#111" transform="rotate(-10 38 52)"/>
-    <rect x="50" y="10" width="56" height="76" rx="9" fill="#fff" stroke="#111" stroke-width="3" transform="rotate(8 78 48)"/>
-    <circle cx="30" cy="36" r="5" fill="#c4502a" transform="rotate(-10 38 52)"/>
-    <text x="78" y="62" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="30" fill="#111" text-anchor="middle" transform="rotate(8 78 48)">?</text>
+  // Pittogramma: una sola carta nera con due spazi arancio da riempire, come nel gioco.
+  const svg = `<svg viewBox="0 0 72 96" aria-hidden="true">
+    <rect x="6" y="6" width="60" height="84" rx="9" fill="#111"/>
+    <rect x="16" y="36" width="40" height="7" rx="3" fill="#c4502a"/>
+    <rect x="16" y="54" width="40" height="7" rx="3" fill="#c4502a"/>
   </svg>`;
   const wrap = el("div", { class: "logo" + (big ? " big" : "") });
   wrap.innerHTML = svg;
@@ -183,20 +183,54 @@ function setup() {
 }
 
 // Home: un titolo forte e tre voci di menu. Nessuna scatola, nessuno scorrimento.
+// Marchio testuale: tre righe, "Against" in arancio. Usato in home e nell'animazione d'apertura.
+function wordmarkNode(cls) {
+  return el("div", { class: cls + " wm", role: "img", "aria-label": "Cards Against Humanity, edizione italiana" },
+    el("span", {}, "Cards"), el("span", { class: "acc" }, "Against"), el("span", {}, "Humanity"));
+}
+
+let introDone = false;
+// Apertura: fondo nero, la scritta a sinistra con lo spazio vuoto, poi "Against" in arancio; infine la scritta scende in alto a sinistra.
+function playIntro(target) {
+  introDone = true;
+  const ov = el("div", { class: "intro", "aria-hidden": "true" },
+    el("div", { class: "iw" }, el("span", {}, "Cards"), el("span", { class: "gap" }), el("span", {}, "Humanity")));
+  document.body.append(ov);
+  const iw = ov.querySelector(".iw");
+  setTimeout(() => {
+    const gap = ov.querySelector(".gap");
+    if (gap) {
+      const acc = el("span", { class: "acc" }, "Against");
+      gap.replaceWith(acc);
+      acc.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 420, easing: "ease-out" });
+    }
+  }, 900);
+  setTimeout(() => {
+    target.style.visibility = "hidden";
+    const from = iw.getBoundingClientRect();
+    const to = target.getBoundingClientRect();
+    const k = to.width / from.width;
+    const dx = to.left - from.left, dy = to.top - from.top;
+    iw.animate([{ transform: "none" }, { transform: `translate(${dx}px, ${dy}px) scale(${k})` }],
+      { duration: 800, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" });
+    const fade = ov.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 800, delay: 200, fill: "forwards" });
+    fade.onfinish = () => { ov.remove(); target.style.visibility = ""; };
+  }, 2000);
+}
+
 function showHome() {
   const row = (n, title, sub, go) => el("button", { type: "button", class: "menu-row", onclick: go },
     el("span", { class: "n" }, n),
     el("span", { class: "t" }, el("strong", {}, title), el("span", { class: "sub" }, sub)),
     el("span", { class: "arr", "aria-hidden": "true" }, "→"));
+  const top = wordmarkNode("hdr-logo");
   app.replaceChildren(el("section", { class: "home" },
-    el("div", { class: "home-top" },
-      el("span", { class: "label" }, "Carte italiane"),
-      el("button", { type: "button", class: "ghost icon", "aria-label": "Impostazioni", onclick: openSettings }, "⚙")),
-    el("div", { class: "poster" }, logoNode(true)),
+    el("div", { class: "home-top" }, top),
     el("nav", { class: "menu", "aria-label": "Menu" },
-      row("01", "Stesso telefono", "Con amici e bot, un telefono solo", () => { homeTab = "local"; setup(); }),
+      row("01", "Locale", "Con amici e bot, un telefono solo", () => { homeTab = "local"; setup(); }),
       row("02", "Online", "Stanza con codice, fino a 10 giocatori", () => { homeTab = "online"; setup(); }),
       row("03", "Le carte", "Carte, categorie e pacchetti", () => cardsScreen()))));
+  if (!introDone) requestAnimationFrame(() => playIntro(top));
 }
 
 function subHead(title) {
@@ -206,7 +240,7 @@ function subHead(title) {
 }
 
 function showLocal() {
-  app.replaceChildren(el("section", { class: "subscreen" }, subHead("Stesso telefono"), localPanel()));
+  app.replaceChildren(el("section", { class: "subscreen" }, subHead("Locale"), localPanel()));
 }
 
 function showOnline() {
@@ -320,6 +354,11 @@ const catRank = (name) => {
   return i >= 0 ? i : 500;
 };
 const handSorted = (hand) => [...hand].sort((a, b) => catRank(a.cat) - catRank(b.cat));
+// Le carte scelte passano in testa alla mano, nell'ordine in cui sono state selezionate.
+const handForRail = (hand) => {
+  const picked = selected.map((id) => hand.find((c) => c.id === id)).filter(Boolean);
+  return [...picked, ...handSorted(hand).filter((c) => !selected.includes(c.id))];
+};
 
 // Le mie carte attive per le partite (se l'interruttore è acceso).
 const activeCustom = () => {
@@ -644,6 +683,12 @@ function resetJudgeIfNewRound() {
   }
 }
 
+// Il pulsante dice quante combinazioni ci sono davvero.
+function vediTutteLabel(total) {
+  const n = { 2: "due", 3: "tre", 4: "quattro", 5: "cinque", 6: "sei" }[total];
+  return n ? `Vedi tutte e ${n}` : `Vedi tutte (${total})`;
+}
+
 function previewWhites(s) {
   const out = new Array(s.black.blanks).fill(null);
   if (s.phase === "judging" && s.judgeId === viewer) {
@@ -749,12 +794,12 @@ function render() {
         el("button", { type: "button", disabled: judgeView === 0, onclick: () => { judgeView -= 1; render(); } }, "← Precedente"),
         judgeView < total - 1
           ? el("button", { class: "primary", type: "button", onclick: () => { judgeView += 1; Sound.play("flip"); render(); } }, "Successiva →")
-          : el("button", { class: "primary", type: "button", onclick: () => { judgeMode = "compare"; enterPending = true; Sound.play("flip"); render(); } }, "Vedi tutte e tre"));
+          : el("button", { class: "primary", type: "button", onclick: () => { judgeMode = "compare"; enterPending = true; Sound.play("flip"); render(); } }, vediTutteLabel(total)));
     } else {
       note = el("p", { class: "hidden-msg" }, "Tutte le combinazioni. Scegli quella che ti ha fatto ridere di più.");
       const enter = enterPending;
       enterPending = false;
-      rail = el("div", { class: "minis", role: "group", "aria-label": "Combinazioni" },
+      mainCard = el("div", { class: "minis", role: "group", "aria-label": "Combinazioni" },
         s.reveal.map((r) => {
           const text = fillSentence(s.black.text, r.cards.map((c) => c.text)).map((x) => (x.t === "slot" ? "_____" : x.v)).join("");
           const node = el("button", {
@@ -799,11 +844,11 @@ function render() {
   // Mano: fila di default quando non stai giudicando e lo schermo è tuo.
   if (s.phase !== "over" && !judging && me.hand && showPrivate) {
     const canSelect = s.phase === "playing" && !isJudge && !me.hasPlayed;
-    railLabel = `La tua mano · ${me.hand.length} carte`;
+    railLabel = "";
     const deal = dealPending;
     dealPending = false;
     rail = el("div", { class: "rail", role: "group", "aria-label": "La tua mano" },
-      handSorted(me.hand).map((c, i) => {
+      handForRail(me.hand).map((c, i) => {
         const idx = selected.indexOf(c.id);
         const full = selected.length >= need && idx < 0;
         const held = { v: false };
@@ -829,7 +874,6 @@ function render() {
       }));
     if (canSelect) {
       actions = el("div", { class: "actions" },
-        el("span", { class: "status" }, need > 1 ? `${selected.length}/${need} · nell'ordine di lettura` : `${selected.length}/${need}`),
         el("button", { class: "primary", type: "button", disabled: selected.length !== need, onclick: humanPlay }, "Conferma e gioca"));
     }
   }
@@ -848,7 +892,7 @@ function render() {
   requestAnimationFrame(() => fitText(app));
   app.replaceChildren(
     el("div", { class: "game" },
-      el("header", { class: "hud" }, topbar, board, roundline),
+      el("header", { class: "hud" }, board, roundline),
       el("main", { class: "stage" }, mainCard, note),
       el("footer", { class: "dock" }, actions, railBlock),
       who));
@@ -1043,19 +1087,9 @@ function onlinePanel() {
     oninput: (e) => { onlineName = e.target.value; } });
   const codeIn = el("input", { type: "text", maxlength: "4", placeholder: "Codice", "aria-label": "Codice stanza",
     style: "text-transform:uppercase", oninput: (e) => { e.target.value = e.target.value.toUpperCase(); } });
-  const serverIn = el("input", { type: "url", placeholder: DEFAULT_SERVER, "aria-label": "Indirizzo del server",
-    value: loadServer(), oninput: (e) => {
-      saveServer(e.target.value.trim());
-      // cambiato server: chiudo la connessione vecchia, la prossima azione apre quella nuova
-      const old = onlineSock;
-      onlineSock = null;
-      if (old) old.close();
-    } });
   return el("div", { class: "panel" },
     el("span", { class: "label" }, "Il tuo nome"),
     nameIn,
-    !ONLINE_OK ? el("span", { class: "label" }, "Server online") : null,
-    !ONLINE_OK ? serverIn : null,
     el("button", { type: "button", class: "primary", onclick: () => {
       onlineError = ""; onlineName = nameIn.value.trim();
       withSocket(() => netSend({ type: "create", name: onlineName }));
@@ -1164,16 +1198,18 @@ document.head.append(el("style", {}, `
 #app:has(.home) { height: calc(100dvh - 44px); }
 body:has(.home) { overflow: hidden; }
 .home { height: 100%; display: flex; flex-direction: column; gap: 8px; }
-.home-top { display: flex; align-items: center; justify-content: space-between; }
+.home-top { display: flex; align-items: center; justify-content: flex-end; }
 .home-top .label { letter-spacing: .22em; }
 .icon { padding: 6px 12px; font-size: 18px; border-radius: 999px; }
-.poster { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; }
-.poster .logo.big svg { width: min(34vw, 150px); height: auto; aspect-ratio: 5 / 4; }
-.poster .logo.big .wordmark { font-size: clamp(34px, 12vw, 58px); hyphens: none; white-space: nowrap; }
+.poster { flex: 0 0 33vh; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.poster .logo.big { max-width: 100%; gap: 12px; }
+.poster .logo.big svg { width: auto; height: 24vh; max-width: 30vw; aspect-ratio: 3 / 4; flex: 0 0 auto; }
+.poster .logo.big .wordmark { font-size: clamp(22px, 7vw, 36px); hyphens: none; white-space: nowrap; }
 .poster .logo.big .wordmark i { font-size: 12px; }
-.menu { display: flex; flex-direction: column; border-bottom: 1px solid var(--line); }
+.menu { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; border-bottom: 1px solid var(--line); margin-top: 18px; }
 .menu-row { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 8px;
   padding: 16px 2px; border-top: 1px solid var(--line); font-family: "IBM Plex Sans", sans-serif; transition: padding .2s; }
+.menu-row { flex: 1 1 0; align-items: center; border-top: 1px solid var(--line); }
 .menu-row:active { padding-left: 12px; }
 .menu-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .menu-row .n { font-family: "IBM Plex Sans", sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .12em; color: var(--muted); }
@@ -1312,7 +1348,12 @@ function fitText(root = document) {
     node.style.fontSize = "";
     let size = parseFloat(getComputedStyle(node).fontSize);
     let guard = 0;
-    while (node.scrollWidth > node.clientWidth + 1 && size > 9 && guard++ < 60) {
+    // Il testo deve stare nella carta in larghezza e in altezza, senza invadere l'etichetta in alto.
+    // Carta nera: conta il riquadro intero (testo più etichetta), così il testo non esce né si sovrappone.
+    const box = node.closest(".black") || node;
+    const fits = () => box.scrollWidth <= box.clientWidth + 1 && box.scrollHeight <= box.clientHeight + 1
+      && node.scrollWidth <= node.clientWidth + 1 && node.scrollHeight <= node.clientHeight + 1;
+    while (!fits() && size > (box !== node ? 9 : 8) && guard++ < 120) {
       size -= 0.5;
       node.style.fontSize = `${size}px`;
     }
