@@ -12,12 +12,21 @@
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
         <activity
             android:name=".MainActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+        <!-- Ingresso dal launcher: un nome nuovo, così il telefono non riusa l'icona vecchia in cache. -->
+        <activity-alias
+            android:name=".Gioco"
+            android:targetActivity=".MainActivity"
+            android:enabled="true"
             android:exported="true"
-            android:configChanges="orientation|screenSize|keyboardHidden">
+            android:icon="@mipmap/ic_cah"
+            android:roundIcon="@mipmap/ic_cah_round"
+            android:label="Cards Against Humanity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
     </application>
 </manifest>
