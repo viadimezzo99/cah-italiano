@@ -41,6 +41,7 @@ let dealPending = false;
 let slamPending = false;
 let enterPending = false;
 let wonRound = -1;
+let shrinkRound = -1;  // round in cui la carta vincente è già diventata il segnaposto
 let botTimer = null;
 let judgeTimer = null;
 let roundTimer = null;     // passaggio automatico al round successivo (solo locale)
@@ -80,7 +81,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.4";
+const APP_VERSION = "0.2.5";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -106,9 +107,15 @@ function updateBox() {
         if (window.AndroidBridge?.openUrl) window.AndroidBridge.openUrl(apk.browser_download_url);
         else window.open(apk.browser_download_url, "_blank", "noopener");
       };
+      // Niente link: la barra si riempie nella schermata, poi il telefono prende il file da solo.
+      const start = () => {
+        out.replaceChildren(el("span", {}, `Scarico la versione ${latest}…`),
+          el("span", { class: "upd-bar", "aria-hidden": "true" }, el("span", { class: "upd-fill" })),
+          el("p", { class: "hidden-msg" }, "Quando il file è pronto il telefono ti chiede di installarlo."));
+        setTimeout(openApk, 2600);
+      };
       out.replaceChildren(el("span", {}, `Versione ${latest} disponibile. `),
-        el("button", { type: "button", class: "primary", onclick: openApk }, "Scarica aggiornamento"),
-        el("p", { class: "hidden-msg" }, "Il telefono scarica il file APK e ti chiede di installarlo."));
+        el("button", { type: "button", class: "primary", onclick: start }, "Scarica aggiornamento"));
     } catch {
       out.textContent = "Non riesco a controllare. Serve la connessione e un repository pubblico.";
     }
@@ -906,6 +913,136 @@ function blackCard(s, whites, { canPlay, label, slam } = {}) {
 }
 
 
+const CROWN_SVG = '<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M4 34 L8 9 L22 22 L32 3 L42 22 L56 9 L60 34 Z" fill="#ff7a3d"/><rect x="4" y="31" width="56" height="7" rx="2" fill="#ff7a3d"/></svg>';
+
+// Schermata di vittoria per tutti: stesso stile del passaggio di turno, con la corona e un segnaposto per punto.
+const WINNER_LINES = [
+  "Grazie al suo talento nel parlare con i piccioni.",
+  "Grazie alla sua collezione di pantofole che parlano.",
+  "Grazie ai suoi occhi a forma di tegola.",
+  "Grazie alla sua passione per le patate lessate.",
+  "Grazie al suo gatto che sa leggere il futuro.",
+  "Grazie alle sue sopracciglia, che hanno un lavoro part-time.",
+  "Grazie al suo cugino che vende aria in scatola.",
+  "Grazie alla sua zia che ha sposato un frigorifero.",
+  "Grazie al suo naso, che ha una pensione.",
+  "Grazie alla sua dieta a base di cuscini.",
+  "Grazie al suo grande segreto: non sa nuotare.",
+  "Grazie alle sue ginocchia, che cantano nelle riunioni.",
+  "Grazie al suo sogno di diventare un ombrello.",
+  "Grazie alla sua abitudine di salutare le sedie.",
+  "Grazie al suo pappagallo che insulta i vicini.",
+  "Grazie alla sua barba, che ha vinto due medaglie.",
+  "Grazie al suo vestito fatto di carta da forno.",
+  "Grazie alla sua mania di contare le nuvole.",
+  "Grazie al suo maestro di yoga, un tostapane.",
+  "Grazie alla sua ricetta della torta al sapone.",
+  "Grazie alla sua capacità di piangere per le lasagne.",
+  "Grazie alle sue scarpe che parlano in dialetto.",
+  "Grazie al suo vicino di casa, un antico pinguino.",
+  "Grazie alla sua lezione sulla pazienza delle lumache.",
+  "Grazie alla sua playlist dedicata ai sanpietrini.",
+  "Grazie al suo cane che ha paura dei gelati.",
+  "Grazie alla sua faccia da gelatina scaduta.",
+  "Grazie al suo primo amore: una lampada da comodino.",
+  "Grazie alla sua abitudine di dormire in piedi.",
+  "Grazie alla sua sorella, che fa la maga delle olive.",
+  "Grazie alla sua scoperta: il formaggio è un cappello.",
+  "Grazie alla sua collezione di tappi di bottiglia parlanti.",
+  "Grazie al suo orologio che va all'indietro.",
+  "Grazie alla sua nonna, che ha inventato il ping pong a mano.",
+  "Grazie alla sua mania di parlare con le porte.",
+  "Grazie alla sua voce da trombone arrabbiato.",
+  "Grazie al suo libro preferito: il manuale delle spugne.",
+  "Grazie alla sua tecnica per scaldare il ghiaccio.",
+  "Grazie al suo esame di guida con il cavallo.",
+  "Grazie alla sua bici a forma di cetriolo.",
+  "Grazie al suo talento nel fare nodi alle nuvole.",
+  "Grazie alla sua fotografia di un cucchiaio triste.",
+  "Grazie alla sua sete di gelatina alla menta.",
+  "Grazie al suo ombrello che piove dentro.",
+  "Grazie alla sua coppa di cristallo per i cani.",
+  "Grazie alla sua abilità nel mangiare le nuvole a cucchiaiate.",
+  "Grazie alla sua tesi sulla vita segreta dei calzini.",
+  "Grazie al suo viaggio su Marte in pantofole.",
+  "Grazie alla sua faccia che sembra un cassetto.",
+  "Grazie al suo amico immaginario, un tergicristallo.",
+  "Grazie alla sua crema per il viso al gusto di pizza.",
+  "Grazie alle sue ciabatte, che hanno la patente.",
+  "Grazie al suo spazzolino da denti da cantante lirico.",
+  "Grazie alla sua nuova casa sull'albero di un bidone.",
+  "Grazie alla sua carriera da mimo in metropolitana.",
+  "Grazie alla sua collezione di sassi con la faccia.",
+  "Grazie alla sua abitudine di abbracciare i lampioni.",
+  "Grazie alla sua pizza con sopra un ombrello.",
+  "Grazie alla sua gara di sbadigli contro il gatto.",
+  "Grazie al suo cappello a forma di piccione.",
+  "Grazie alla sua paura dei cucchiai di legno.",
+  "Grazie alla sua lezione di salto con la corda invisibile.",
+  "Grazie al suo gelato al sapore di scarpa.",
+  "Grazie alla sua fede nei vampiri vegetariani.",
+  "Grazie alla sua vacanza in un armadio.",
+  "Grazie alla sua maschera da polpo per l'esame.",
+  "Grazie alla sua canzone sul divano che piange.",
+  "Grazie al suo tatuaggio di una patata sorridente.",
+  "Grazie alla sua pasta cotta con il pettine.",
+  "Grazie alla sua nuova dieta fatta di sassolini.",
+  "Grazie alla sua collezione di fischietti per gatti.",
+  "Grazie al suo laboratorio di colla per cuscini.",
+  "Grazie alla sua lettera d'amore al semaforo.",
+  "Grazie alla sua vittoria contro un pomodoro.",
+  "Grazie alla sua invenzione: il cucchiaio con le ruote.",
+  "Grazie al suo corso di equitazione sui gabbiani.",
+  "Grazie alla sua fama tra i pesci rossi.",
+  "Grazie alla sua faccia da stufa accesa.",
+  "Grazie al suo castello di sabbia con il Wi-Fi.",
+  "Grazie alla sua ansia per i tergicristalli.",
+  "Grazie alla sua tenda da campeggio in un bicchiere.",
+  "Grazie alla sua fidanzata di gomma piuma.",
+  "Grazie alla sua tazza che canta ogni mattina.",
+  "Grazie alla sua gita in barca con un pinguino.",
+  "Grazie al suo maglione di lana di cactus.",
+  "Grazie alla sua fissazione per i pettini.",
+  "Grazie alla sua passione per le lumache in smoking.",
+  "Grazie alla sua macchina da scrivere che russa.",
+  "Grazie alla sua zuppa di mattoni tiepidi.",
+  "Grazie alla sua ombra che ha preso la patente.",
+  "Grazie alla sua collezione di pesci di carta.",
+  "Grazie alle sue gambe, che fanno il bagno nel latte.",
+  "Grazie al suo sogno di lavorare come sedia.",
+  "Grazie alla sua abilità nel parlare con le zanzare.",
+  "Grazie al suo aeroplano di carta da pane.",
+  "Grazie alla sua faccia da orologio svizzero.",
+  "Grazie alla sua tesi su come sbucciare le nuvole.",
+  "Grazie alla sua nonna, che guida un trattore a pois.",
+  "Grazie al suo fan club di calzini spaiati.",
+  "Grazie alla sua coda di cometa per il bucato.",
+];
+
+let winnerLine = "", winnerKey = "";
+
+function renderWinner() {
+  const w = game.player(game.winner);
+  // Una frase a caso per partita, scelta una volta sola (i render successivi non la cambiano).
+  const key = `${game.round}:${game.winner}`;
+  const again = winnerKey === key; // già mostrata: niente animazione da capo a ogni aggiornamento
+  if (!again) { winnerKey = key; winnerLine = WINNER_LINES[Math.floor(Math.random() * WINNER_LINES.length)]; }
+  const crown = el("span", { class: "cr-crown" });
+  crown.innerHTML = CROWN_SVG;
+  // Come l'apertura: corona e "Ha vinto", una casella per il nome, "grazie" in bianco,
+  // poi una casella sotto per la frase. Le caselle si riempiono dall'alto in basso.
+  const rest = winnerLine.replace(/^Grazie\s+/i, "");
+  app.replaceChildren(el("div", { class: "crown-screen" + (again ? " done" : ""), role: "dialog", "aria-label": `Ha vinto ${w.name}` },
+    el("div", { class: "iw" },
+      crown,
+      el("span", { class: "cr-line" }, "Ha vinto"),
+      el("span", { class: "cr-slot" }, el("span", { class: "cr-gap" }), el("span", { class: "cr-name" }, w.name)),
+      el("span", { class: "cr-line" }, "grazie"),
+      el("span", { class: "cr-pslot" }, el("span", { class: "cr-pgap" }), el("span", { class: "cr-phrase" }, rest))),
+    el("button", { class: "primary cr-btn", type: "button", onclick: exitGame }, "Nuova partita")));
+  Sound.setTheme("menu");
+}
+
 function render() {
   if (online && !online.state?.game) { Sound.setTheme("menu"); return renderLobby(); }
   if (!game) return setup();
@@ -922,6 +1059,7 @@ function render() {
   }
   viewer = next;
   const s = game.publicState(viewer);
+  if (s.phase === "over") return renderWinner();
   const isJudge = s.judgeId === viewer;
   const me = s.players.find((p) => p.id === viewer);
   const need = s.black ? s.black.blanks : 1;
@@ -929,16 +1067,27 @@ function render() {
   if (judging) resetJudgeIfNewRound();
   const showPrivate = !curtain;
 
+  // La carta vincente si rimpicciolisce lentamente per tutta la pausa e finisce sotto il nome del vincitore.
+  const roundPause = online ? 12000 : LOCAL_ROUND_PAUSE_MS;
+  const shrinkNow = s.phase === "roundEnd" && shrinkRound !== s.round;
+  if (shrinkNow) shrinkRound = s.round;
+
+  // Un rettangolino nero per ogni punto preso: quello nuovo (solo nel primo render della pausa) compare con l'animazione.
   const board = el("div", { class: "board", role: "list" },
     s.players.map((p) => {
-      const won = s.phase === "roundEnd" && game.lastWinner === p.id && wonRound === s.round;
+      const won = s.phase === "roundEnd" && game.lastWinner === p.id;
+      const mark = el("div", { class: "marks", "aria-hidden": "true" },
+        Array.from({ length: p.score }, (_, i) => el("span", {
+          class: "mini-black" + (shrinkNow && won && i === p.score - 1 ? " fresh" : ""),
+        })));
       return el("div", {
         class: ["seat", p.id === s.judgeId ? "judge" : "", p.hasPlayed ? "played" : "", won ? "won" : "",
           p.id === viewer && p.id !== s.judgeId ? "turn" : ""].join(" "),
         role: "listitem",
       },
         el("div", { class: "name" }, p.name),
-        el("div", { class: "pts" }, p.score));
+        el("div", { class: "pts" }, p.score),
+        mark);
     }));
 
   // Freccia e pallino stanno sulla riga del round: non occupano altro spazio in verticale.
@@ -999,7 +1148,7 @@ function render() {
       wonRound = s.round;
       Sound.play("win");
     }
-    note = el("p", { class: "turn-line" }, last ? `Round vinto da ${last.name}. Tra poco si cambia giocatore…` : "");
+    note = null;
     // In locale il round successivo parte da solo; online lo fa il server.
     if (!online && !roundTimer) roundTimer = setTimeout(nextRound, LOCAL_ROUND_PAUSE_MS);
   } else if (isJudge) {
@@ -1018,10 +1167,6 @@ function render() {
     const slam = slamPending;
     slamPending = false;
     mainCard = blackCard(s, previewWhites(s), { canPlay, slam });
-  } else if (judgeSel !== null) {
-    const pick = s.reveal.find((r) => r.index === judgeSel);
-    const whites = pick ? pick.cards.map((c) => c.text) : [];
-    mainCard = el("div", { class: "judge-pair" }, blackCard(s, whites, { label: "Scelta del Re" }), mainCard);
   }
 
   // Mano: fila di default quando non stai giudicando e lo schermo è tuo.
@@ -1069,13 +1214,15 @@ function render() {
   // Sotto, la frase sulle carte nascoste. Toccando lo schermo si mostrano le carte.
   // Stessa struttura dell'apertura: "Passa a" · la casella che diventa il nome · "il telefono".
   const reveal = () => { curtain = false; Sound.play("deal"); render(); };
-  const who = curtain ? el("div", { class: "curtain", role: "dialog", "aria-label": "Passa il telefono", onclick: reveal },
+  const who = curtain ? el("div", { class: "curtain", role: "dialog", "aria-label": "È il turno di", onclick: reveal },
     el("div", { class: "iw" },
-      el("span", {}, "Passa a"),
+      el("span", {}, "È il turno di"),
       el("span", { class: "cur-slot" }, el("span", { class: "cur-gap" }), el("span", { class: "cur-name" }, me.name)),
-      el("span", {}, "il telefono"),
       el("span", { class: "cur-sub" }, "Le tue carte sono nascoste finché non tocchi."))) : null;
 
+  // Al primo render di pausa la carta resta visibile: sarà shrinkWinner a farla rimpicciolire.
+  // Nei render successivi (stesso round) è già finita, quindi resta nascosta.
+  if (s.phase === "roundEnd" && !shrinkNow && shrinkRound === s.round && mainCard) mainCard.style.visibility = "hidden";
   requestAnimationFrame(() => fitText(app));
   app.replaceChildren(
     el("div", { class: "game" },
@@ -1083,6 +1230,33 @@ function render() {
       el("main", { class: "stage" }, mainCard, note),
       el("footer", { class: "dock" }, actions, railBlock),
       who));
+  if (shrinkNow) shrinkWinner(roundPause);
+}
+
+// Animazione della carta vincente: una copia fissa sopra tutto scende fino al segnaposto sotto il vincitore.
+// La copia sta fuori dalla scena (che taglia ciò che esce), così passa sopra le informazioni e non sparisce.
+function shrinkWinner(total) {
+  const card = app.querySelector(".stage .black");
+  const mini = app.querySelector(".seat.won .mini-black.fresh");
+  if (!card || !mini) return;
+  const wait = 150, run = 900; // il volo dura poco; il segnaposto resta dopo
+  const a = card.getBoundingClientRect(), t = mini.getBoundingClientRect();
+  const k = Math.min(t.width / a.width, 0.2);
+  const dx = t.left + t.width / 2 - (a.left + a.width / 2);
+  const dy = t.top + t.height / 2 - (a.top + a.height / 2);
+  const ghost = card.cloneNode(true);
+  ghost.removeAttribute("style");
+  Object.assign(ghost.style, {
+    position: "fixed", left: a.left + "px", top: a.top + "px",
+    width: a.width + "px", height: a.height + "px", margin: "0",
+    zIndex: "200", pointerEvents: "none", transform: "none",
+  });
+  document.body.append(ghost);
+  card.style.visibility = "hidden";
+  ghost.animate([{ transform: "none" }, { transform: `translate(${dx}px, ${dy}px) scale(${k})` }],
+    { duration: run, delay: wait, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
+  mini.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: wait + run, fill: "forwards" });
+  setTimeout(() => ghost.remove(), wait + run);
 }
 
 // Ogni pulsante suona e vibra un poco (i pulsanti disattivati no).

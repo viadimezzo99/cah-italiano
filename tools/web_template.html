@@ -317,10 +317,11 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 .seat.judge .tag, .seat.judge .name, .seat.judge .pts { color: #fff; }
 .seat.won { border-bottom-color: var(--ok); }
 .seat.turn { box-shadow: 0 0 0 2px var(--fg); }
+.seat .marks { grid-column: 1; grid-row: 2; display: flex; gap: 3px; min-width: 0; margin-top: 4px; }
+.seat .mini-black { flex: 0 1 26px; min-width: 4px; height: 18px; border-radius: 4px; background: #111; border: 1px solid #ff7a3d; }
+.seat .mini-black.fresh { opacity: 0; }
 .turn-line { margin: 0; font-weight: 700; color: var(--accent); }
 .judge-pair { display: flex; flex-direction: column; gap: 12px; }
-.judge-pair .black-wrap { flex: none; width: 100%; height: auto; container-type: normal; }
-.judge-pair .black { width: 100%; height: auto; aspect-ratio: auto; min-height: 150px; }
 .card, .pcard, .zoom, .rail .card { border-color: color-mix(in srgb, var(--muted) 45%, transparent) !important; }
 .rail .card.sel { border-color: var(--accent) !important; }
 /* Mano a scorrimento orizzontale: le carte restano su una riga e si scorrono con il dito. */
@@ -351,6 +352,28 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 .home .home-top .home-settings { margin-left: auto; }
 .roundline .home-settings { align-self: center; }
 .back-arrow { background: none; border: 0; padding: 0 4px 0 0; color: var(--accent); font-size: 16px; line-height: 1; min-height: 0; box-shadow: none; align-self: center; }
+/* Vittoria: come il passaggio di turno, con corona e segnaposti */
+.crown-screen { position: fixed; inset: 0; z-index: 60; background: #000; overflow: hidden; color: #fff; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; padding: 28px 26px 26px; }
+.crown-screen .iw { position: relative; margin-bottom: 28px; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: clamp(36px, min(15vw, 8vh), 76px); line-height: 1.04; letter-spacing: -.02em; white-space: nowrap; }
+.crown-screen .iw > span { display: block; }
+.cr-crown { width: 74px; height: 46px; margin-bottom: 12px; animation: pop .6s cubic-bezier(.2,.9,.3,1.4) 0s both; }
+.cr-crown svg { width: 100%; height: 100%; display: block; }
+.cr-line { animation: fade .4s ease both; }
+.cr-slot { position: relative; height: .95em; }
+.cr-gap { position: absolute; left: 0; top: .04em; height: .9em; width: 4.2em; border-radius: .08em; background: rgba(255,122,61,.22); border-bottom: .07em solid #ff7a3d; animation: fade .3s ease .5s both, gap-out .3s ease 1.3s forwards; }
+.cr-name { position: absolute; left: 0; top: 0; color: #ff7a3d; opacity: 0; animation: acc-in .42s ease-out 1.3s forwards; }
+.cr-pslot { position: relative; display: block; margin-top: 0; }
+.cr-pgap { position: absolute; left: 0; top: .04em; height: .9em; width: 4.2em; border-radius: .08em; background: rgba(255,122,61,.22); border-bottom: .07em solid #ff7a3d; animation: fade .3s ease .9s both, gap-out .3s ease 1.9s forwards; }
+.cr-phrase { display: block; color: #ff7a3d; white-space: normal; hyphens: manual; opacity: 0; animation: acc-in .42s ease-out 1.9s forwards; }
+.cr-w { color: #fff; }
+.cr-sub { margin-top: .6em; font-size: clamp(15px, 4.5vw, 18px); font-weight: 400; letter-spacing: 0; color: rgba(255,255,255,.6); white-space: normal; max-width: 16em; animation: fade .4s ease 1.3s both; }
+.cr-btn { margin-top: auto; align-self: flex-start; padding: 10px 20px; font-size: 15px; opacity: 0; animation: fade .4s ease 2.6s forwards; }
+.crown-screen.done * { animation: none !important; }
+.crown-screen.done .cr-name, .crown-screen.done .cr-phrase, .crown-screen.done .cr-btn { opacity: 1; }
+.crown-screen.done .cr-gap, .crown-screen.done .cr-pgap { opacity: 0; }
+.upd-bar { display: block; height: 8px; margin: 12px 0 10px; border-radius: 4px; background: rgba(255,122,61,.22); overflow: hidden; }
+.upd-fill { display: block; height: 100%; width: 0; background: #ff7a3d; animation: upd-load 2.4s ease-in-out forwards; }
+@keyframes upd-load { to { width: 100%; } }
 </style>
 
 <div id="app" class="col" aria-live="polite"></div>
