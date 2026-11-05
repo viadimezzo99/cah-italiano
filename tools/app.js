@@ -80,7 +80,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.3";
+const APP_VERSION = "0.2.4";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -938,8 +938,7 @@ function render() {
         role: "listitem",
       },
         el("div", { class: "name" }, p.name),
-        el("div", { class: "pts" }, p.score),
-        el("div", { class: "tag" }, p.id === s.judgeId ? "Re" : `${p.handSize} carte`));
+        el("div", { class: "pts" }, p.score));
     }));
 
   // Freccia e pallino stanno sulla riga del round: non occupano altro spazio in verticale.
@@ -1105,10 +1104,27 @@ document.addEventListener("pointerdown", () => {
 // Il server tiene stanze, mani e turni. Qui c'è solo la connessione e una "partita"
 // che legge lo stato ricevuto, con gli stessi metodi del motore locale.
 
-const ONLINE_OK = /^https?:$/.test(location.protocol);
 const SESSION_KEY = "cah-online";
-let onlineSock = null;
-let onlineQueue = [];   // azioni in attesa che la connessione sia aperta
+// Online con Firebase Realtime Database. Il telefono di chi crea la stanza la fa girare (tools/room.js);
+// gli altri scrivono nella casella "inbox" della stanza e leggono le risposte in "out/<loro id>".
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBPB0vXofcHsCCB6SpBY2RzxxnvBBdQZRE",
+  authDomain: "cah-italiano.firebaseapp.com",
+  databaseURL: "https://cah-italiano-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "cah-italiano",
+  storageBucket: "cah-italiano.firebasestorage.app",
+  messagingSenderId: "68861634686",
+  appId: "1:68861634686:web:fbc0c14a031dfef91cd02f",
+};
+const NET_TIMEOUT_MS = 15000;
+let fbDb = null;           // database Firebase, null se l'SDK non si è caricato
+let netConnected = false;
+let myNetId = null;        // identità di questo telefono nella rete
+let hostRoom = null;       // stanza ospitata da questo telefono
+let hostCode = null;
+let hostSelf = null;       // connessione del padrone di casa verso la propria stanza
+const hostConns = new Map();
+let joinedCode = null;     // stanza a cui sono collegato come giocatore
 let onlineWin = 5;
 let homeTab = "home";   // "local" | "online" nella schermata iniziale
 let onlineName = "";
@@ -1130,90 +1146,134 @@ function toast(msg) {
   setTimeout(() => t.remove(), 3000);
 }
 
-function netSend(obj) {
-  if (onlineSock && onlineSock.readyState === 1) onlineSock.send(JSON.stringify(obj));
-}
-
-function withSocket(fn) {
-  if (onlineSock && onlineSock.readyState === 1) return fn();
-  onlineQueue.push(fn);
-  if (!onlineSock || onlineSock.readyState > 1) openSocket();
-}
-
-const SERVER_KEY = "cah-server";
-const DEFAULT_SERVER = "https://cah-italiano.onrender.com";
-const loadServer = () => {
-  try { return localStorage.getItem(SERVER_KEY) || ""; } catch { return ""; }
-};
-const saveServer = (v) => {
-  try { localStorage.setItem(SERVER_KEY, v); } catch { /* nessuno storage */ }
-};
-
-// Indirizzo del WebSocket: stesso server se la pagina è servita da lì, altrimenti quello scelto (app).
-function socketUrl() {
-  if (ONLINE_OK) return `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws`;
-  let base = (loadServer() || DEFAULT_SERVER).trim().replace(/\/+$/, "");
-  if (!base) return null;
-  if (!/^(https?|wss?):\/\//.test(base)) base = `https://${base}`;
-  return base.replace(/^http/, "ws") + "/ws";
-}
-
-function openSocket() {
-  const url = socketUrl();
-  if (!url) {
-    onlineError = "Inserisci l'indirizzo del server qui sotto.";
-    onlineQueue = [];
-    return;
+function netId() {
+  if (myNetId) return myNetId;
+  try { myNetId = sessionStorage.getItem("cah-net-id"); } catch { /* nessuno storage */ }
+  if (!myNetId) {
+    myNetId = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    try { sessionStorage.setItem("cah-net-id", myNetId); } catch { /* nessuno storage */ }
   }
-  let ws;
+  return myNetId;
+}
+
+function initNet() {
+  if (fbDb || !window.firebase) return;
   try {
-    ws = new WebSocket(url);
-  } catch {
-    onlineError = "Connessione online non disponibile qui.";
-    onlineQueue = [];
-    return;
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    fbDb = firebase.database();
+    fbDb.ref(".info/connected").on("value", (s) => {
+      netConnected = !!s.val();
+      if (online) { online.offline = !netConnected; render(); }
+    });
+  } catch { fbDb = null; }
+}
+
+// Il telefono dell'ospite: una connessione per ogni telefono degli altri giocatori.
+function hostConn(id) {
+  let c = hostConns.get(id);
+  if (!c) {
+    c = hostRoom.connection(id, (raw) => { fbDb.ref(`rooms/${hostCode}/out/${id}`).push(raw); });
+    hostConns.set(id, c);
   }
-  onlineSock = ws;
-  // Il server gratuito può essere in riposo: se non risponde in tempo, lo dico invece di non fare nulla.
-  const wait = setTimeout(() => {
-    if (ws.readyState !== 0) return;
-    onlineError = "Il server non risponde. Se è in riposo (piano gratuito) può volerci fino a un minuto: riprova tra poco.";
-    onlineQueue = [];
-    try { ws.close(); } catch { /* già chiuso */ }
-    if (onlineSock === ws) onlineSock = null;
-    if (online) render(); else onlineMenu();
-  }, 20000);
-  ws.onopen = () => {
-    clearTimeout(wait);
-    const q = onlineQueue;
-    onlineQueue = [];
-    q.forEach((f) => f());
-  };
-  ws.onmessage = (e) => {
-    try { onMessage(JSON.parse(e.data)); } catch { /* messaggio non valido: ignorato */ }
-  };
-  ws.onclose = () => {
-    clearTimeout(wait);
-    if (onlineSock !== ws) return;
-    onlineSock = null;
-    const hadQueue = onlineQueue.length > 0;
-    onlineQueue = [];
-    if (online) {
-      online.offline = true;
-      render();
-      if (loadSession()) setTimeout(() => withSocket(resumeSaved), 2000);
-      return;
-    }
-    if (hadQueue) {
-      onlineError = "Non riesco a collegarmi al server online. Riprova tra poco: se il server è in riposo può volerci un minuto.";
+  return c;
+}
+
+function startHosting(code) {
+  hostCode = code;
+  hostRoom = createRoomHost({ cards: CARDS, turnSeconds: 60, onRoomGone: () => {} });
+  hostSelf = hostRoom.connection(netId(), (raw) => { try { onMessage(JSON.parse(raw)); } catch { /* ignorato */ } });
+  const base = fbDb.ref(`rooms/${code}`);
+  base.child("inbox").on("child_added", (snap) => {
+    const d = snap.val();
+    snap.ref.remove();
+    if (d && d.from && d.msg && hostRoom) hostRoom.handle(hostConn(d.from), d.msg);
+  });
+  base.child("presence").on("child_removed", (snap) => {
+    const c = hostConns.get(snap.key);
+    if (c && hostRoom) hostRoom.leave(c);
+  });
+}
+
+async function createRoom(name) {
+  initNet();
+  if (!fbDb) throw new Error("Online non disponibile su questo telefono.");
+  let code = "";
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  for (let tries = 0; tries < 8; tries++) {
+    code = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+    const snap = await fbDb.ref(`rooms/${code}`).once("value");
+    if (!snap.exists()) break;
+  }
+  const ref = fbDb.ref(`rooms/${code}`);
+  ref.onDisconnect().remove(); // se l'ospite chiude l'app, la stanza sparisce
+  await ref.set({ host: netId(), created: Date.now() });
+  startHosting(code);
+  hostRoom.handle(hostSelf, { type: "create", name, code });
+  joinedCode = null;
+  if (online) online.code = code;
+}
+
+// Collega questo telefono alla stanza: ascolta le risposte e segnala la presenza.
+function connectTo(code) {
+  initNet();
+  if (!fbDb) throw new Error("Online non disponibile su questo telefono.");
+  joinedCode = code;
+  const base = fbDb.ref(`rooms/${code}`);
+  const me = base.child(`presence/${netId()}`);
+  me.onDisconnect().remove();
+  me.set(true);
+  base.child(`out/${netId()}`).on("child_added", (snap) => {
+    const raw = snap.val();
+    snap.ref.remove();
+    try { onMessage(JSON.parse(raw)); } catch { /* messaggio non valido: ignorato */ }
+  });
+}
+
+async function joinRoom(code, name) {
+  initNet();
+  if (!fbDb) throw new Error("Online non disponibile su questo telefono.");
+  const snap = await fbDb.ref(`rooms/${code}`).once("value");
+  if (!snap.exists()) throw new Error("Stanza non trovata");
+  connectTo(code);
+  online = { code, you: null, state: null, offline: false, winScore: onlineWin };
+  netSend({ type: "join", code, name });
+  setTimeout(() => {
+    if (online && !online.you && joinedCode === code) {
+      onlineError = "La stanza non risponde: l'ospite potrebbe avere chiuso l'app.";
+      leaveNet();
+      online = null;
       onlineMenu();
     }
-  };
+  }, NET_TIMEOUT_MS);
+}
+
+function netSend(obj) {
+  if (hostRoom && hostSelf) { hostRoom.handle(hostSelf, obj); return; }
+  if (joinedCode && fbDb) fbDb.ref(`rooms/${joinedCode}/inbox`).push({ from: netId(), msg: obj });
+}
+
+// Esce dalla stanza: chi ospita la chiude per tutti; gli altri lasciano il proprio posto.
+function leaveNet() {
+  if (hostCode && fbDb) {
+    const ref = fbDb.ref(`rooms/${hostCode}`);
+    ref.onDisconnect().cancel();
+    ref.off();
+    ref.remove();
+  }
+  if (joinedCode && fbDb) {
+    const base = fbDb.ref(`rooms/${joinedCode}`);
+    base.child(`out/${netId()}`).off();
+    base.child(`presence/${netId()}`).remove();
+  }
+  hostRoom = null; hostSelf = null; hostCode = null; hostConns.clear();
+  joinedCode = null;
 }
 
 function resumeSaved() {
   const s = loadSession();
-  if (s) netSend({ type: "resume", code: s.code, token: s.token });
+  if (!s) return;
+  connectTo(s.code);
+  netSend({ type: "resume", code: s.code, token: s.token });
 }
 
 function onMessage(m) {
@@ -1280,6 +1340,7 @@ function makeAdapter(m) {
 function exitGame() {
   if (online) {
     netSend({ type: "leave" });
+    leaveNet();
     saveSession(null);
     online = null;
   }
@@ -1299,14 +1360,14 @@ function onlinePanel() {
     el("button", { type: "button", class: "primary", onclick: () => {
       onlineError = ""; onlineName = nameIn.value.trim();
       toast("Mi collego al server…");
-      withSocket(() => netSend({ type: "create", name: onlineName }));
+      createRoom(onlineName).catch((err) => { onlineError = err.message; onlineMenu(); });
     } }, "Crea una stanza"),
     el("span", { class: "label" }, "Entra con un codice"),
     el("div", { class: "nrow" }, codeIn,
       el("button", { type: "button", onclick: () => {
         onlineError = ""; onlineName = nameIn.value.trim();
         toast("Mi collego al server…");
-        withSocket(() => netSend({ type: "join", code: codeIn.value.trim(), name: onlineName }));
+        joinRoom(codeIn.value.trim().toUpperCase(), onlineName).catch((err) => { onlineError = err.message; onlineMenu(); });
       } }, "Entra")),
     onlineError ? el("p", { class: "hidden-msg err" }, onlineError) : null);
 }
@@ -1427,10 +1488,11 @@ function splash() {
 function boot() {
   splash();
   const s = loadSession();
-  if (s && socketUrl()) {
+  initNet();
+  if (s && fbDb) {
     online = { code: s.code, you: null, state: null, offline: true, winScore: onlineWin };
     render();
-    withSocket(resumeSaved);
+    resumeSaved();
     return;
   }
   setup();

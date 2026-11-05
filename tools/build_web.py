@@ -14,7 +14,7 @@ engine = (f"const LEX = {lex};\nconst REGGENZE = {reggenze};\nconst INFLECT = {i
           + read("src/game.js") + "\n" + read("src/agreement.js"))
 audio = read("tools/audio.js")
 spell = read("tools/spell.js")
-app = spell + "\n" + read("tools/app.js")
+app = spell + "\n" + read("tools/room.js") + "\n" + read("tools/app.js")
 cards = json.loads(read("data/cards.json"))
 # Evita che un testo contenga la sequenza di chiusura dello script.
 payload = json.dumps({"white": cards["white"], "black": cards["black"]}, ensure_ascii=False).replace("</", "<\\/")

@@ -319,6 +319,8 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 .seat.turn { box-shadow: 0 0 0 2px var(--fg); }
 .turn-line { margin: 0; font-weight: 700; color: var(--accent); }
 .judge-pair { display: flex; flex-direction: column; gap: 12px; }
+.judge-pair .black-wrap { flex: none; width: 100%; height: auto; container-type: normal; }
+.judge-pair .black { width: 100%; height: auto; aspect-ratio: auto; min-height: 150px; }
 .card, .pcard, .zoom, .rail .card { border-color: color-mix(in srgb, var(--muted) 45%, transparent) !important; }
 .rail .card.sel { border-color: var(--accent) !important; }
 /* Mano a scorrimento orizzontale: le carte restano su una riga e si scorrono con il dito. */
@@ -353,6 +355,8 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 
 <div id="app" class="col" aria-live="polite"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-database-compat.js"></script>
 <script type="module">
 /*ENGINE*/
 
