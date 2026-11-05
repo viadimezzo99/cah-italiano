@@ -2218,7 +2218,8 @@ let shrinkRound = -1;  // round in cui la carta vincente è già diventata il se
 let botTimer = null;
 let judgeTimer = null;
 let roundTimer = null;     // passaggio automatico al round successivo (solo locale)
-const LOCAL_ROUND_PAUSE_MS = 6000;
+const LOCAL_ROUND_PAUSE_MS = 1300;   // dopo il volo della carta (150 + 900 ms) parte subito il turno dopo
+let shrinkGhost = null;             // copia della carta vincente in volo: si toglie se si salta la pausa
 let online = null;      // partita online: { code, you, state, offline, winScore } oppure null
 
 const el = (tag, attrs = {}, ...kids) => {
@@ -2254,7 +2255,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.12";
+const APP_VERSION = "0.2.13";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -3074,6 +3075,7 @@ function humanConfirmJudge() {
 
 function nextRound() {
   clearTimeout(roundTimer); roundTimer = null;
+  if (shrinkGhost) { shrinkGhost.remove(); shrinkGhost = null; }
   game.nextRound();
   selected = [];
   judgeSel = null;
@@ -3445,6 +3447,10 @@ function render() {
       el("footer", { class: "dock" }, actions, railBlock),
       who));
   if (shrinkNow) shrinkWinner(roundPause);
+  // Offline: toccando lo schermo durante la pausa si passa subito al turno dopo.
+  if (!online && s.phase === "roundEnd") {
+    app.querySelector(".game")?.addEventListener("click", () => { if (game && game.phase === "roundEnd") nextRound(); }, { once: true });
+  }
 }
 
 // Animazione della carta vincente: una copia fissa sopra tutto scende fino al segnaposto sotto il vincitore.
@@ -3470,7 +3476,8 @@ function shrinkWinner(total) {
   ghost.animate([{ transform: "none" }, { transform: `translate(${dx}px, ${dy}px) scale(${k})` }],
     { duration: run, delay: wait, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
   mini.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: wait + run, fill: "forwards" });
-  setTimeout(() => ghost.remove(), wait + run);
+  shrinkGhost = ghost;
+  setTimeout(() => { ghost.remove(); if (shrinkGhost === ghost) shrinkGhost = null; }, wait + run);
 }
 
 // Ogni pulsante suona e vibra un poco (i pulsanti disattivati no).
