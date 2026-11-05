@@ -81,7 +81,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.6";
+const APP_VERSION = "0.2.7";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -103,8 +103,10 @@ function updateBox() {
       if (!latest || !apk) { out.textContent = "Nessuna versione scaricabile al momento."; return; }
       if (!isNewer(latest, APP_VERSION)) { out.textContent = `Sei aggiornato (${APP_VERSION}).`; return; }
       // Dentro l'app il file APK lo apre il telefono (browser/gestore download), non la pagina interna.
+      // Dentro l'app il telefono scarica l'APK da solo e poi chiede di installarlo: nessuna pagina web.
       const openApk = () => {
-        if (window.AndroidBridge?.openUrl) window.AndroidBridge.openUrl(apk.browser_download_url);
+        if (window.AndroidBridge?.installUpdate) window.AndroidBridge.installUpdate(apk.browser_download_url);
+        else if (window.AndroidBridge?.openUrl) window.AndroidBridge.openUrl(apk.browser_download_url);
         else window.open(apk.browser_download_url, "_blank", "noopener");
       };
       // Niente link: la barra si riempie nella schermata, poi il telefono prende il file da solo.
