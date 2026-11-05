@@ -1,7 +1,10 @@
 package it.cah.italiano;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -11,6 +14,15 @@ import android.webkit.WebViewClient;
 // Il gioco online si collega al server indicato nel menu.
 public class MainActivity extends Activity {
     private WebView web;
+
+    // Ponte per il gioco: apre un link (per esempio l'APK di aggiornamento) con il telefono.
+    public class Bridge {
+        @JavascriptInterface
+        public void openUrl(String url) {
+            if (url == null || !url.startsWith("https://")) return;
+            runOnUiThread(() -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))));
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +34,7 @@ public class MainActivity extends Activity {
         s.setMediaPlaybackRequiresUserGesture(false);
         web.setWebChromeClient(new WebChromeClient());
         web.setWebViewClient(new WebViewClient());
+        web.addJavascriptInterface(new Bridge(), "AndroidBridge");
         setContentView(web);
         web.loadUrl("file:///android_asset/index.html");
     }

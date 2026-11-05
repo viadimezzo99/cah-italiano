@@ -97,7 +97,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .seat.played .tag::after { content: " · pronto"; color: var(--ok); }
 .status { font-size: 14px; color: var(--muted); }
 .status strong { color: var(--fg); }
-.roundline { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.roundline { display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.roundline .status { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Carta nera */
 .black-wrap { display: flex; justify-content: center; perspective: 900px; }
@@ -168,15 +169,18 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .banner.win { border-color: var(--ok); }
 .actions { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 
-/* Passaggio del telefono */
-.curtain {
-  position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; text-align: center;
-  background: color-mix(in srgb, var(--bg) 88%, #000 12%); backdrop-filter: blur(10px);
-  padding: max(24px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) 24px max(24px, env(safe-area-inset-left, 0px));
-  animation: fade .3s ease both;
-}
-.curtain .box { display: flex; flex-direction: column; gap: 18px; align-items: center; max-width: 360px; }
-.curtain .big { font-family: "Permanent Marker", cursive; font-size: 34px; line-height: 1.1; transform: rotate(-3deg); }
+/* Passaggio del telefono: stessa impostazione dell'apertura */
+.curtain { position: fixed; inset: 0; z-index: 50; background: #000; overflow: hidden; cursor: pointer; }
+.curtain .iw { position: absolute; left: 26px; top: 36%; color: #fff; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: clamp(44px, 15vw, 76px); line-height: .95; letter-spacing: -.02em; text-align: left; white-space: nowrap; }
+.curtain .iw > span { display: block; }
+.curtain .cur-slot { position: relative; height: .95em; }
+.curtain .cur-gap { position: absolute; left: 0; top: .04em; height: .9em; width: 4.2em; border-radius: .08em; background: rgba(255,122,61,.22); border-bottom: .07em solid #ff7a3d;
+  animation: gap-out .25s ease .9s forwards; }
+.curtain .cur-name { position: absolute; left: 0; top: 0; color: #ff7a3d; opacity: 0; animation: acc-in .42s ease-out .9s forwards; }
+.curtain .cur-sub { margin-top: .6em; font-size: clamp(15px, 4.5vw, 18px); font-weight: 400; letter-spacing: 0; color: rgba(255,255,255,.6); white-space: normal; max-width: 16em; opacity: 0; animation: fade .4s ease 1.4s forwards; }
+@keyframes gap-out { to { opacity: 0; } }
+@keyframes acc-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+#app.still * { animation: none !important; transition: none !important; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* Impostazioni */
@@ -200,10 +204,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .toggle { min-width: 64px; }
 
 /* Coriandoli */
-.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 30; }
-.confetti i.mini { position: absolute; top: -60px; width: 34px; height: 48px; border-radius: 4px; display: grid; place-items: center; font: 800 11px/1 Bricolage, system-ui, sans-serif; box-shadow: 0 2px 4px rgba(0,0,0,.25); animation: fall 2.6s cubic-bezier(.3,.1,.6,1) forwards; }
-.confetti i.mini.black { background: #1c1a17; color: #f4efe6; }
-.confetti i.mini.white { background: #f4efe6; color: #1c1a17; border: 1px solid #d8cfbd; }
+.logo img.logo-icon { width: 64px; height: 64px; border-radius: 14px; flex: 0 0 auto; }
+.logo.big img.logo-icon { width: 120px; height: 120px; border-radius: 26px; }
+.topbar .logo img.logo-icon { width: 36px; height: 36px; border-radius: 9px; }
 @keyframes fall { to { transform: translate(var(--dx), 110vh) rotate(var(--rot)); opacity: .9; } }
 
 /* Preferenza: movimento ridotto */
@@ -310,6 +313,9 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 .seat.judge { border-color: var(--accent); background: var(--accent); color: #fff; box-shadow: none; }
 .seat.judge .tag, .seat.judge .name, .seat.judge .pts { color: #fff; }
 .seat.won { border-bottom-color: var(--ok); }
+.seat.turn { box-shadow: 0 0 0 2px var(--fg); }
+.turn-line { margin: 0; font-weight: 700; color: var(--accent); }
+.judge-pair { display: flex; flex-direction: column; gap: 12px; }
 .card, .pcard, .zoom, .rail .card { border-color: color-mix(in srgb, var(--muted) 45%, transparent) !important; }
 .rail .card.sel { border-color: var(--accent) !important; }
 /* Mano a scorrimento orizzontale: le carte restano su una riga e si scorrono con il dito. */
@@ -335,7 +341,11 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 .hdr-logo > span { display: block; }
 .hdr-logo .acc { color: var(--accent); }
 .home .menu { margin-top: 18px; }
-.home .home-settings { margin-left: auto; font-size: 14px; padding: 6px 12px; }
+/* Pallino impostazioni e freccia indietro: piccoli, senza testo */
+.home-settings { width: 10px; height: 10px; min-height: 0; padding: 0; border: 0; border-radius: 50%; background: var(--accent); box-shadow: none; flex: none; font-size: 0; }
+.home .home-top .home-settings { margin-left: auto; }
+.roundline .home-settings { align-self: center; }
+.back-arrow { background: none; border: 0; padding: 0 4px 0 0; color: var(--accent); font-size: 16px; line-height: 1; min-height: 0; box-shadow: none; align-self: center; }
 </style>
 
 <div id="app" class="col" aria-live="polite"></div>

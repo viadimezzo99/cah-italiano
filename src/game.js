@@ -221,6 +221,7 @@ export class Game {
     const winner = this.player(winnerId);
     winner.score += 1;
     this.lastWinner = winnerId;
+    this.lastWinCards = this.submissions.get(winnerId).map((id) => this.text(id));
     this.phase = "roundEnd";
 
     const events = [{ type: "picked", winnerId, index, blackId: this.currentBlack.id }];
@@ -301,6 +302,7 @@ export class Game {
         hand: p.id === forPlayerId ? p.hand.map((id) => ({ id, text: this.text(id), cat: this.catById.get(id) })) : undefined,
       })),
       reveal: this.reveal(),
+      winnerCards: this.phase === "roundEnd" ? this.lastWinCards ?? [] : [],
       winner: this.winner,
     };
   }

@@ -4,7 +4,9 @@
 const Sound = (() => {
   let ctx = null, master = null, sfxBus = null, musicBus = null;
   let musicOn = false, sfxOn = true, timer = null, step = 0, nextTime = 0;
-  const STEP = 60 / 100 / 4; // sedicesimi a 100 BPM
+  let STEP = 60 / 100 / 4; // sedicesimi: cambia con il tema (menu più lento, partita più ritmata)
+  let theme = "menu";
+  const TEMPO = { menu: 92, game: 110 };
   // Basso: quattro note per battuta, una ogni quattro sedicesimi (MIDI).
   const BASS = [[33, 33, 36, 38], [31, 31, 34, 36], [33, 33, 29, 31], [28, 28, 31, 33]];
   // Versi nel loop: "battuta:sedicesimo" -> verso.
@@ -48,6 +50,12 @@ const Sound = (() => {
   // Effetti che imitano le carte: strisciate, schiocchi sul tavolo, fruscio di mazzo.
   // Tutti basati sul rumore filtrato, così suonano come carta e non come bip.
   const tap = (t, f, peak) => blip(f, t, 0.06, "sine", sfxBus, peak, f * 0.5);
+  // Vibrazione breve per ogni evento (millisecondi; liste = pausa, vibrazione, ...).
+  const HAPTIC = {
+    tap: 6, key: 3, pick: 10, confirm: [10, 40, 14], deal: 8, flip: 12, paper: 10, tick: 4,
+    shuffle: [6, 30, 6, 30, 6, 30, 6], slam: 25, error: [30, 60, 30], win: [40, 80, 40, 80, 120],
+  };
+  let hapticsOn = true;
   const SFX = {
     pick: (t) => { burst(t, 0.03, 3200, 2, 0.14, sfxBus, "highpass"); tap(t, 260, 0.08); },
     confirm: (t) => { burst(t, 0.05, 2600, 1.5, 0.2, sfxBus, "highpass"); tap(t, 200, 0.14); },
@@ -64,6 +72,9 @@ const Sound = (() => {
     paper: (t) => { burst(t, 0.24, 2400, 0.6, 0.18, sfxBus, "bandpass", 900); for (let k = 0; k < 5; k++) burst(t + 0.03 + k * 0.035 + Math.random() * 0.01, 0.02, 5000, 2, 0.12, sfxBus, "highpass"); },
     // Scatto a ogni carta che passa sotto il dito, come la rotella di una cassaforte.
     tick: (t) => { burst(t, 0.015, 4200, 3, 0.35, sfxBus, "highpass"); tap(t, 1100, 0.06); },
+    // Suoni d'interfaccia: un tocco leggero sui pulsanti e un ticchettio per ogni lettera.
+    tap: (t) => { burst(t, 0.02, 1800, 2, 0.12, sfxBus, "highpass"); tap(t, 520, 0.04); },
+    key: (t) => burst(t, 0.012, 3000, 3, 0.07, sfxBus, "highpass"),
     // Colpo grave dell'apertura, come quello che accompagna il titolo nei giochi di combattimento.
     boom: (t) => { blip(55, t, 0.7, "sine", sfxBus, 0.9, 28); burst(t, 0.12, 300, 0.7, 0.35, sfxBus, "lowpass"); },
     // Vittoria: un applauso di tavolo, diverso dagli altri suoni.
@@ -154,31 +165,36 @@ const Sound = (() => {
 
   const VERSO = { rutto, scoreggia, starnuto, tosse };
 
-  function musicStep(t, s) {
+  // Tema dei menu: musica d'attesa, accordi morbidi e arpeggio, come in un ascensore elegante.
+  const MENU_CHORDS = [[60, 64, 67, 71], [57, 60, 64, 67], [53, 57, 60, 64], [55, 59, 62, 65]];
+  function menuStep(t, s) {
     const pos = s % 64;
     const bar = Math.floor(pos / 16), st = pos % 16;
-    // Batteria: cassa sincopata, rullante sul 2 e sul 4, hi-hat continuo.
-    if ([0, 6, 8, 14].includes(st)) {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.15);
-      g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-      o.connect(g); g.connect(musicBus); o.start(t); o.stop(t + 0.2);
-    }
-    if (st === 4 || st === 12) burst(t, 0.12, 1800, 0.8, 0.35, musicBus);
-    if (st % 2 === 0) burst(t, 0.035, 7000, 0.5, 0.07, musicBus, "highpass");
-    // Basso: una nota ogni quattro sedicesimi.
-    if (st % 4 === 0) {
-      const n = BASS[bar][st / 4];
+    const chord = MENU_CHORDS[bar];
+    if (st === 0) chord.forEach((n) => blip(hz(n - 12), t, STEP * 15, "sine", musicBus, 0.035));
+    if (st % 2 === 0) blip(hz(chord[(st / 2) % 4] + 12), t, STEP * 1.6, "triangle", musicBus, 0.07);
+  }
+
+  // Tema della partita: musica da quiz, con l'orologio che ticchetta e un basso che pulsa.
+  function gameStep(t, s) {
+    const pos = s % 64;
+    const bar = Math.floor(pos / 16), st = pos % 16;
+    if (st % 4 === 0) burst(t, 0.02, 6000, 3, 0.1, musicBus, "highpass");
+    if (st % 4 === 2) burst(t, 0.03, 2600, 2, 0.05, musicBus, "bandpass");
+    if (st % 8 === 0) {
+      const n = BASS[bar][(st / 4) % 4];
       const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
       o.type = "sawtooth"; o.frequency.value = hz(n);
-      f.type = "lowpass"; f.frequency.value = 500;
-      g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.0001, t + STEP * 3.5);
+      f.type = "lowpass"; f.frequency.value = 420;
+      g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.0001, t + STEP * 6);
       o.connect(f); f.connect(g); g.connect(musicBus);
-      o.start(t); o.stop(t + STEP * 4);
+      o.start(t); o.stop(t + STEP * 7);
     }
-    // Versi fissi del loop.
-    const verso = VERSI[`${bar}:${st}`];
-    if (verso) VERSO[verso](t, musicBus);
+    if (st === 0) blip(hz(84), t, 0.25, "sine", musicBus, 0.05);
+  }
+
+  function musicStep(t, s) {
+    if (theme === "menu") menuStep(t, s); else gameStep(t, s);
   }
 
   function pump() {
@@ -192,9 +208,12 @@ const Sound = (() => {
   return {
     unlock() { return ensure(); },
     play(name) {
+      if (hapticsOn && HAPTIC[name] && navigator.vibrate) { try { navigator.vibrate(HAPTIC[name]); } catch { /* nessuna vibrazione */ } }
       if (!sfxOn || !ensure()) return;
       SFX[name]?.(ctx.currentTime + 0.01);
     },
+    setHaptics(on) { hapticsOn = !!on; },
+    setTheme(name) { theme = name === "game" ? "game" : "menu"; STEP = 60 / TEMPO[theme] / 4; },
     setSfx(on) { sfxOn = !!on; },
     setVolume(v) { if (ensure()) musicBus.gain.value = 0.18 * v; },
     setMusic(on) {
