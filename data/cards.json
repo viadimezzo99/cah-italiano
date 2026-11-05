@@ -4,12 +4,12 @@
   {
    "id": "w001",
    "text": "Una maledizione di un Gitano.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w002",
    "text": "Un momento di silenzio.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w003",
@@ -24,7 +24,7 @@
   {
    "id": "w005",
    "text": "Carestia.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w006",
@@ -34,17 +34,17 @@
   {
    "id": "w007",
    "text": "Serpenti volanti che fanno sesso.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w008",
    "text": "Non fregarsene un cazzo del Terzo Mondo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w009",
    "text": "Sexting.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w010",
@@ -74,7 +74,7 @@
   {
    "id": "w015",
    "text": "Un paradosso da viaggio nel tempo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w016",
@@ -94,12 +94,12 @@
   {
    "id": "w019",
    "text": "Oberato dai debiti.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w020",
    "text": "Problemi col babbo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w021",
@@ -113,18 +113,18 @@
   },
   {
    "id": "w023",
-   "text": "L'Ex presidente George W. Bush.",
+   "text": "L'ex presidente George W. Bush.",
    "cat": "Soggetti"
   },
   {
    "id": "w024",
    "text": "Nudità completa.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w025",
    "text": "Iniezioni ormonali.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w026",
@@ -159,17 +159,17 @@
   {
    "id": "w032",
    "text": "L'inevitabile morte termica dell'universo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w033",
    "text": "Il miracolo della nascita.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w034",
    "text": "Il rapimento alieno.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w035",
@@ -179,12 +179,12 @@
   {
    "id": "w036",
    "text": "I privilegi dei bianchi.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w037",
    "text": "Compiti da moglie.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w038",
@@ -204,7 +204,7 @@
   {
    "id": "w041",
    "text": "Orribili incidenti dovuti alla depilazione laser.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w042",
@@ -214,7 +214,7 @@
   {
    "id": "w043",
    "text": "Agricoltura.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w044",
@@ -224,7 +224,7 @@
   {
    "id": "w045",
    "text": "Selezione naturale.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w046",
@@ -254,27 +254,27 @@
   {
    "id": "w051",
    "text": "Obesità.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w052",
    "text": "Un montaggio pallavolistico omoerotico.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w053",
    "text": "Tetano.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w054",
    "text": "Una dimostrazione di un accoppiamento.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w055",
    "text": "Torsione del testicolo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w056",
@@ -309,16 +309,16 @@
   {
    "id": "w062",
    "text": "Smegma.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w063",
    "text": "Alcolismo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w064",
-   "text": "Un uomo di mezza eta' con un paio di pattini in linea.",
+   "text": "Un uomo di mezza età con un paio di pattini in linea.",
    "cat": "Soggetti"
   },
   {
@@ -339,7 +339,7 @@
   {
    "id": "w068",
    "text": "Disgusto di sé.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w069",
@@ -349,7 +349,7 @@
   {
    "id": "w070",
    "text": "Preliminari meschini.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w071",
@@ -359,7 +359,7 @@
   {
    "id": "w072",
    "text": "Porno in un sotterraneo tedesco.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w073",
@@ -369,7 +369,7 @@
   {
    "id": "w074",
    "text": "Gravidanza in età adolescenziale.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w075",
@@ -394,7 +394,7 @@
   {
    "id": "w079",
    "text": "Un'erezione che dura più di quattro ore.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w080",
@@ -409,12 +409,12 @@
   {
    "id": "w082",
    "text": "Scienza.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w083",
    "text": "Sesso orale non ricambiato.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w084",
@@ -449,12 +449,12 @@
   {
    "id": "w090",
    "text": "La fondazione Make-A-Wish.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w091",
    "text": "Una grattata di culo clandestina.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w092",
@@ -474,7 +474,7 @@
   {
    "id": "w095",
    "text": "Fare solo un pochino di pipì.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w096",
@@ -484,11 +484,11 @@
   {
    "id": "w097",
    "text": "Polluzione notturna.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w098",
-   "text": "Gli ebrei.",
+   "text": "Ebrei.",
    "cat": "Soggetti"
   },
   {
@@ -503,7 +503,7 @@
   },
   {
    "id": "w101",
-   "text": "Fare I'occhioIino a persone anziane.",
+   "text": "Fare l'occhiolino a persone anziane.",
    "cat": "Azioni"
   },
   {
@@ -514,12 +514,12 @@
   {
    "id": "w103",
    "text": "Una gentile carezza nell'interno della coscia.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w104",
    "text": "Tensione sessuale.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w105",
@@ -539,12 +539,12 @@
   {
    "id": "w108",
    "text": "Essere ricco.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w109",
    "text": "Dolce, dolce vendetta.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w110",
@@ -558,7 +558,7 @@
   },
   {
    "id": "w112",
-   "text": "Un'antiIope che soffre di flatulenza.",
+   "text": "Un'antilope che soffre di flatulenza.",
    "cat": "Soggetti"
   },
   {
@@ -584,7 +584,7 @@
   {
    "id": "w117",
    "text": "Obbiettivi politici degli omosessuali.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w118",
@@ -603,23 +603,23 @@
   },
   {
    "id": "w121",
-   "text": "Pac--Man.",
+   "text": "Pac-Man.",
    "cat": "Soggetti"
   },
   {
    "id": "w122",
    "text": "Diventare così arrabbiati da farsi venire un'erezione.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w123",
    "text": "Campioni gratuiti.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w124",
    "text": "Un gran rumore per nulla.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w125",
@@ -629,17 +629,17 @@
   {
    "id": "w126",
    "text": "I patti Lateranensi.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w127",
    "text": "Allattamento.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w128",
    "text": "La pace nel mondo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w129",
@@ -649,7 +649,7 @@
   {
    "id": "w130",
    "text": "Faccia tosta.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w131",
@@ -669,7 +669,7 @@
   {
    "id": "w134",
    "text": "Pubertà.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w135",
@@ -704,7 +704,7 @@
   {
    "id": "w141",
    "text": "Violenza della polizia.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w142",
@@ -724,7 +724,7 @@
   {
    "id": "w145",
    "text": "Mascherare una risata quando vengono menzionati gli Hutu e i Tutsi.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w146",
@@ -739,12 +739,12 @@
   {
    "id": "w148",
    "text": "Una pugnetta triste.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w149",
    "text": "Esattamente quello che ti aspetti.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w150",
@@ -769,12 +769,12 @@
   {
    "id": "w154",
    "text": "Sesso tra panda.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w155",
-   "text": "Una Iobotomia fatta con un punteruolo.",
-   "cat": "Concetti"
+   "text": "Una lobotomia fatta con un punteruolo.",
+   "cat": "Situazioni"
   },
   {
    "id": "w156",
@@ -784,7 +784,7 @@
   {
    "id": "w157",
    "text": "Herpes labiale.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w158",
@@ -799,12 +799,12 @@
   {
    "id": "w160",
    "text": "Petting duro.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w161",
    "text": "Incesto.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w162",
@@ -834,12 +834,12 @@
   {
    "id": "w167",
    "text": "Doccia di piscio.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w168",
    "text": "Emozioni.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w169",
@@ -859,7 +859,7 @@
   {
    "id": "w172",
    "text": "Combustione umana spontanea.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w173",
@@ -874,7 +874,7 @@
   {
    "id": "w175",
    "text": "L'odore delle persone vecchie.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w176",
@@ -884,7 +884,7 @@
   {
    "id": "w177",
    "text": "I miei demoni interiori.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w178",
@@ -904,7 +904,7 @@
   {
    "id": "w181",
    "text": "Rosso relativo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w182",
@@ -914,7 +914,7 @@
   {
    "id": "w183",
    "text": "Fuoco amico.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w184",
@@ -924,7 +924,7 @@
   {
    "id": "w185",
    "text": "Un compleanno deludente.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w186",
@@ -954,7 +954,7 @@
   {
    "id": "w191",
    "text": "Un colpo di scena degno di M. Night Shyamalan.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w192",
@@ -964,7 +964,7 @@
   {
    "id": "w193",
    "text": "Distruzione reciproca.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w194",
@@ -983,7 +983,7 @@
   },
   {
    "id": "w197",
-   "text": "Mangiare I'ultimo bisonte.",
+   "text": "Mangiare l'ultimo bisonte.",
    "cat": "Azioni"
   },
   {
@@ -1009,37 +1009,37 @@
   {
    "id": "w202",
    "text": "La forza.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w203",
    "text": "Pulirle il culo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w204",
    "text": "Creazionismo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w205",
    "text": "Bocca larga.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w206",
    "text": "AIDS.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w207",
    "text": "Foto di tette.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w208",
    "text": "Il superuomo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w209",
@@ -1064,7 +1064,7 @@
   {
    "id": "w213",
    "text": "L'invidia per il pene.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w214",
@@ -1099,7 +1099,7 @@
   {
    "id": "w220",
    "text": "Servi della gleba. Il pericolo degli sconosciuti.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w221",
@@ -1108,33 +1108,33 @@
   },
   {
    "id": "w222",
-   "text": "La carriera di attore di Shaquille O'NeaI.",
+   "text": "La carriera di attore di Shaquille O'Neal.",
    "cat": "Soggetti"
   },
   {
    "id": "w223",
    "text": "Baldanzoso.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w224",
    "text": "La giustizia spicciola.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w225",
    "text": "Un bukkake censurato.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w226",
    "text": "Una vita di tristezza.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w227",
    "text": "Razzismo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w228",
@@ -1144,7 +1144,7 @@
   {
    "id": "w229",
    "text": "Sole e arcobaleni.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w230",
@@ -1154,7 +1154,7 @@
   {
    "id": "w231",
    "text": "Inondazione improvvisa.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w232",
@@ -1164,11 +1164,11 @@
   {
    "id": "w233",
    "text": "Conati di vomito.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w234",
-   "text": "I terroristi.",
+   "text": "Terroristi.",
    "cat": "Soggetti"
   },
   {
@@ -1179,7 +1179,7 @@
   {
    "id": "w236",
    "text": "Atteggiamento.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w237",
@@ -1189,7 +1189,7 @@
   {
    "id": "w238",
    "text": "Lebbra.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w239",
@@ -1199,7 +1199,7 @@
   {
    "id": "w240",
    "text": "Lame nei capezzoli.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w241",
@@ -1239,7 +1239,7 @@
   {
    "id": "w248",
    "text": "Pulizia etnica.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w249",
@@ -1249,7 +1249,7 @@
   {
    "id": "w250",
    "text": "La mano invisibile.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w251",
@@ -1258,8 +1258,8 @@
   },
   {
    "id": "w252",
-   "text": "Stupidita' incomprensibile.",
-   "cat": "Concetti"
+   "text": "Stupidità incomprensibile.",
+   "cat": "Situazioni"
   },
   {
    "id": "w253",
@@ -1274,17 +1274,17 @@
   {
    "id": "w255",
    "text": "Disfunzione erettile.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w256",
    "text": "Sovracompensazione.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w257",
    "text": "Autocannibalismo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w258",
@@ -1298,13 +1298,13 @@
   },
   {
    "id": "w260",
-   "text": "Le persone non di colore.",
+   "text": "Persone non di colore.",
    "cat": "Soggetti"
   },
   {
    "id": "w261",
    "text": "Porno Tentacolari.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w262",
@@ -1334,7 +1334,7 @@
   {
    "id": "w267",
    "text": "Carisma.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w268",
@@ -1359,7 +1359,7 @@
   {
    "id": "w272",
    "text": "Cagarsi l'anima.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w273",
@@ -1379,7 +1379,7 @@
   {
    "id": "w276",
    "text": "La violazione dei nostri diritti umani basilari.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w277",
@@ -1394,12 +1394,12 @@
   {
    "id": "w279",
    "text": "Essere fantastici.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w280",
    "text": "Necrofilia.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w281",
@@ -1408,13 +1408,13 @@
   },
   {
    "id": "w282",
-   "text": "Le persone di colore.",
+   "text": "Persone di colore.",
    "cat": "Soggetti"
   },
   {
    "id": "w283",
    "text": "Codice cavalleresco.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w284",
@@ -1428,7 +1428,7 @@
   },
   {
    "id": "w286",
-   "text": "Le persone totalmente handicappate.",
+   "text": "Persone totalmente handicappate.",
    "cat": "Soggetti"
   },
   {
@@ -1459,7 +1459,7 @@
   {
    "id": "w292",
    "text": "Il vero significato del Natale.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w293",
@@ -1479,7 +1479,7 @@
   {
    "id": "w296",
    "text": "Espellere un calcolo renale.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w297",
@@ -1509,22 +1509,22 @@
   {
    "id": "w302",
    "text": "Masturbazione.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w303",
    "text": "Allusione sul ceto sociale.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w304",
    "text": "Flato vaginale.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w305",
    "text": "Nascondere un'erezione.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w306",
@@ -1549,7 +1549,7 @@
   {
    "id": "w310",
    "text": "Sesso a sorpresa!",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w311",
@@ -1569,7 +1569,7 @@
   {
    "id": "w314",
    "text": "Ferite da arma da taglio multiple.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w315",
@@ -1579,7 +1579,7 @@
   {
    "id": "w316",
    "text": "Abusi infantili.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w317",
@@ -1589,7 +1589,7 @@
   {
    "id": "w318",
    "text": "Morti civili.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w319",
@@ -1629,12 +1629,12 @@
   {
    "id": "w326",
    "text": "Discriminazione politica.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w327",
    "text": "Farlo dall'entrata posteriore.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w328",
@@ -1649,7 +1649,7 @@
   {
    "id": "w330",
    "text": "Un mare di guai.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w331",
@@ -1658,7 +1658,7 @@
   },
   {
    "id": "w332",
-   "text": "La tigre dei KeIIogg's.",
+   "text": "La tigre dei Kellogg's.",
    "cat": "Soggetti"
   },
   {
@@ -1674,7 +1674,7 @@
   {
    "id": "w335",
    "text": "Il soffitto di vetro.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w336",
@@ -1684,7 +1684,7 @@
   {
    "id": "w337",
    "text": "Il sogno americano.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w338",
@@ -1694,7 +1694,7 @@
   {
    "id": "w339",
    "text": "Quando scoreggi ma ti esce anche una sgommata.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w340",
@@ -1714,7 +1714,7 @@
   {
    "id": "w343",
    "text": "Assoli di Sassofoni.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w344",
@@ -1744,12 +1744,12 @@
   {
    "id": "w349",
    "text": "Eugenetica.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w350",
    "text": "La mia situazione sentimentale.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w351",
@@ -1794,12 +1794,12 @@
   {
    "id": "w359",
    "text": "Genitori morti.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w360",
    "text": "Permanenza degli oggetti nella sviluppo cognitivo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w361",
@@ -1809,7 +1809,7 @@
   {
    "id": "w362",
    "text": "Test di intelligenza con domande razziste.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w363",
@@ -1849,7 +1849,7 @@
   {
    "id": "w370",
    "text": "Repressione.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w371",
@@ -1873,12 +1873,12 @@
   },
   {
    "id": "w375",
-   "text": "Dare il 110\\%.",
+   "text": "Dare il 110%.",
    "cat": "Azioni"
   },
   {
    "id": "w376",
-   "text": "Sua altezza reale, regina Elisabetta ll.",
+   "text": "Sua altezza reale, regina Elisabetta II.",
    "cat": "Soggetti"
   },
   {
@@ -1899,7 +1899,7 @@
   {
    "id": "w380",
    "text": "Speranza.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w381",
@@ -1914,12 +1914,12 @@
   {
    "id": "w383",
    "text": "La mia anima.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w384",
    "text": "Un'orgia.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w385",
@@ -1939,7 +1939,7 @@
   {
    "id": "w388",
    "text": "Il complesso di Edipo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w389",
@@ -1949,7 +1949,7 @@
   {
    "id": "w390",
    "text": "Riscaldamento globale.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w391",
@@ -1974,7 +1974,7 @@
   {
    "id": "w395",
    "text": "Suffragio femminile.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w396",
@@ -1994,7 +1994,7 @@
   {
    "id": "w399",
    "text": "Massacro di Utoya in Norvegia.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w400",
@@ -2024,7 +2024,7 @@
   {
    "id": "w405",
    "text": "Dividere le acque del Mar Rosso.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w406",
@@ -2034,7 +2034,7 @@
   {
    "id": "w407",
    "text": "Pompino alla guida.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w408",
@@ -2059,12 +2059,12 @@
   {
    "id": "w412",
    "text": "Scelte di vita sbagliate.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w413",
    "text": "La mia vita sessuale.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w414",
@@ -2074,12 +2074,12 @@
   {
    "id": "w415",
    "text": "Una tartaruga alligatore che ti sta mordendo la punta del pene.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w416",
    "text": "Una detonazione termonucleare.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w417",
@@ -2088,8 +2088,8 @@
   },
   {
    "id": "w418",
-   "text": "II Big Bang.",
-   "cat": "Concetti"
+   "text": "Il Big Bang.",
+   "cat": "Situazioni"
   },
   {
    "id": "w419",
@@ -2124,7 +2124,7 @@
   {
    "id": "w425",
    "text": "Il mio momento.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w426",
@@ -2134,17 +2134,17 @@
   {
    "id": "w427",
    "text": "Battute fuori luogo sull'olocausto.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w428",
    "text": "Un mare di guai.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w429",
    "text": "Fantasie di un taglialegna.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w430",
@@ -2159,12 +2159,12 @@
   {
    "id": "w432",
    "text": "Metodo naturale di allungamento del pene.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w433",
    "text": "Essere un fottuto stregone.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w434",
@@ -2194,7 +2194,7 @@
   {
    "id": "w439",
    "text": "Attrito.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w440",
@@ -2224,22 +2224,22 @@
   {
    "id": "w445",
    "text": "Morire.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w446",
    "text": "L'uragano Katrina.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w447",
-   "text": "I gay.",
+   "text": "Gay.",
    "cat": "Soggetti"
   },
   {
    "id": "w448",
    "text": "La follia di un uomo.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w449",
@@ -2248,7 +2248,7 @@
   },
   {
    "id": "w450",
-   "text": "Gli Amish.",
+   "text": "Amish.",
    "cat": "Soggetti"
   },
   {
@@ -2264,7 +2264,7 @@
   {
    "id": "w453",
    "text": "Un tumore al cervello.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w454",
@@ -2274,7 +2274,7 @@
   {
    "id": "w455",
    "text": "Aver paura di se stesso.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   },
   {
    "id": "w456",
@@ -2294,7 +2294,7 @@
   {
    "id": "w459",
    "text": "Mestruazioni.",
-   "cat": "Concetti"
+   "cat": "Situazioni"
   }
  ],
  "black": [
@@ -2302,541 +2302,541 @@
    "id": "b001",
    "text": "La nuova norma sulla sicurezza ora proibisce ____ sugli aerei.",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b002",
    "text": "È un peccato che i ragazzini al giorno d'oggi partecipino a ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b003",
    "text": "Fra 1.000 anni, quando le banconote saranno soltanto un ricordo lontano, ____ sarà il nostro denaro.",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b004",
    "text": "La lega serie A ha vietato ____ poiché dà un vantaggio ingiusto ai giocatori.",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b005",
    "text": "Qual è il vizio segreto di Batman? ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b006",
    "text": "Il prossimo romanzo di J.K.Rowling. Harry Potter e la camera dei ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b007",
-   "text": "Si, ho ucciso ____ Ti domandi come? ____",
+   "text": "Sì, ho ucciso ____ Ti domandi come? ____",
    "blanks": 2,
-   "cat": "Quotidiano"
+   "cat": "2 risposte"
   },
   {
    "id": "b008",
    "text": "Prof. mi dispiace ma non ho potuto finire i compiti per colpa di ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b009",
    "text": "E il premio Oscar per ____ va a ____",
    "blanks": 2,
-   "cat": "Cultura e spettacolo"
+   "cat": "2 risposte"
   },
   {
    "id": "b010",
    "text": "Per il mio prossimo numero tirerò fuori ____ da ____",
    "blanks": 2,
-   "cat": "Cultura e spettacolo"
+   "cat": "2 risposte"
   },
   {
    "id": "b011",
    "text": "____ + ____ = ____",
    "blanks": 3,
-   "cat": "Quotidiano"
+   "cat": "3 risposte"
   },
   {
    "id": "b012",
    "text": "Cosa ho portato dal Messico? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b013",
    "text": "____? C'è un app per quello.",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b014",
    "text": "Passo 1: ____ Passo 2: ____ Passo 3: Guadagno!",
    "blanks": 2,
-   "cat": "Quotidiano"
+   "cat": "2 risposte"
   },
   {
    "id": "b015",
    "text": "____ Scommetto che non ne desideri soltanto uno!",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b016",
    "text": "Qual è il mio antidroga? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b017",
    "text": "Mentre gli USA e la Russia gareggiavano per la conquista della Luna, il Messico ha investito milioni di pesos in ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b018",
    "text": "Nel nuovo film della Disney, Hannah Montana si scontra per la prima volta contro ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b019",
    "text": "Qual è il mio potere segreto? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b020",
    "text": "Qual è la nuova dieta del momento? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b021",
    "text": "Cosa si mangia Vin Diesel per cena? ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b022",
    "text": "Quando il faraone rimase impassibile, Mosè scateno la piaga ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b023",
    "text": "Come faccio a mantenere la mia attuale relazione? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b024",
    "text": "Qual è la cosa più incrostata? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b025",
    "text": "Mentre ero sotto gli effetti di acidi, ____ si trasformò in ____",
    "blanks": 2,
-   "cat": "Vita personale"
+   "cat": "2 risposte"
   },
   {
    "id": "b026",
    "text": "Nel carcere di Los Angeles le voci dicono che puoi scambiare 200 sigarette per ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b027",
    "text": "Dopo il terremoto Sean Penn portò ____ alle persone di Haiti.",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b028",
    "text": "Invece del carbone la Befana ora porta ai bambini cattivi ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b029",
-   "text": "La vita degli indiani d'America cambiò per sempre quando gli uomini bianchi Ii introdussero a ____",
+   "text": "La vita degli indiani d'America cambiò per sempre quando gli uomini bianchi li introdussero a ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b030",
    "text": "Cosa usano gli insegnanti per ispirare al successo i ragazzi? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b031",
    "text": "Amaro Montenegro. Sapore di ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b032",
    "text": "Negli ultimi istanti di vita di Michael Jackson lui pensò a ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b033",
    "text": "Ai neri piace ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b034",
    "text": "____ è una tendenza pericolosa che porta a ____",
    "blanks": 2,
-   "cat": "Quotidiano"
+   "cat": "2 risposte"
   },
   {
    "id": "b035",
    "text": "Perché ho male ovunque? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b036",
    "text": "Una romantica cena a lume di candela è incompleta senza ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b037",
    "text": "Cosa posso andare a prendere dal passato per convincere la gente di essere un potente stregone? ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b038",
-   "text": "Sono Valerio Staffelli e sono qui per parlavi di ____",
+   "text": "Sono Valerio Staffelli e sono qui per parlarvi di ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b039",
    "text": "La gita scolastica fu completamente rovinata da ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b040",
    "text": "Qual è il miglior amico di una ragazza? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b041",
    "text": "Cara TopGirl, ho difficoltà con ____ e vorrei qualche consiglio.",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b042",
    "text": "Quando sarò il capo del governo creerò il Ministero del ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b043",
    "text": "Cosa mi stanno nascondendo i miei genitori? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b044",
    "text": "Cosa non fallisce mai nel ravvivare una festa? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b045",
    "text": "In un mondo depredato da ____ il nostro unico conforto è ____",
    "blanks": 2,
-   "cat": "Società"
+   "cat": "2 risposte"
   },
   {
    "id": "b046",
    "text": "Inventa un haiku. ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b047",
    "text": "Nel nuovo film di Shyamalan Bruce Willis scopre che ____ era invece ____ per tutto il tempo.",
    "blanks": 2,
-   "cat": "Cultura e spettacolo"
+   "cat": "2 risposte"
   },
   {
    "id": "b048",
    "text": "Cosa migliora con l'età? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b049",
    "text": "____ buono fino all'ultima goccia.",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b050",
    "text": "Ho un sacco di problemi ma ____ non è fra questi.",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b051",
    "text": "____ è una trappola!",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b052",
    "text": "Il nuovo reality show di MTV presenterà otto celebrità sull'orlo dello sfinimento che vivranno con ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b053",
    "text": "Cos'è che mia nonna troverebbe allarmante ma nello stesso tempo anche stranamente affascinante? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b054",
    "text": "Chi è il più emo? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b055",
    "text": "Non avevo veramente compreso ____ finché non incontrai ____",
    "blanks": 2,
-   "cat": "Vita personale"
+   "cat": "2 risposte"
   },
   {
    "id": "b056",
    "text": "Durante il sesso mi piace pensare a ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b057",
    "text": "Cosa fece finire la mia passata relazione? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b058",
    "text": "Cos'è questo suono? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b059",
    "text": "____ Così è come voglio morire!",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b060",
    "text": "Perché sono appiccicoso? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b061",
    "text": "Quale sarà il prossimo giocattolo dell'Happy Meal? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b062",
    "text": "Cosa sarà disponibile a volontà in paradiso? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b063",
    "text": "Non so con che armi sarà combattuta la terza guerra mondiale. Ma nella quarta si useranno ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b064",
    "text": "Cosa ti permette di portarti a letto, con assoluta certezza, una ragazza? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b065",
    "text": "Voci dicono che il piatto preferito di Vladimir Putin è ____ ripieno di ____",
    "blanks": 2,
-   "cat": "Società"
+   "cat": "2 risposte"
   },
   {
    "id": "b066",
    "text": "LA7D presenta ____ la storia di ____",
    "blanks": 2,
-   "cat": "Cultura e spettacolo"
+   "cat": "2 risposte"
   },
   {
    "id": "b067",
    "text": "____: testato dai bambini, approvato dalle madri.",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b068",
    "text": "Perché non riesco a dormire? ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b069",
    "text": "Cos'è questo odore? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b070",
    "text": "Cosa aiuterebbe Monti a rilassarsi? ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b071",
-   "text": "Questo è come il mondo finirà, non con una esplosione ma con ____",
+   "text": "Questo è come il mondo finirà, non con un'esplosione ma con ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b072",
    "text": "In arrivo a Broadway quest'anno, ____: il musical.",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b073",
    "text": "Gli antropologi hanno recentemente scoperto un'antica tribù che venera ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b074",
    "text": "Ma prima che la uccida Signor Bond le voglio mostrare ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b075",
-   "text": "Recenti studi hanno mostrato che topi di laboratorio impiegano il 50\\% in meno per uscire da un labirinto se sono stati esposti a ____",
+   "text": "Recenti studi hanno mostrato che topi di laboratorio impiegano il 50% in meno per uscire da un labirinto se sono stati esposti a ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b076",
    "text": "Quale sarà la prossima coppia di supereroi? ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b077",
    "text": "Prossimamente su Rai Sport 2: i mondiali di ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b078",
    "text": "Quando sarò milionario erigerò una statua di 30 metri per commemorare ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b079",
    "text": "Nel tentativo di attrarre nuove persone, il museo nazionale di Storia Naturale inaugurerà una mostra interattiva su ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b080",
    "text": "Guerra! A cosa ci serve? ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b081",
    "text": "Cosa mi crea flatulenze incontrollabili? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b082",
    "text": "Di cosa odorano le persone anziane? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b083",
    "text": "A cosa rinuncio per la quaresima? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b084",
    "text": "La medicina alternativa sta ora adottando i poteri curativi di ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b085",
    "text": "Quale cosa l'Italia ha paracadutato ai bambini afghani? ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b086",
    "text": "Cosa piace a Silvio Berlusconi? ____",
    "blanks": 1,
-   "cat": "Società"
+   "cat": "1 risposta"
   },
   {
    "id": "b087",
    "text": "Durante il trascurato Periodo Marrone, Picasso ha prodotto centinai di quadri su ____",
    "blanks": 1,
-   "cat": "Cultura e spettacolo"
+   "cat": "1 risposta"
   },
   {
    "id": "b088",
    "text": "Cosa non vuoi trovare nel tuo cibo cinese? ____",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   },
   {
    "id": "b089",
    "text": "Bevo per dimenticare ____",
    "blanks": 1,
-   "cat": "Vita personale"
+   "cat": "1 risposta"
   },
   {
    "id": "b090",
    "text": "____ Dammi un cinque fratello!",
    "blanks": 1,
-   "cat": "Quotidiano"
+   "cat": "1 risposta"
   }
  ]
 }

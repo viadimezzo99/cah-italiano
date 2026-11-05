@@ -291,5 +291,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const pageHtml = readFileSync(new URL("web/index.html", root), "utf8");
   const port = Number(process.env.PORT || 8080);
   const app = createApp({ cards, pageHtml });
-  app.server.listen(port, () => console.log(`Cards Against Umanità online su http://localhost:${port}`));
+  app.server.listen(port, () => console.log(`Cards Against Humanity (italiano) online su http://localhost:${port}`));
 }

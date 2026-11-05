@@ -77,7 +77,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.0";
+const APP_VERSION = "0.2.1";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -190,7 +190,43 @@ function wordmarkNode(cls) {
 }
 
 let introDone = false;
-// Apertura: fondo nero, la scritta a sinistra con lo spazio vuoto, poi "Against" in arancio; infine la scritta scende in alto a sinistra.
+// Il browser non lascia parlare né suonare prima di un tocco dell'utente: le voci in attesa partono al primo tocco.
+const introWaiting = [];
+function gestureReady() {
+  return !navigator.userActivation || navigator.userActivation.hasBeenActive;
+}
+function whenAudible(fn) {
+  if (gestureReady()) { fn(); return; }
+  introWaiting.push(fn);
+  const flush = () => {
+    if (!gestureReady()) return;
+    ["pointerdown", "keydown", "touchend"].forEach((ev) => document.removeEventListener(ev, flush, true));
+    while (introWaiting.length) introWaiting.shift()();
+  };
+  ["pointerdown", "keydown", "touchend"].forEach((ev) => document.addEventListener(ev, flush, true));
+}
+// Voce bassa che pronuncia "Against" mentre compare. Usa le voci inglesi del dispositivo.
+function announce(word) {
+  try {
+    if (!settings.sfx || !("speechSynthesis" in window)) return;
+    const say = () => {
+      const u = new SpeechSynthesisUtterance(word);
+      const voices = speechSynthesis.getVoices();
+      u.voice = voices.find((v) => /^en[-_]US/i.test(v.lang) && /male|david|mark|daniel|george|guy/i.test(v.name)) ||
+        voices.find((v) => /^en/i.test(v.lang)) || null;
+      u.lang = "en-US";
+      u.pitch = 0.3;
+      u.rate = 0.8;
+      u.volume = 1;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
+    };
+    whenAudible(say);
+  } catch { /* nessuna voce: l'apertura funziona lo stesso */ }
+}
+
+// Apertura: fondo nero, "Cards" e "Humanity" con lo spazio vuoto in mezzo; poi "Against" in arancio,
+// pronunciato mentre compare. Infine il titolo scende in alto a sinistra.
 function playIntro(target) {
   introDone = true;
   const ov = el("div", { class: "intro", "aria-hidden": "true" },
@@ -203,6 +239,7 @@ function playIntro(target) {
       const acc = el("span", { class: "acc" }, "Against");
       gap.replaceWith(acc);
       acc.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 420, easing: "ease-out" });
+      announce("Against");
     }
   }, 900);
   setTimeout(() => {
@@ -225,7 +262,8 @@ function showHome() {
     el("span", { class: "arr", "aria-hidden": "true" }, "→"));
   const top = wordmarkNode("hdr-logo");
   app.replaceChildren(el("section", { class: "home" },
-    el("div", { class: "home-top" }, top),
+    el("div", { class: "home-top" }, top,
+      el("button", { type: "button", class: "ghost home-settings", onclick: openSettings }, "⚙ Impostazioni")),
     el("nav", { class: "menu", "aria-label": "Menu" },
       row("01", "Locale", "Con amici e bot, un telefono solo", () => { homeTab = "local"; setup(); }),
       row("02", "Online", "Stanza con codice, fino a 10 giocatori", () => { homeTab = "online"; setup(); }),
@@ -300,27 +338,29 @@ function start() {
   dealPending = true;
   slamPending = true;
   game.start();
-  Sound.play("deal");
+  Sound.play("shuffle");
   step();
 }
 
 // ------------------------------------------------------------------ carte e categorie
 
 const CUSTOM_KEY = "cah-custom";
-// Categorie fisse. Bianche: chi, dove, cosa, azione, concetto. Nere: quattro temi.
-const WHITE_CATS = ["Soggetti", "Luoghi", "Oggetti", "Azioni", "Concetti"];
-const BLACK_CATS = ["Quotidiano", "Vita personale", "Cultura e spettacolo", "Società"];
+// Categorie fisse. Bianche: soggetti, luoghi, oggetti, azioni, situazioni. Nere: divise per numero di risposte.
+const WHITE_CATS = ["Soggetti", "Luoghi", "Oggetti", "Azioni", "Situazioni"];
+const BLACK_CATS = ["1 risposta", "2 risposte", "3 risposte"];
 const CAT_COLOR = {
-  "Soggetti": "#c4502a", "Luoghi": "#2f6fa3", "Oggetti": "#b8862b", "Azioni": "#7a4fb0", "Concetti": "#2f8f7f",
-  "Quotidiano": "#5f7d2e", "Vita personale": "#b04a7a", "Cultura e spettacolo": "#3d5a80", "Società": "#8a5a2b",
+  "Soggetti": "#c4502a", "Luoghi": "#2f6fa3", "Oggetti": "#b8862b", "Azioni": "#7a4fb0", "Situazioni": "#2f8f7f",
+  "1 risposta": "#5f7d2e", "2 risposte": "#b04a7a", "3 risposte": "#3d5a80",
 };
-const KIND = { "Soggetti": "Soggetto", "Luoghi": "Luogo", "Oggetti": "Oggetto", "Azioni": "Azione", "Concetti": "Concetto" };
+const KIND = { "Soggetti": "Soggetto", "Luoghi": "Luogo", "Oggetti": "Oggetto", "Azioni": "Azione", "Situazioni": "Situazione" };
+// Una carta nera sta nella categoria del suo numero di spazi: non si sceglie a mano.
+const blackCatFor = (text) => BLACK_CATS[Math.min(3, Math.max(1, String(text).split("____").length - 1)) - 1];
 const ORIG_COLOR = "#9a9186";
 let cardsView = { tab: "white", cat: "Tutte" };
 
 const catsOf = (color) => (color === "b" ? BLACK_CATS : WHITE_CATS);
 const validCat = (name, color) => catsOf(color).includes(name);
-const defaultCat = (color) => catsOf(color)[color === "b" ? 0 : WHITE_CATS.length - 1];
+const defaultCat = (color) => (color === "b" ? BLACK_CATS[0] : WHITE_CATS[WHITE_CATS.length - 1]);
 
 function loadCustom() {
   let d = null;
@@ -328,12 +368,17 @@ function loadCustom() {
   d = d && typeof d === "object" ? d : {};
   const fix = (list, color) => (Array.isArray(list) ? list : [])
     .filter((c) => c && typeof c.text === "string" && c.text.trim())
-    .map((c) => ({ text: c.text, cat: validCat(c.cat, color) ? c.cat : defaultCat(color) }));
+    .map((c) => ({ text: c.text, cat: color === "b" ? blackCatFor(c.text) : (validCat(c.cat, color) ? c.cat : defaultCat(color)) }));
   const catOverride = {};
   if (d.catOverride && typeof d.catOverride === "object") {
-    for (const [id, cat] of Object.entries(d.catOverride)) if (validCat(cat, id.startsWith("b") ? "b" : "w")) catOverride[id] = cat;
+    for (const [id, cat] of Object.entries(d.catOverride)) if (!id.startsWith("b") && validCat(cat, "w")) catOverride[id] = cat;
+  }
+  const textOverride = {};
+  if (d.textOverride && typeof d.textOverride === "object") {
+    for (const [id, t] of Object.entries(d.textOverride)) if (typeof t === "string" && t.trim()) textOverride[id] = t.replace(/\s+/g, " ").trim().slice(0, 200);
   }
   return {
+    textOverride,
     white: fix(d.white, "w"),
     black: fix(d.black, "b"),
     useWhite: d.useWhite !== false,   // le mie bianche entrano nelle partite
@@ -348,7 +393,7 @@ function saveCustom(d) {
 }
 
 const catColor = (name) => CAT_COLOR[name] ?? ORIG_COLOR;
-// Ordine in mano: Soggetti, Luoghi, Oggetti, Azioni, Concetti; le nere non finiscono in mano.
+// Ordine in mano: Soggetti, Luoghi, Oggetti, Azioni, Situazioni; le nere non finiscono in mano.
 const catRank = (name) => {
   const i = WHITE_CATS.indexOf(name);
   return i >= 0 ? i : 500;
@@ -367,9 +412,12 @@ const activeCustom = () => {
 };
 // Categorie scelte dall'utente per le carte ufficiali.
 const withOverrides = (cards) => {
-  const o = loadCustom().catOverride;
-  const tag = (c) => (o[c.id] ? { ...c, cat: o[c.id] } : c);
-  return { white: cards.white.map(tag), black: cards.black.map(tag) };
+  const { catOverride: o, textOverride: t } = loadCustom();
+  const tag = (color) => (c) => {
+    const text = t[c.id] ?? c.text;
+    return { ...c, text, cat: color === "b" ? blackCatFor(text) : (o[c.id] ?? c.cat) };
+  };
+  return { white: cards.white.map(tag("w")), black: cards.black.map(tag("b")) };
 };
 const deckFor = () => mergeCustom(withOverrides(CARDS), cfg.deck === "base" ? { white: [], black: [] } : activeCustom());
 
@@ -385,9 +433,10 @@ function customPayload() {
 function allCards() {
   const d = loadCustom();
   const cat = (c) => d.catOverride[c.id] ?? c.cat;
+  const txt = (c) => d.textOverride[c.id] ?? c.text;
   const orig = [
-    ...CARDS.white.map((c) => ({ id: c.id, text: c.text, color: "w", cat: cat(c), mine: false })),
-    ...CARDS.black.map((c) => ({ id: c.id, text: c.text, color: "b", cat: cat(c), mine: false })),
+    ...CARDS.white.map((c) => ({ id: c.id, text: txt(c), color: "w", cat: cat(c), mine: false })),
+    ...CARDS.black.map((c) => ({ id: c.id, text: txt(c), color: "b", cat: blackCatFor(txt(c)), mine: false })),
   ];
   const mine = [
     ...d.white.map((c, i) => ({ id: `m${i}`, idx: i, text: c.text, color: "w", cat: c.cat, mine: true })),
@@ -455,9 +504,16 @@ function cardsScreen() {
       tabBtn("white", "Bianche"), tabBtn("black", "Nere"), tabBtn("mine", "Mie")),
     v.tab === "mine" ? null : el("div", { class: "chips", role: "group", "aria-label": "Categorie" },
       ["Tutte", ...catsOf(color)].map(catBtn)),
-    list.length
-      ? el("div", { class: "cgrid" }, list.map(tile))
-      : el("p", { class: "hidden-msg" }, v.tab === "mine" ? "Non hai ancora carte tue: tocca + per aggiungerne." : "Nessuna carta con questo filtro."),
+    v.tab === "mine"
+      ? (mine.length
+        ? [["Bianche", mine.filter((c) => c.color === "w")], ["Nere", mine.filter((c) => c.color === "b")]].map(([label, group]) =>
+          el("section", { class: "mine-group" },
+            el("span", { class: "label" }, `${label} · ${group.length}`),
+            group.length ? el("div", { class: "cgrid" }, group.map(tile)) : el("p", { class: "hidden-msg" }, `Nessuna carta ${label.toLowerCase()} tua.`)))
+        : el("p", { class: "hidden-msg" }, "Non hai ancora carte tue: tocca + per aggiungerne."))
+      : (list.length
+        ? el("div", { class: "cgrid" }, list.map(tile))
+        : el("p", { class: "hidden-msg" }, "Nessuna carta con questo filtro.")),
     el("span", { class: "label", style: "margin-top:10px" }, "Nelle partite"),
     el("div", { class: "switches" }, toggle("useWhite", "Mie bianche"), toggle("useBlack", "Mie nere")),
     el("span", { class: "label", style: "margin-top:10px" }, "Pacchetti"),
@@ -519,20 +575,69 @@ function cardActions(c, refresh) {
     el("div", { class: "sheet card-form" },
       el("p", { class: "label" }, c.cat),
       el("p", { class: "action-text" }, c.text),
-      el("span", { class: "label" }, "Sposta in categoria"),
-      el("div", { class: "chips", role: "group", "aria-label": "Categoria" }, catsOf(c.color === "w" ? "w" : "b").map((name) => el("button", {
-        type: "button", class: "chip", style: `--cat:${catColor(name)}`, "aria-pressed": String(c.cat === name),
-        onclick: () => { applyCat(c, name); close(); refresh(); },
-      }, name))),
       el("div", { class: "actions" },
+        el("button", { type: "button", class: "ghost", onclick: () => { close(); openCardEditor(c, refresh); } }, "Modifica"),
         c.mine ? el("button", { type: "button", class: "ghost danger", onclick: () => { close(); deleteCard(c, refresh); } }, "Elimina") : null,
+        !c.mine && hasOverride(c.id) ? el("button", { type: "button", class: "ghost", onclick: () => { resetOverride(c.id); close(); refresh(); } }, "Ripristina") : null,
         el("button", { type: "button", class: "ghost", onclick: () => shareText(c) }, "Condividi"),
         el("button", { type: "button", class: "primary", onclick: close }, "Annulla"))));
   document.body.append(bg);
 }
 
+const hasOverride = (id) => { const d = loadCustom(); return id in d.textOverride || id in d.catOverride; };
+function resetOverride(id) {
+  const d = loadCustom();
+  delete d.textOverride[id];
+  delete d.catOverride[id];
+  saveCustom(d);
+}
+
+// Modifica testo e categoria di una carta, sia ufficiale sia tua (bianca o nera).
+function openCardEditor(c, refresh) {
+  let cat = c.cat;
+  const txt = el("textarea", { maxlength: "200", rows: "4", "aria-label": "Testo della carta" });
+  txt.value = c.text;
+  const chips = el("div", { class: "chips", role: "group", "aria-label": "Categoria" });
+  const paint = () => chips.replaceChildren(...catsOf(c.color).map((name) => el("button", {
+    type: "button", class: "chip", style: `--cat:${catColor(name)}`, "aria-pressed": String(cat === name),
+    onclick: () => { cat = name; paint(); },
+  }, name)));
+  paint();
+  const close = () => bg.remove();
+  const save = () => {
+    let text = txt.value.replace(/\s+/g, " ").trim();
+    if (!text) { toast("Scrivi il testo della carta"); return; }
+    if (c.color === "b") {
+      if (!text.includes("____")) text += " ____";
+      const n = text.split("____").length - 1;
+      if (n > 3) { toast("Una carta nera può avere al massimo 3 spazi"); return; }
+      if (BLACK_CATS[n - 1] !== cat) { toast(`Questa carta ha ${n} ${n === 1 ? "spazio" : "spazi"}: scegli "${BLACK_CATS[n - 1]}"`); return; }
+    }
+    const d = loadCustom();
+    if (c.mine) {
+      (c.color === "w" ? d.white : d.black)[c.idx] = { text, cat };
+    } else {
+      d.textOverride[c.id] = text;
+      if (c.color === "w") d.catOverride[c.id] = cat;
+    }
+    saveCustom(d);
+    close();
+    refresh();
+  };
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) close(); } },
+    el("div", { class: "sheet card-form" },
+      el("p", { class: "label" }, c.mine ? "Modifica la tua carta" : "Modifica la carta ufficiale"),
+      txt,
+      el("span", { class: "label" }, "Categoria"),
+      chips,
+      el("div", { class: "actions" },
+        el("button", { type: "button", class: "ghost", onclick: close }, "Annulla"),
+        el("button", { type: "button", class: "primary", onclick: save }, "Salva"))));
+  document.body.append(bg);
+}
+
 function applyCat(c, name) {
-  if (!validCat(name, c.color)) return;
+  if (c.color !== "w" || !validCat(name, "w")) return;
   const d = loadCustom();
   if (c.mine) (c.color === "w" ? d.white : d.black)[c.idx].cat = name;
   else d.catOverride[c.id] = name;
@@ -558,7 +663,10 @@ function openCardForm(done) {
   let color = "w";
   const txt = el("textarea", { maxlength: "200", rows: "4", placeholder: "Scrivi la carta…", "aria-label": "Testo della carta" });
   const catSel = el("select", { "aria-label": "Categoria" });
-  const fillCats = () => catSel.replaceChildren(...catsOf(color).map((n) => el("option", { value: n }, n)));
+  const fillCats = () => {
+    catSel.hidden = color === "b";
+    catSel.replaceChildren(...catsOf("w").map((n) => el("option", { value: n }, n)));
+  };
   const wBtn = el("button", { type: "button", "aria-pressed": "true", onclick: () => setColor("w") }, "Bianca");
   const bBtn = el("button", { type: "button", "aria-pressed": "false", onclick: () => setColor("b") }, "Nera");
   const setColor = (c) => {
@@ -566,8 +674,41 @@ function openCardForm(done) {
     wBtn.setAttribute("aria-pressed", String(c === "w"));
     bBtn.setAttribute("aria-pressed", String(c === "b"));
     fillCats();
+    update();
   };
   fillCats();
+  // Suggerimenti in tempo reale (stile T9) e anteprima della carta nera.
+  const hints = el("div", { class: "spell-hints", "aria-live": "polite" });
+  const prev = el("div", { class: "card-preview", "aria-live": "polite" });
+  const pickHint = (word) => {
+    const cur = txt.value;
+    const m = cur.match(/[\p{L}'-]+$/u);
+    const base = m ? cur.slice(0, cur.length - m[0].length) : cur;
+    const cap = m && /^\p{Lu}/u.test(m[0]) ? word.charAt(0).toUpperCase() + word.slice(1) : word;
+    txt.value = base + cap + " ";
+    update();
+    txt.focus();
+  };
+  const update = () => {
+    const word = currentWord(txt.value);
+    if (SPELL) {
+      const h = spellHints(SPELL, word);
+      hints.replaceChildren(...h.items.map((w) =>
+        el("button", { type: "button", class: h.exact ? "chip" : "chip fix", onclick: () => pickHint(w) }, h.exact ? w : `${w} ?`)));
+    } else {
+      hints.replaceChildren();
+      loadSpell().then(() => update());
+    }
+    if (color === "b") {
+      const text = txt.value.replace(/\s+/g, " ").trim();
+      prev.hidden = false;
+      prev.textContent = text ? text.replace(/_{4,}|____/g, "_____") : "Anteprima della carta nera";
+    } else {
+      prev.hidden = true;
+    }
+  };
+  txt.addEventListener("input", update);
+  loadSpell().then(update);
   const save = () => {
     const d = loadCustom();
     let text = txt.value.replace(/\s+/g, " ").trim();
@@ -576,7 +717,7 @@ function openCardForm(done) {
       if (!text.includes("____")) text += " ____";
       if (text.split("____").length - 1 > 3) { toast("Una carta nera può avere al massimo 3 spazi"); return; }
     }
-    (color === "w" ? d.white : d.black).push({ text, cat: catSel.value });
+    (color === "w" ? d.white : d.black).push({ text, cat: color === "w" ? catSel.value : blackCatFor(text) });
     saveCustom(d);
     bg.remove();
     done();
@@ -585,6 +726,8 @@ function openCardForm(done) {
     el("div", { class: "sheet card-form" },
       el("div", { class: "seg" }, wBtn, bBtn),
       txt,
+      hints,
+      prev,
       el("p", { class: "hidden-msg" }, "Bianca: una frase o un oggetto. Nera: scrivi ____ dove va la risposta."),
       catSel,
       el("div", { class: "actions" },
@@ -599,7 +742,7 @@ function importPack(text) {
   if (!data || data.formato !== "cah-pacchetto") { toast("Non è un pacchetto di CAH"); return; }
   const clean = (list, color) => (Array.isArray(list) ? list : []).slice(0, 300).map((c) => ({
     text: String(c?.text ?? "").replace(/\s+/g, " ").trim().slice(0, 200),
-    cat: validCat(c?.cat, color) ? c.cat : defaultCat(color),
+    cat: color === "b" ? blackCatFor(String(c?.text ?? "")) : (validCat(c?.cat, color) ? c.cat : defaultCat(color)),
   })).filter((c) => c.text);
   const d = loadCustom();
   const same = (list, x) => list.some((y) => y.text === x.text && y.cat === x.cat);
@@ -713,17 +856,17 @@ function blackCard(s, whites, { canPlay, label, slam } = {}) {
       el("div", { class: "foot" }, label ?? (s.black.blanks > 1 ? `${s.black.blanks} risposte` : "1 risposta"))));
 }
 
+// Vittoria: piovono carte nere e bianche in miniatura, come quelle del gioco.
 function confetti() {
   const box = el("div", { class: "confetti", "aria-hidden": "true" });
-  const colors = ["#c4502a", "#2f7a4d", "#f6c445", "#3b7dd8", "#e95b8a", "#ffffff"];
-  for (let k = 0; k < 70; k++) {
-    const piece = el("i", {});
-    piece.style.left = `${Math.random() * 100}%`;
-    piece.style.background = colors[k % colors.length];
-    piece.style.animationDelay = `${Math.random() * 0.6}s`;
-    piece.style.setProperty("--dx", `${(Math.random() - 0.5) * 180}px`);
-    piece.style.setProperty("--rot", `${Math.random() * 720 - 360}deg`);
-    box.append(piece);
+  for (let k = 0; k < 26; k++) {
+    const black = k % 3 === 0;
+    const card = el("i", { class: black ? "mini black" : "mini white" }, el("b", {}, black ? "____" : "Ⓒ"));
+    card.style.left = `${Math.random() * 100}%`;
+    card.style.animationDelay = `${Math.random() * 0.7}s`;
+    card.style.setProperty("--dx", `${(Math.random() - 0.5) * 220}px`);
+    card.style.setProperty("--rot", `${Math.random() * 540 - 270}deg`);
+    box.append(card);
   }
   document.body.append(box);
   setTimeout(() => box.remove(), 3300);
@@ -869,7 +1012,7 @@ function render() {
         node.style.setProperty("--i", i);
         node.style.setProperty("--cat", catColor(c.cat));
         node.append(el("span", { class: "kind" }, KIND[c.cat] ?? c.cat));
-        attachHold(node, () => { held.v = true; Sound.play("flip"); showZoom(c.text); }, held);
+        attachHold(node, () => { held.v = true; Sound.play("paper"); showZoom(c.text); }, held, hideZoom);
         return node;
       }));
     if (canSelect) {
@@ -979,7 +1122,17 @@ function openSocket() {
     return;
   }
   onlineSock = ws;
+  // Il server gratuito può essere in riposo: se non risponde in tempo, lo dico invece di non fare nulla.
+  const wait = setTimeout(() => {
+    if (ws.readyState !== 0) return;
+    onlineError = "Il server non risponde. Se è in riposo (piano gratuito) può volerci fino a un minuto: riprova tra poco.";
+    onlineQueue = [];
+    try { ws.close(); } catch { /* già chiuso */ }
+    if (onlineSock === ws) onlineSock = null;
+    if (online) render(); else onlineMenu();
+  }, 20000);
   ws.onopen = () => {
+    clearTimeout(wait);
     const q = onlineQueue;
     onlineQueue = [];
     q.forEach((f) => f());
@@ -988,6 +1141,7 @@ function openSocket() {
     try { onMessage(JSON.parse(e.data)); } catch { /* messaggio non valido: ignorato */ }
   };
   ws.onclose = () => {
+    clearTimeout(wait);
     if (onlineSock !== ws) return;
     onlineSock = null;
     const hadQueue = onlineQueue.length > 0;
@@ -999,7 +1153,7 @@ function openSocket() {
       return;
     }
     if (hadQueue) {
-      onlineError = "Non riesco a collegarmi al server. Il gioco online va aperto dal server (npm start).";
+      onlineError = "Non riesco a collegarmi al server online. Riprova tra poco: se il server è in riposo può volerci un minuto.";
       onlineMenu();
     }
   };
@@ -1092,12 +1246,14 @@ function onlinePanel() {
     nameIn,
     el("button", { type: "button", class: "primary", onclick: () => {
       onlineError = ""; onlineName = nameIn.value.trim();
+      toast("Mi collego al server…");
       withSocket(() => netSend({ type: "create", name: onlineName }));
     } }, "Crea una stanza"),
     el("span", { class: "label" }, "Entra con un codice"),
     el("div", { class: "nrow" }, codeIn,
       el("button", { type: "button", onclick: () => {
         onlineError = ""; onlineName = nameIn.value.trim();
+        toast("Mi collego al server…");
         withSocket(() => netSend({ type: "join", code: codeIn.value.trim(), name: onlineName }));
       } }, "Entra")),
     onlineError ? el("p", { class: "hidden-msg err" }, onlineError) : null);
@@ -1109,21 +1265,58 @@ function onlineMenu() {
 }
 
 // Tenere premuta una carta della mano: la mostra ingrandita, con il testo intero.
-function attachHold(node, fn, flag = null) {
-  let t = null;
-  const cancel = () => clearTimeout(t);
-  node.addEventListener("pointerdown", () => { if (flag) flag.v = false; t = setTimeout(fn, 380); });
-  node.addEventListener("pointerup", cancel);
-  node.addEventListener("pointerleave", cancel);
-  node.addEventListener("pointercancel", cancel);
+// Pressione prolungata: dopo 380 ms apre "fn". Si annulla se il dito si muove (scorrimento) prima.
+// Alla fine della pressione, ovunque si rilasci, chiama "release" (per chiudere l'ingrandimento).
+function attachHold(node, fn, flag = null, release = null) {
+  let t = null, sx = 0, sy = 0, open = false;
+  const end = () => {
+    clearTimeout(t);
+    document.removeEventListener("pointerup", end, true);
+    document.removeEventListener("pointercancel", end, true);
+    if (open) { open = false; release?.(); }
+  };
+  node.addEventListener("pointerdown", (e) => {
+    if (flag) flag.v = false;
+    sx = e.clientX; sy = e.clientY;
+    clearTimeout(t);
+    document.addEventListener("pointerup", end, true);
+    document.addEventListener("pointercancel", end, true);
+    t = setTimeout(() => { open = true; fn(); }, 380);
+  });
+  node.addEventListener("pointermove", (e) => {
+    if (!open && Math.hypot(e.clientX - sx, e.clientY - sy) > 10) clearTimeout(t);
+  });
+  node.addEventListener("pointerleave", () => { if (!open) clearTimeout(t); });
   node.addEventListener("contextmenu", (e) => e.preventDefault());
 }
 
-function showZoom(text) {
-  const card = el("div", { class: "zoom", role: "dialog", "aria-label": "Carta ingrandita" }, el("div", { class: "txt" }, text));
-  const bg = el("div", { class: "zoom-bg", onclick: () => bg.remove() }, card);
-  document.body.append(bg);
+// Un solo ingrandimento alla volta: la carta resta grande finché tieni premuto.
+let zoomNode = null;
+function hideZoom() {
+  zoomNode?.remove();
+  zoomNode = null;
 }
+function showZoom(text) {
+  hideZoom();
+  const card = el("div", { class: "zoom", role: "dialog", "aria-label": "Carta ingrandita" }, el("div", { class: "txt" }, text));
+  zoomNode = el("div", { class: "zoom-bg", "aria-hidden": "true" }, card);
+  document.body.append(zoomNode);
+}
+
+// Scatto a ogni carta che scorre nelle file orizzontali (mano, tavolo, elenchi).
+const railStep = new WeakMap();
+document.addEventListener("scroll", (e) => {
+  const r = e.target;
+  if (!(r instanceof Element) || !(r.classList.contains("rail") || r.classList.contains("board"))) return;
+  const kids = r.children;
+  if (kids.length < 2) return;
+  const unit = kids[1].getBoundingClientRect().left - kids[0].getBoundingClientRect().left;
+  if (unit <= 0) return;
+  const idx = Math.round(r.scrollLeft / unit);
+  const prev = railStep.get(r);
+  if (prev !== undefined && prev !== idx) Sound.play("tick");
+  railStep.set(r, idx);
+}, true);
 
 function renderLobby() {
   const st = online.state;

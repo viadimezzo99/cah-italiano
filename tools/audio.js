@@ -45,14 +45,34 @@ const Sound = (() => {
     o.stop(t + dur + 0.05);
   }
 
+  // Effetti che imitano le carte: strisciate, schiocchi sul tavolo, fruscio di mazzo.
+  // Tutti basati sul rumore filtrato, così suonano come carta e non come bip.
+  const tap = (t, f, peak) => blip(f, t, 0.06, "sine", sfxBus, peak, f * 0.5);
   const SFX = {
-    pick: (t) => blip(880, t, 0.06, "square", sfxBus, 0.05),
-    confirm: (t) => { blip(523, t, 0.12, "triangle", sfxBus, 0.25); blip(784, t + 0.09, 0.16, "triangle", sfxBus, 0.25); },
-    deal: (t) => blip(320, t, 0.08, "triangle", sfxBus, 0.12, 520),
-    flip: (t) => blip(1200, t, 0.09, "sine", sfxBus, 0.12, 600),
-    win: (t) => [523, 659, 784, 1046].forEach((f, i) => blip(f, t + i * 0.09, 0.22, "triangle", sfxBus, 0.28)),
-    slam: (t) => blip(150, t, 0.2, "sawtooth", sfxBus, 0.3, 40),
-    error: (t) => blip(140, t, 0.22, "sawtooth", sfxBus, 0.18, 90),
+    pick: (t) => { burst(t, 0.03, 3200, 2, 0.14, sfxBus, "highpass"); tap(t, 260, 0.08); },
+    confirm: (t) => { burst(t, 0.05, 2600, 1.5, 0.2, sfxBus, "highpass"); tap(t, 200, 0.14); },
+    // Carta appoggiata sul tavolo: strisciata corta e un colpetto secco.
+    deal: (t) => { burst(t, 0.14, 2200, 1.1, 0.22, sfxBus, "bandpass", 700); tap(t + 0.12, 180, 0.12); },
+    // Carta girata: fruscio che sale.
+    flip: (t) => burst(t, 0.2, 900, 0.8, 0.28, sfxBus, "bandpass", 2600),
+    // Mazzo mescolato: una serie di scatti rapidi, come una mescolata.
+    shuffle: (t) => { for (let i = 0; i < 10; i++) burst(t + i * 0.038 + Math.random() * 0.012, 0.03, 3800 + Math.random() * 800, 1.4, 0.2, sfxBus, "highpass"); },
+    // Schiocco di una carta nera sul tavolo: attacco secco e corpo grave.
+    slam: (t) => { burst(t, 0.035, 2600, 1, 0.5, sfxBus); tap(t, 150, 0.45); },
+    error: (t) => { tap(t, 150, 0.2); burst(t, 0.06, 500, 1, 0.1, sfxBus); },
+    // Foglio che si apre: fruscio di carta e qualche crepitio.
+    paper: (t) => { burst(t, 0.24, 2400, 0.6, 0.18, sfxBus, "bandpass", 900); for (let k = 0; k < 5; k++) burst(t + 0.03 + k * 0.035 + Math.random() * 0.01, 0.02, 5000, 2, 0.12, sfxBus, "highpass"); },
+    // Scatto a ogni carta che passa sotto il dito, come la rotella di una cassaforte.
+    tick: (t) => { burst(t, 0.015, 4200, 3, 0.35, sfxBus, "highpass"); tap(t, 1100, 0.06); },
+    // Colpo grave dell'apertura, come quello che accompagna il titolo nei giochi di combattimento.
+    boom: (t) => { blip(55, t, 0.7, "sine", sfxBus, 0.9, 28); burst(t, 0.12, 300, 0.7, 0.35, sfxBus, "lowpass"); },
+    // Vittoria: un applauso di tavolo, diverso dagli altri suoni.
+    win: (t) => {
+      for (let i = 0; i < 26; i++) {
+        const k = i / 26;
+        burst(t + k * 0.9 + Math.random() * 0.04, 0.07, 1500 + Math.random() * 1400, 0.8, 0.12 + 0.12 * Math.sin(Math.PI * k), sfxBus);
+      }
+    },
   };
 
   // Rumore bianco riusato, filtrato per ottenere i vari versi.
