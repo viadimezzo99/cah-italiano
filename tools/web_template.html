@@ -187,6 +187,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; animation: fade .2s both; }
 .spell-hints { display: flex; flex-wrap: wrap; gap: 6px; min-height: 0; }
 .spell-hints:empty { display: none; }
+.cat-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.cat-row .chip { font: inherit; font-size: 14px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; }
+.cat-row .chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .spell-hints .chip { font: inherit; font-size: 14px; padding: 4px 11px; border-radius: 999px; border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; }
 .spell-hints .chip.fix { font-style: italic; opacity: .85; }
 .card-preview { margin: 8px 0; padding: 12px 14px; border-radius: 12px; background: #111; color: #fff; font-size: 17px; line-height: 1.35; min-height: 3em; }
@@ -337,7 +340,7 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 .intro .iw .acc { color: #ff7a3d; }
 .intro .iw .gap { height: .9em; width: 4.2em; margin: .04em 0; border-radius: .08em; background: rgba(255,122,61,.22); border-bottom: .07em solid #ff7a3d; }
 .home .home-top { display: flex; align-items: center; justify-content: flex-start; padding-top: 6px; }
-.hdr-logo { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: 34px; line-height: .95; letter-spacing: -.01em; color: var(--fg); transform-origin: 0 0; }
+.hdr-logo { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: 40px; line-height: .95; letter-spacing: -.01em; color: var(--fg); transform-origin: 0 0; }
 .hdr-logo > span { display: block; }
 .hdr-logo .acc { color: var(--accent); }
 .home .menu { margin-top: 18px; }

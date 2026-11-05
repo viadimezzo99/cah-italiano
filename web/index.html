@@ -187,6 +187,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; animation: fade .2s both; }
 .spell-hints { display: flex; flex-wrap: wrap; gap: 6px; min-height: 0; }
 .spell-hints:empty { display: none; }
+.cat-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.cat-row .chip { font: inherit; font-size: 14px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; }
+.cat-row .chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .spell-hints .chip { font: inherit; font-size: 14px; padding: 4px 11px; border-radius: 999px; border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; }
 .spell-hints .chip.fix { font-style: italic; opacity: .85; }
 .card-preview { margin: 8px 0; padding: 12px 14px; border-radius: 12px; background: #111; color: #fff; font-size: 17px; line-height: 1.35; min-height: 3em; }
@@ -337,7 +340,7 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 .intro .iw .acc { color: #ff7a3d; }
 .intro .iw .gap { height: .9em; width: 4.2em; margin: .04em 0; border-radius: .08em; background: rgba(255,122,61,.22); border-bottom: .07em solid #ff7a3d; }
 .home .home-top { display: flex; align-items: center; justify-content: flex-start; padding-top: 6px; }
-.hdr-logo { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: 34px; line-height: .95; letter-spacing: -.01em; color: var(--fg); transform-origin: 0 0; }
+.hdr-logo { font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: 40px; line-height: .95; letter-spacing: -.01em; color: var(--fg); transform-origin: 0 0; }
 .hdr-logo > span { display: block; }
 .hdr-logo .acc { color: var(--accent); }
 .home .menu { margin-top: 18px; }
@@ -1927,7 +1930,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.1";
+const APP_VERSION = "0.2.3";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -1948,8 +1951,13 @@ function updateBox() {
       const apk = (rel.assets || []).find((a) => /\.apk$/i.test(a.name));
       if (!latest || !apk) { out.textContent = "Nessuna versione scaricabile al momento."; return; }
       if (!isNewer(latest, APP_VERSION)) { out.textContent = `Sei aggiornato (${APP_VERSION}).`; return; }
+      // Dentro l'app il file APK lo apre il telefono (browser/gestore download), non la pagina interna.
+      const openApk = () => {
+        if (window.AndroidBridge?.openUrl) window.AndroidBridge.openUrl(apk.browser_download_url);
+        else window.open(apk.browser_download_url, "_blank", "noopener");
+      };
       out.replaceChildren(el("span", {}, `Versione ${latest} disponibile. `),
-        el("a", { class: "primary", href: apk.browser_download_url, target: "_blank", rel: "noopener" }, "Scarica aggiornamento"),
+        el("button", { type: "button", class: "primary", onclick: openApk }, "Scarica aggiornamento"),
         el("p", { class: "hidden-msg" }, "Il telefono scarica il file APK e ti chiede di installarlo."));
     } catch {
       out.textContent = "Non riesco a controllare. Serve la connessione e un repository pubblico.";
@@ -2545,10 +2553,15 @@ function shareText(c) {
 function openCardForm(done) {
   let color = "w";
   const txt = el("textarea", { maxlength: "200", rows: "4", placeholder: "Scrivi la carta…", "aria-label": "Testo della carta" });
-  const catSel = el("select", { "aria-label": "Categoria" });
+  // Categoria: pulsantini in riga invece del menu a tendina del telefono.
+  let catVal = catsOf("w")[0];
+  const catRow = el("div", { class: "cat-row", role: "group", "aria-label": "Categoria" });
   const fillCats = () => {
-    catSel.hidden = color === "b";
-    catSel.replaceChildren(...catsOf("w").map((n) => el("option", { value: n }, n)));
+    catRow.hidden = color === "b";
+    catRow.replaceChildren(...catsOf("w").map((n) => el("button", {
+      type: "button", class: "chip", "aria-pressed": String(n === catVal),
+      onclick: () => { catVal = n; fillCats(); },
+    }, n)));
   };
   const wBtn = el("button", { type: "button", "aria-pressed": "true", onclick: () => setColor("w") }, "Bianca");
   const bBtn = el("button", { type: "button", "aria-pressed": "false", onclick: () => setColor("b") }, "Nera");
@@ -2600,7 +2613,7 @@ function openCardForm(done) {
       if (!text.includes("____")) text += " ____";
       if (text.split("____").length - 1 > 3) { toast("Una carta nera può avere al massimo 3 spazi"); return; }
     }
-    (color === "w" ? d.white : d.black).push({ text, cat: color === "w" ? catSel.value : blackCatFor(text) });
+    (color === "w" ? d.white : d.black).push({ text, cat: color === "w" ? catVal : blackCatFor(text) });
     saveCustom(d);
     bg.remove();
     done();
@@ -2612,7 +2625,7 @@ function openCardForm(done) {
       hints,
       prev,
       el("p", { class: "hidden-msg" }, "Bianca: una frase o un oggetto. Nera: scrivi ____ dove va la risposta."),
-      catSel,
+      catRow,
       el("div", { class: "actions" },
         el("button", { type: "button", class: "ghost", onclick: () => bg.remove() }, "Annulla"),
         el("button", { type: "button", class: "primary", onclick: save }, "Salva carta"))));

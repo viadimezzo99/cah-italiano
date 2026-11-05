@@ -80,7 +80,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.2";
+const APP_VERSION = "0.2.3";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -703,10 +703,15 @@ function shareText(c) {
 function openCardForm(done) {
   let color = "w";
   const txt = el("textarea", { maxlength: "200", rows: "4", placeholder: "Scrivi la carta…", "aria-label": "Testo della carta" });
-  const catSel = el("select", { "aria-label": "Categoria" });
+  // Categoria: pulsantini in riga invece del menu a tendina del telefono.
+  let catVal = catsOf("w")[0];
+  const catRow = el("div", { class: "cat-row", role: "group", "aria-label": "Categoria" });
   const fillCats = () => {
-    catSel.hidden = color === "b";
-    catSel.replaceChildren(...catsOf("w").map((n) => el("option", { value: n }, n)));
+    catRow.hidden = color === "b";
+    catRow.replaceChildren(...catsOf("w").map((n) => el("button", {
+      type: "button", class: "chip", "aria-pressed": String(n === catVal),
+      onclick: () => { catVal = n; fillCats(); },
+    }, n)));
   };
   const wBtn = el("button", { type: "button", "aria-pressed": "true", onclick: () => setColor("w") }, "Bianca");
   const bBtn = el("button", { type: "button", "aria-pressed": "false", onclick: () => setColor("b") }, "Nera");
@@ -758,7 +763,7 @@ function openCardForm(done) {
       if (!text.includes("____")) text += " ____";
       if (text.split("____").length - 1 > 3) { toast("Una carta nera può avere al massimo 3 spazi"); return; }
     }
-    (color === "w" ? d.white : d.black).push({ text, cat: color === "w" ? catSel.value : blackCatFor(text) });
+    (color === "w" ? d.white : d.black).push({ text, cat: color === "w" ? catVal : blackCatFor(text) });
     saveCustom(d);
     bg.remove();
     done();
@@ -770,7 +775,7 @@ function openCardForm(done) {
       hints,
       prev,
       el("p", { class: "hidden-msg" }, "Bianca: una frase o un oggetto. Nera: scrivi ____ dove va la risposta."),
-      catSel,
+      catRow,
       el("div", { class: "actions" },
         el("button", { type: "button", class: "ghost", onclick: () => bg.remove() }, "Annulla"),
         el("button", { type: "button", class: "primary", onclick: save }, "Salva carta"))));

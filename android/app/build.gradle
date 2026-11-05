@@ -10,8 +10,8 @@ android {
         applicationId 'it.cah.italiano'
         minSdk 24
         targetSdk 34
-        versionCode 4
-        versionName '0.2.2'
+        versionCode 5
+        versionName '0.2.3'
     }
 
     // Firma fissa: la stessa chiave in ogni build, così l'aggiornamento si installa sopra la versione precedente.
