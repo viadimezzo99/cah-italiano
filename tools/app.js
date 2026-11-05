@@ -28,7 +28,30 @@ function saveSettings() {
 let settings = loadSettings();
 let unlocked = false;   // l'audio parte solo dopo un gesto dell'utente
 let game = null;
-let cfg = { names: ["Tu"], winScore: 5, deck: "full" }; // partita locale: niente bot, mazzo scelto prima
+let cfg = { names: ["Tu"], bots: [], winScore: 5, deck: "full" }; // partita locale: persone e bot, mazzo scelto prima
+
+// Nomi di fantasia suggeriti per i bot: chi aggiunge il bot può cambiarli.
+const BOT_SUGGEST = ["Bot Gigi", "Bot Nina", "Bot Remo", "Bot Sara", "Bot Tito", "Bot Ugo", "Bot Vera", "Bot Zeno"];
+function askBotName(n, onOk) {
+  const input = el("input", { type: "text", maxlength: "16", value: BOT_SUGGEST[n % BOT_SUGGEST.length], "aria-label": "Nome del bot" });
+  const close = () => bg.remove();
+  const ok = () => {
+    const name = input.value.replace(/\s+/g, " ").trim().slice(0, 16) || BOT_SUGGEST[n % BOT_SUGGEST.length];
+    close();
+    onOk(name);
+  };
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) close(); } },
+    el("div", { class: "sheet card-form" },
+      el("p", { class: "label" }, "Nome del bot"),
+      el("div", { class: "nrow" }, input),
+      el("p", { class: "hidden-msg" }, "Scegli un nome di fantasia."),
+      el("div", { class: "actions" },
+        el("button", { type: "button", class: "ghost", onclick: close }, "Annulla"),
+        el("button", { type: "button", class: "primary", onclick: ok }, "Aggiungi bot"))));
+  document.body.append(bg);
+  input.focus();
+  input.select();
+}
 let viewer = null;      // chi sta guardando lo schermo in questo momento
 let lastViewer = null;
 let curtain = false;    // schermata "passa il telefono" da chiudere prima di vedere le carte
@@ -82,7 +105,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.13";
+const APP_VERSION = "0.2.14";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -315,12 +338,17 @@ function localPanel() {
   const nCards = (() => { const a = activeCustom(); return a.white.length + a.black.length; })();
 
   const refresh = () => {
-    const ok = cfg.names.length >= 3;
+    const total = cfg.names.length + cfg.bots.length;
+    const ok = total >= 3;
     startBtn.disabled = !ok;
     hint.textContent = ok
-      ? `${cfg.names.length} giocatori · vittoria a ${cfg.winScore} punti · ${cfg.deck === "base" ? "solo carte ufficiali" : `carte ufficiali + ${nCards} mie`}`
-      : "Servono almeno 3 giocatori. Niente bot: passate il telefono a turno.";
+      ? `${total} giocatori${cfg.bots.length ? ` (${cfg.bots.length} bot)` : ""} · vittoria a ${cfg.winScore} punti · ${cfg.deck === "base" ? "solo carte ufficiali" : `carte ufficiali + ${nCards} mie`}`
+      : "Servono almeno 3 giocatori: aggiungi dei bot se siete meno.";
   };
+
+  const botRows = () => cfg.bots.map((n, i) => el("div", { class: "nrow" },
+    el("span", { class: "txt" }, `${n} · bot`),
+    el("button", { type: "button", class: "ghost", "aria-label": "Togli bot", onclick: () => { cfg.bots.splice(i, 1); setup(); } }, "✕")));
 
   const nameRows = () => cfg.names.map((n, i) => el("div", { class: "nrow" },
     el("input", { type: "text", value: n, maxlength: "16", placeholder: `Giocatore ${i + 1}`, "aria-label": `Nome giocatore ${i + 1}`,
@@ -341,6 +369,9 @@ function localPanel() {
     el("span", { class: "label" }, `Giocatori (${cfg.names.length}/${MAX_HUMANS})`),
     el("div", { class: "names" }, nameRows()),
     cfg.names.length < MAX_HUMANS ? el("button", { type: "button", class: "ghost", onclick: () => { cfg.names.push(""); setup(); } }, "+ Aggiungi persona") : null,
+    cfg.bots.length ? el("span", { class: "label" }, "Bot") : null,
+    cfg.bots.length ? el("div", { class: "names" }, botRows()) : null,
+    cfg.names.length + cfg.bots.length < 10 ? el("button", { type: "button", class: "ghost", onclick: () => askBotName(cfg.bots.length, (name) => { cfg.bots.push(name); setup(); }) }, "+ Aggiungi bot") : null,
     el("span", { class: "label" }, "Vittoria · decidetela prima di iniziare"),
     el("div", { class: "seg" }, winBtns),
     el("span", { class: "label" }, "Carte · quale mazzo"),
@@ -353,7 +384,8 @@ function start() {
   unlocked = true;
   applySettings();
   const names = cfg.names.map((n, i) => (n || "").trim().slice(0, 16) || `Giocatore ${i + 1}`);
-  const players = names.map((name, i) => ({ id: `h${i}`, name }));
+  const bots = cfg.bots.map((n, i) => ({ id: `b${i}`, name: n, isBot: true }));
+  const players = [...names.map((name, i) => ({ id: `h${i}`, name })), ...bots];
   game = new Game(players, deckFor(), { winScore: cfg.winScore });
   selected = [];
   judgeSel = null;
@@ -1698,7 +1730,11 @@ function renderLobby() {
         isHost
           ? el("button", { type: "button", class: "primary", disabled: !ok, onclick: () => netSend({ type: "start", winScore: onlineWin, custom: customPayload() }) }, "Avvia partita")
           : el("p", { class: "hidden-msg" }, ok ? "In attesa che l'host avvii la partita." : "Servono almeno 3 giocatori per iniziare."),
-        isHost && !ok ? el("p", { class: "hidden-msg" }, "Servono almeno 3 giocatori.") : null,
+        isHost && !ok ? el("p", { class: "hidden-msg" }, "Servono almeno 3 giocatori: aggiungi dei bot se siete meno.") : null,
+        // Con pochi amici: l'ospite aggiunge dei bot (con il nome che sceglie), che giocano sul suo telefono.
+        isHost ? el("div", { class: "pack-row" },
+          el("button", { type: "button", disabled: total >= 10, onclick: () => askBotName(st.players.filter((p) => p.isBot).length, (name) => netSend({ type: "addBot", name })) }, "Aggiungi bot"),
+          el("button", { type: "button", disabled: !st.players.some((p) => p.isBot), onclick: () => netSend({ type: "removeBot" }) }, "Togli bot")) : null,
         el("button", { type: "button", class: "ghost", onclick: exitGame }, "Esci dalla stanza"))));
 }
 

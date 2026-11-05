@@ -79,3 +79,32 @@ test("dopo la vittoria: torna alla stanza, tutti pronti, nuova partita con lo st
   assert.equal(room.game.phase, "playing", "tutti pronti: si ricomincia");
   assert.equal(room.game.opts.winScore, 3, "stesso punteggio");
 });
+
+test("bot online: l'ospite aggiunge un bot e la partita va avanti senza di loro", async () => {
+  const host = __createRoomHost({ cards, turnSeconds: 0 });
+  const a = phone(host, "a"), b = phone(host, "b");
+  host.handle(a.conn, { type: "create", name: "Alice" });
+  const { code } = a.last("joined");
+  host.handle(b.conn, { type: "join", code, name: "Bruno" });
+  host.handle(a.conn, { type: "addBot", name: "Gianni" });
+  host.handle(b.conn, { type: "addBot" });
+  assert.equal(b.last("error")?.message, "Solo chi ha creato la stanza può aggiungere bot");
+  assert.equal(host.rooms.get(code).players.length, 3, "due umani e un bot");
+  assert.equal(host.rooms.get(code).players.find((p) => p.isBot).name, "Gianni", "il nome lo sceglie l'ospite");
+  host.handle(a.conn, { type: "start", winScore: 3 });
+  const room = host.rooms.get(code);
+  assert.equal(room.game.phase, "playing");
+  await new Promise((r) => setTimeout(r, 900));   // il bot gioca da solo
+  const g = room.game;
+  for (const human of ["a", "b"]) {
+    const id = a.last("joined").playerId;
+    const pid = human === "a" ? id : b.last("joined").playerId;
+    if (pid === g.judge.id || g.submissions.has(pid)) continue;
+    const p = g.players.find((x) => x.id === pid);
+    host.handle(human === "a" ? a.conn : b.conn, { type: "play", cards: p.hand.slice(0, g.currentBlack.blanks) });
+  }
+  await new Promise((r) => setTimeout(r, 2600));  // il Re bot sceglie da solo
+  assert.notEqual(g.phase, "playing", "la partita va avanti anche con il bot");
+  host.handle(a.conn, { type: "removeBot" });
+  assert.equal(a.last("error")?.message, "La partita è già in corso", "con la partita in corso i bot restano");
+});
