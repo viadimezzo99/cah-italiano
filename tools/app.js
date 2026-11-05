@@ -105,7 +105,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.14";
+const APP_VERSION = "0.2.15";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -527,8 +527,9 @@ function cardsScreen() {
   const all = [...orig, ...mine];
   const v = cardsView;
   const color = v.tab === "black" ? "b" : "w";
-  let list = v.tab === "mine" ? mine : all.filter((c) => c.color === color);
-  if (v.tab !== "mine" && v.cat !== "Tutte") list = list.filter((c) => c.cat === v.cat);
+  const isMine = v.tab === "mine-w" || v.tab === "mine-b";
+  let list = isMine ? mine.filter((c) => c.color === (v.tab === "mine-b" ? "b" : "w")) : all.filter((c) => c.color === color);
+  if (!isMine && v.cat !== "Tutte") list = list.filter((c) => c.cat === v.cat);
 
   const count = (c) => all.filter((x) => x.color === c).length;
   const tabBtn = (id, label) => el("button", { type: "button", "aria-pressed": String(v.tab === id),
@@ -574,23 +575,16 @@ function cardsScreen() {
       el("button", { type: "button", class: "ghost back", onclick: () => { homeTab = "home"; setup(); } }, "← Home"),
       el("div", { class: "head-row" },
         el("h2", { class: "display" }, "Le carte"),
-        el("button", { type: "button", class: "add", onclick: () => openCardForm(() => { v.tab = "mine"; cardsScreen(); }) }, "+ Aggiungi"))),
+        el("button", { type: "button", class: "add", onclick: () => openCardForm((c) => { v.tab = c === "b" ? "mine-b" : "mine-w"; cardsScreen(); }) }, "+ Aggiungi"))),
     el("div", { class: "cstats" },
       stat(count("w"), "Bianche"), stat(count("b"), "Nere"), stat(mine.length, "Mie")),
     el("div", { class: "tabs", role: "group", "aria-label": "Tipo di carta" },
-      tabBtn("white", "Bianche"), tabBtn("black", "Nere"), tabBtn("mine", "Mie")),
-    v.tab === "mine" ? null : el("div", { class: "chips", role: "group", "aria-label": "Categorie" },
+      tabBtn("white", "Bianche"), tabBtn("black", "Nere"), tabBtn("mine-w", "Mie bianche"), tabBtn("mine-b", "Mie nere")),
+    isMine ? null : el("div", { class: "chips", role: "group", "aria-label": "Categorie" },
       ["Tutte", ...catsOf(color)].map(catBtn)),
-    v.tab === "mine"
-      ? (mine.length
-        ? [["Bianche", mine.filter((c) => c.color === "w")], ["Nere", mine.filter((c) => c.color === "b")]].map(([label, group]) =>
-          el("section", { class: "mine-group" },
-            el("span", { class: "label" }, `${label} · ${group.length}`),
-            group.length ? el("div", { class: "cgrid" }, group.map(tile)) : el("p", { class: "hidden-msg" }, `Nessuna carta ${label.toLowerCase()} tua.`)))
-        : el("p", { class: "hidden-msg" }, "Non hai ancora carte tue: tocca + per aggiungerne."))
-      : (list.length
-        ? el("div", { class: "cgrid" }, list.map(tile))
-        : el("p", { class: "hidden-msg" }, "Nessuna carta con questo filtro.")),
+    list.length
+      ? el("div", { class: "cgrid" }, list.map(tile))
+      : el("p", { class: "hidden-msg" }, isMine ? `Non hai ancora carte ${v.tab === "mine-b" ? "nere" : "bianche"} tue: tocca + per aggiungerne.` : "Nessuna carta con questo filtro."),
     Object.keys(d.hidden).length
       ? el("button", { type: "button", class: "ghost", onclick: () => { const x = loadCustom(); x.hidden = {}; saveCustom(x); cardsScreen(); } },
         `Ripristina ${Object.keys(d.hidden).length} carte eliminate`)
@@ -818,7 +812,7 @@ function openCardForm(done) {
     (color === "w" ? d.white : d.black).push({ text, cat: color === "w" ? catVal : blackCatFor(text) });
     saveCustom(d);
     bg.remove();
-    done();
+    done(color);
   };
   const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) bg.remove(); } },
     el("div", { class: "sheet card-form" },
@@ -855,7 +849,7 @@ function importLines(text) {
   }
   saveCustom(d);
   toast(`Importate ${added} carte`);
-  cardsView.tab = "mine";
+  cardsView.tab = "mine-w";
   cardsScreen();
 }
 
@@ -880,7 +874,7 @@ function importPack(text) {
   }
   saveCustom(d);
   toast(`Importate ${added} carte`);
-  cardsView.tab = "mine";
+  cardsView.tab = "mine-w";
   cardsScreen();
 }
 
@@ -903,9 +897,9 @@ function step() {
   if (!game) return;
   if (game.phase === "playing") {
     const botsPending = game.players.some((p) => p.isBot && p.id !== game.judge.id && !game.submissions.has(p.id));
-    if (botsPending) botTimer = setTimeout(() => { game.playBots(); step(); }, 650);
+    if (botsPending) botTimer = setTimeout(() => { game.playBots(); step(); }, 150);
   } else if (game.phase === "judging" && game.judge.isBot) {
-    judgeTimer = setTimeout(() => { game.judgeIfBot(); step(); }, readingMs(game.revealOrder.length));
+    judgeTimer = setTimeout(() => { game.judgeIfBot(); step(); }, 400);
   }
   render();
 }
@@ -942,6 +936,29 @@ function nextRound() {
   slamPending = true;
   Sound.play("slam");
   step();
+}
+
+// Il Re cambia combinazione: la vista va agli altri (online al server, in locale direttamente alla partita).
+function setJudgeView(i) {
+  judgeView = i;
+  if (online) netSend({ type: "peek", index: i });
+  else if (game) game.peekTo(game.judge.id, i);
+}
+
+// Le risposte in fila: le altre persone le vedono comparire mentre il Re le sfoglia, e poi quella scelta si evidenzia.
+function revealStrip(s) {
+  const judging = s.phase === "judging";
+  if (!(judging && s.judgeId !== viewer) && s.phase !== "roundEnd") return null;
+  const peek = judging ? (s.peek ?? -1) : s.reveal.length - 1;
+  const items = s.reveal.map((r) => {
+    const seen = r.index <= peek;
+    const picked = s.phase === "roundEnd" && s.pickedIndex === r.index;
+    const text = seen ? fillSentence(s.black.text, r.cards.map((c) => c.text)).map((x) => (x.t === "slot" ? "_____" : x.v)).join("") : "…";
+    return el("div", { class: "rv-card" + (seen ? "" : " hidden") + (picked ? " picked" : "") },
+      el("span", {}, text),
+      el("span", { class: "foot" }, `Combinazione ${r.index + 1}`));
+  });
+  return el("div", { class: "rv-wrap" }, el("span", { class: "label" }, "Risposte"), el("div", { class: "rv-strip" }, items));
 }
 
 function resetJudgeIfNewRound() {
@@ -1191,10 +1208,10 @@ function render() {
       mainCard = blackCard(s, r.cards.map((c) => c.text), { label: `Combinazione ${judgeView + 1} di ${total}` });
       note = el("p", { class: "hidden-msg" }, "Leggi tutte le combinazioni. Non sai chi le ha giocate.");
       actions = el("div", { class: "judge-nav" },
-        el("button", { type: "button", disabled: judgeView === 0, onclick: () => { judgeView -= 1; render(); } }, "← Precedente"),
+        el("button", { type: "button", disabled: judgeView === 0, onclick: () => { setJudgeView(judgeView - 1); render(); } }, "← Precedente"),
         judgeView < total - 1
-          ? el("button", { class: "primary", type: "button", onclick: () => { judgeView += 1; Sound.play("flip"); render(); } }, "Successiva →")
-          : el("button", { class: "primary", type: "button", onclick: () => { judgeMode = "compare"; enterPending = true; Sound.play("flip"); render(); } }, vediTutteLabel(total)));
+          ? el("button", { class: "primary", type: "button", onclick: () => { setJudgeView(judgeView + 1); Sound.play("flip"); render(); } }, "Successiva →")
+          : el("button", { class: "primary", type: "button", onclick: () => { setJudgeView(total - 1); judgeMode = "compare"; enterPending = true; Sound.play("flip"); render(); } }, vediTutteLabel(total)));
     } else {
       note = el("p", { class: "hidden-msg" }, "Tutte le combinazioni. Scegli quella che ti ha fatto ridere di più.");
       const enter = enterPending;
@@ -1303,7 +1320,7 @@ function render() {
     el("div", { class: "game" },
       el("header", { class: "hud" }, board, roundline),
       el("main", { class: "stage" }, mainCard, note),
-      el("footer", { class: "dock" }, actions, railBlock),
+      el("footer", { class: "dock" }, actions, railBlock, revealStrip(s)),
       who));
   if (shrinkNow) shrinkWinner(roundPause);
   // Offline: toccando lo schermo durante la pausa si passa subito al turno dopo.
@@ -1393,6 +1410,9 @@ const saveSession = (v) => {
     else sessionStorage.removeItem(SESSION_KEY);
   } catch { /* nessuno storage: si perde solo la riconnessione */ }
 };
+
+// Il telefono avvisa così di un problema nativo (per esempio nell'aggiornamento), senza chiudere l'app.
+window.onNativeError = (msg) => toast(msg);
 
 function toast(msg) {
   const t = el("div", { class: "toast", role: "status" }, msg);
@@ -1886,6 +1906,12 @@ button:active:not(:disabled) { transform: scale(.96); }
 /* Mano: fila scorrevole di carte piccole, con spazio sopra (numero di scelta) e sotto. */
 @media (orientation: portrait) {
   .dock .rail { padding: 22px 6px 30px; align-items: flex-end; }
+.rv-wrap { display: flex; flex-direction: column; gap: 6px; }
+.rv-strip { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: none; }
+.rv-card { flex: 0 0 150px; min-height: 92px; border-radius: 14px; background: var(--paper); color: var(--fg); border: 1px solid var(--line); padding: 10px; font-size: 14px; line-height: 1.2; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; transition: opacity .25s; }
+.rv-card.hidden { opacity: .35; }
+.rv-card.picked { outline: 3px solid var(--accent); }
+.rv-card .foot { font-size: 11px; color: var(--muted); }
   .rail .card { width: calc(var(--ch) * 0.82 * 5 / 7); height: calc(var(--ch) * 0.82); font-size: calc(var(--ch) * 0.074 * var(--ts) * var(--cs)); }
   .rail .card .txt { overflow-wrap: normal; word-break: normal; hyphens: none; }
 }

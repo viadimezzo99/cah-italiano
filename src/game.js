@@ -74,6 +74,8 @@ export class Game {
     this.submissions = new Map(); // playerId -> cardIds
     this.revealOrder = []; // playerIds in ordine mischiato per il giudice
     this.lastWinner = null;
+    this.peek = -1;        // quante combinazioni il Re ha già sfogliato: le altre le vedono in fila
+    this.pickedIndex = null;
     this.winner = null;
   }
 
@@ -196,6 +198,9 @@ export class Game {
     if (this.submissions.size === expected) {
       this.phase = "judging";
       this.revealOrder = shuffle([...this.submissions.keys()], this.rng);
+      this.pickedIndex = null;
+      // Il Re umano parte dalla prima; quello bot le legge tutte subito.
+      this.peek = this.judge.isBot ? this.revealOrder.length - 1 : 0;
       events.push({ type: "judging", count: this.revealOrder.length });
     }
     return events;
@@ -210,6 +215,13 @@ export class Game {
     }));
   }
 
+  /** Il Re ha sfogliato fino a questa combinazione: gli altri la vedono comparire. */
+  peekTo(judgeId, index) {
+    if (this.phase !== "judging" || judgeId !== this.judge.id) return;
+    if (!Number.isInteger(index) || index < 0 || index >= this.revealOrder.length) return;
+    this.peek = Math.max(this.peek, index);
+  }
+
   /** Il Re sceglie la risposta preferita. */
   pick(judgeId, index) {
     if (this.phase !== "judging") throw new Error("Non ci sono risposte da giudicare");
@@ -221,6 +233,7 @@ export class Game {
     const winner = this.player(winnerId);
     winner.score += 1;
     this.lastWinner = winnerId;
+    this.pickedIndex = index;
     this.lastWinCards = this.submissions.get(winnerId).map((id) => this.text(id));
     this.phase = "roundEnd";
 
@@ -302,6 +315,8 @@ export class Game {
         hand: p.id === forPlayerId ? p.hand.map((id) => ({ id, text: this.text(id), cat: this.catById.get(id) })) : undefined,
       })),
       reveal: this.reveal(),
+      peek: this.phase === "judging" ? this.peek : null,
+      pickedIndex: this.phase === "roundEnd" ? this.pickedIndex : null,
       winnerCards: this.phase === "roundEnd" ? this.lastWinCards ?? [] : [],
       winner: this.winner,
     };

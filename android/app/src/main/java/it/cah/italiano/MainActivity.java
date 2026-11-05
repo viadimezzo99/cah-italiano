@@ -11,6 +11,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+import java.io.File;
+import org.json.JSONObject;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -41,32 +43,52 @@ public class MainActivity extends Activity {
         }
     }
 
+    // Avvisi per la pagina, al posto di una chiusura improvvisa dell'app.
+    private void avvisa(String msg) {
+        if (web == null) return;
+        web.post(() -> web.evaluateJavascript(
+            "window.onNativeError && window.onNativeError(" + JSONObject.quote(msg) + ")", null));
+    }
+
     private void scaricaAggiornamento(String url) {
-        final DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-        DownloadManager.Request r = new DownloadManager.Request(Uri.parse(url));
-        r.setTitle("Cards Against Humanity");
-        r.setDescription("Aggiornamento");
-        r.setMimeType("application/vnd.android.package-archive");
-        r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
-        r.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "aggiornamento.apk");
-        dlId = dm.enqueue(r);
-        if (dlDone != null) return;
-        dlDone = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context c, Intent i) {
-                long id = i.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-                if (id != dlId) return;
-                Uri apk = dm.getUriForDownloadedFile(id);
-                if (apk == null) return;
-                Intent install = new Intent(Intent.ACTION_VIEW);
-                install.setDataAndType(apk, "application/vnd.android.package-archive");
-                install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(install);
-            }
-        };
-        IntentFilter f = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        if (Build.VERSION.SDK_INT >= 33) registerReceiver(dlDone, f, Context.RECEIVER_EXPORTED);
-        else registerReceiver(dlDone, f);
+        try {
+            final DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            if (dm == null) { avvisa("Aggiornamento non disponibile su questo telefono."); return; }
+            // Un file rimasto da una prova precedente va tolto, altrimenti il download può fallire.
+            File vecchio = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "aggiornamento.apk");
+            if (vecchio.exists() && !vecchio.delete()) { avvisa("Non riesco a sostituire il file dell'aggiornamento."); return; }
+            DownloadManager.Request r = new DownloadManager.Request(Uri.parse(url));
+            r.setTitle("Cards Against Humanity");
+            r.setDescription("Aggiornamento");
+            r.setMimeType("application/vnd.android.package-archive");
+            r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+            r.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "aggiornamento.apk");
+            dlId = dm.enqueue(r);
+            if (dlDone != null) return;
+            dlDone = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context c, Intent i) {
+                    try {
+                        long id = i.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+                        if (id != dlId) return;
+                        Uri apk = dm.getUriForDownloadedFile(id);
+                        if (apk == null) { avvisa("Download dell'aggiornamento non riuscito. Riprova."); return; }
+                        Intent install = new Intent(Intent.ACTION_VIEW);
+                        install.setDataAndType(apk, "application/vnd.android.package-archive");
+                        install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(install);
+                    } catch (Exception e) {
+                        avvisa("Non riesco ad avviare l'installazione.");
+                    }
+                }
+            };
+            IntentFilter f = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+            if (Build.VERSION.SDK_INT >= 33) registerReceiver(dlDone, f, Context.RECEIVER_EXPORTED);
+            else registerReceiver(dlDone, f);
+        } catch (Exception e) {
+            dlDone = null;
+            avvisa("Non riesco ad avviare l'aggiornamento. Riprova più tardi.");
+        }
     }
 
     @Override

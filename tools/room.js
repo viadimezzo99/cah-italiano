@@ -100,7 +100,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         else g.judgeIfBot();
       } catch { /* stato già cambiato */ }
       afterChange(room);
-    }, phase === "judging" ? 2000 : 650);
+    }, phase === "judging" ? 400 : 150);
   }
 
   function afterChange(room) {
@@ -258,6 +258,14 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         if (!room.game) throw new Error("La partita non è iniziata");
         room.game.pick(player.id, msg.index);
         afterChange(room);
+        return;
+      }
+      case "peek": {
+        // Il Re sfoglia le combinazioni: si aggiorna solo la vista, senza far ripartire il tempo del turno.
+        const { room, player } = requireRoom(conn);
+        if (!room.game) throw new Error("La partita non è iniziata");
+        room.game.peekTo(player.id, msg.index);
+        broadcast(room);
         return;
       }
       case "next": {
