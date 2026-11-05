@@ -2250,7 +2250,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.10";
+const APP_VERSION = "0.2.11";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -2690,7 +2690,7 @@ function cardsScreen() {
     try { ok = document.execCommand("copy"); } catch { ok = false; }
     toast(ok ? "Testo copiato" : "Premi Seleziona tutto, poi copia");
   };
-  const pasteIn = el("textarea", { rows: "3", placeholder: "Incolla qui il testo ricevuto", "aria-label": "Testo da importare" });
+  const pasteIn = el("textarea", { rows: "6", placeholder: "Una frase per riga\nFrase bianca\nFrase con ____ nera", "aria-label": "Frasi da importare" });
   const exportBox = el("textarea", { rows: "4", readonly: "", "aria-label": "Le tue carte in testo", onfocus: (e) => e.target.select() });
   exportBox.value = JSON.stringify(packData());
   const selectAll = () => { exportBox.focus(); exportBox.select(); exportBox.setSelectionRange(0, exportBox.value.length); };
@@ -2730,9 +2730,9 @@ function cardsScreen() {
       el("button", { type: "button", onclick: selectAll }, "Seleziona tutto"),
       el("button", { type: "button", onclick: copy }, "Copia")),
     el("span", { class: "label", style: "margin-top:10px" }, "Ricevi carte"),
-    el("p", { class: "hidden-msg" }, "Incolla qui il testo ricevuto, poi premi Aggiungi."),
+    el("p", { class: "hidden-msg" }, "Incolla le frasi, una per riga: con ____ diventa una nera, senza diventa una bianca. Poi premi Aggiungi."),
     pasteIn,
-    el("button", { type: "button", class: "primary", onclick: () => importPack(pasteIn.value) }, "Aggiungi le carte ricevute")));
+    el("button", { type: "button", class: "primary", onclick: () => importPack(pasteIn.value) }, "Aggiungi le carte")));
 }
 
 function showCardDetail(c, refresh, list = [c]) {
@@ -2960,7 +2960,34 @@ function openCardForm(done) {
   document.body.append(bg);
 }
 
+// Testo semplice: una frase per riga. Con ____ è nera, senza è bianca.
+function importLines(text) {
+  const d = loadCustom();
+  const seen = new Set([...d.white, ...d.black].map((c) => c.text.toLowerCase()));
+  let added = 0;
+  for (const raw of String(text).split(/\r?\n/)) {
+    let t = raw.replace(/\s+/g, " ").trim();
+    if (!t || t.startsWith("#")) continue;
+    t = t.slice(0, 200);
+    if (seen.has(t.toLowerCase())) continue;
+    seen.add(t.toLowerCase());
+    if (t.includes("____")) {
+      if (t.split("____").length - 1 > 3) continue;
+      d.black.push({ text: t, cat: blackCatFor(t) });
+    } else {
+      d.white.push({ text: t, cat: defaultCat("w") });
+    }
+    added++;
+  }
+  saveCustom(d);
+  toast(`Importate ${added} carte`);
+  cardsView.tab = "mine";
+  cardsScreen();
+}
+
 function importPack(text) {
+  const trimmed = String(text).trim();
+  if (trimmed && !trimmed.startsWith("{")) { importLines(trimmed); return; }
   let data;
   try { data = JSON.parse(text); } catch { toast("Pacchetto non valido"); return; }
   if (!data || data.formato !== "cah-pacchetto") { toast("Non è un pacchetto di CAH"); return; }
