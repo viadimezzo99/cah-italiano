@@ -81,7 +81,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.11";
+const APP_VERSION = "0.2.12";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -449,12 +449,22 @@ const withOverrides = (cards) => {
 const deckFor = () => mergeCustom(withOverrides(CARDS), cfg.deck === "base" ? { white: [], black: [] } : activeCustom());
 
 // Solo testi e categorie: il server li ripulisce di nuovo prima di usarli.
+// Il messaggio di avvio sta in un frame da 64 KB: se le carte sono troppe, se ne tengono meno.
+const CUSTOM_BUDGET = 56 * 1024;
 function customPayload() {
   const a = activeCustom();
-  return {
+  const p = {
     white: a.white.map((c) => ({ text: c.text, cat: c.cat })),
     black: a.black.map((c) => ({ text: c.text, cat: c.cat })),
   };
+  const size = () => new TextEncoder().encode(JSON.stringify(p)).length;
+  let cut = false;
+  while (size() > CUSTOM_BUDGET && (p.white.length || p.black.length)) {
+    cut = true;
+    if (p.white.length > p.black.length) p.white.pop(); else p.black.pop();
+  }
+  if (cut) toast("Troppe carte personali: per la partita ne entrano solo alcune");
+  return p;
 }
 
 function allCards() {

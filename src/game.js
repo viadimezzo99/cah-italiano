@@ -313,13 +313,17 @@ export class Game {
 const BLANK = "____";
 
 /** Pulisce le carte personali: testo corto, nere con 1–3 spazi, id nuovi e sicuri. */
+// Tetti per le carte personali di una partita: il messaggio di avvio non deve superare il limite dei frame (64 KB).
+export const CUSTOM_MAX_WHITE = 1000;
+export const CUSTOM_MAX_BLACK = 300;
+
 export function sanitizeCustom(c) {
   const clean = (x) => String(x?.text ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
   const catOf = (x) => String(x?.cat ?? "").replace(/\s+/g, " ").trim().slice(0, 20) || "Altro";
-  const white = (Array.isArray(c?.white) ? c.white : []).slice(0, 300)
+  const white = (Array.isArray(c?.white) ? c.white : []).slice(0, CUSTOM_MAX_WHITE)
     .map((x) => ({ text: clean(x), cat: catOf(x) })).filter((x) => x.text)
     .map((x, i) => ({ id: `u${i}`, ...x }));
-  const black = (Array.isArray(c?.black) ? c.black : []).slice(0, 150)
+  const black = (Array.isArray(c?.black) ? c.black : []).slice(0, CUSTOM_MAX_BLACK)
     .map((x) => {
       let text = clean(x);
       if (!text) return null;
