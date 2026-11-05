@@ -81,7 +81,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.5";
+const APP_VERSION = "0.2.6";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -1039,7 +1039,8 @@ function renderWinner() {
       el("span", { class: "cr-slot" }, el("span", { class: "cr-gap" }), el("span", { class: "cr-name" }, w.name)),
       el("span", { class: "cr-line" }, "grazie"),
       el("span", { class: "cr-pslot" }, el("span", { class: "cr-pgap" }), el("span", { class: "cr-phrase" }, rest))),
-    el("button", { class: "primary cr-btn", type: "button", onclick: exitGame }, "Nuova partita")));
+    el("button", { class: "primary cr-btn", type: "button", onclick: online ? () => netSend({ type: "back" }) : () => { homeTab = "local"; exitGame(); } },
+      online ? "Torna alla stanza" : "Torna al locale")));
   Sound.setTheme("menu");
 }
 
@@ -1056,6 +1057,7 @@ function render() {
     selected = [];
     judgeSel = null;
     curtain = !online && humanIds().length > 1;
+    if (curtain) Sound.play("turn");
   }
   viewer = next;
   const s = game.publicState(viewer);
@@ -1621,6 +1623,7 @@ function renderLobby() {
     return;
   }
   const isHost = st.hostId === online.you;
+  const me = st.players.find((p) => p.id === online.you);
   const total = st.players.length;
   const ok = total >= 3;
   const seg = [3, 5, 8].map((n) => el("button", {
@@ -1640,9 +1643,12 @@ function renderLobby() {
         el("span", { class: "label", style: "margin-top:6px" }, `Giocatori (${total}/10)`),
         el("ul", { class: "plist" }, st.players.map((p) => el("li", {},
           el("span", { class: "dot" + (p.connected ? " on" : "") }),
-          `${p.name}${p.id === st.hostId ? " · host" : ""}${p.id === online.you ? " (tu)" : ""}`))),
+          `${p.name}${p.id === st.hostId ? " · host" : ""}${p.id === online.you ? " (tu)" : ""}${p.ready ? " · pronto" : ""}`))),
         isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Vittoria") : null,
         isHost ? el("div", { class: "seg" }, seg) : null,
+        // Dopo una partita la stanza resta aperta: ognuno si dichiara pronto, e quando lo sono tutti si ricomincia.
+        me ? el("button", { type: "button", class: me.ready ? "ghost" : "primary", onclick: () => netSend({ type: "ready" }) },
+          me.ready ? "Pronto: aspetto gli altri" : "Sono pronto") : null,
         isHost
           ? el("button", { type: "button", class: "primary", disabled: !ok, onclick: () => netSend({ type: "start", winScore: onlineWin, custom: customPayload() }) }, "Avvia partita")
           : el("p", { class: "hidden-msg" }, ok ? "In attesa che l'host avvii la partita." : "Servono almeno 3 giocatori per iniziare."),

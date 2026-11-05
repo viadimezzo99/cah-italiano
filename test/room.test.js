@@ -59,3 +59,23 @@ test("riconnessione con il token e uscita dalla lobby", () => {
   host.handle(b2.conn, { type: "resume", code, token });
   assert.equal(b2.last("error")?.message, "Sessione non valida");
 });
+
+test("dopo la vittoria: torna alla stanza, tutti pronti, nuova partita con lo stesso punteggio", () => {
+  const host = __createRoomHost({ cards, turnSeconds: 0 });
+  const a = phone(host, "a"), b = phone(host, "b"), c = phone(host, "c");
+  host.handle(a.conn, { type: "create", name: "Alice" });
+  const { code } = a.last("joined");
+  host.handle(b.conn, { type: "join", code, name: "Bruno" });
+  host.handle(c.conn, { type: "join", code, name: "Carla" });
+  host.handle(a.conn, { type: "start", winScore: 3 });
+  const room = host.rooms.get(code);
+  room.game.phase = "over";
+  host.handle(b.conn, { type: "back" });
+  assert.equal(room.game, null, "la partita finita torna in stanza");
+  host.handle(a.conn, { type: "ready" });
+  host.handle(b.conn, { type: "ready" });
+  assert.equal(room.game, null, "manca ancora Carla");
+  host.handle(c.conn, { type: "ready" });
+  assert.equal(room.game.phase, "playing", "tutti pronti: si ricomincia");
+  assert.equal(room.game.opts.winScore, 3, "stesso punteggio");
+});

@@ -45,7 +45,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
       you: player.id,
       hostId: room.hostId,
       turnSeconds,
-      players: room.players.map((p) => ({ id: p.id, name: p.name, connected: !!p.conn })),
+      players: room.players.map((p) => ({ id: p.id, name: p.name, connected: !!p.conn, ready: !!p.ready })),
       game: g ? { ...g.publicState(player.id), winScore: g.opts.winScore, lastWinner: g.lastWinner } : null,
     };
   }
@@ -95,8 +95,29 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
     room.cleanup = null;
   }
 
+  // Avvia una partita: la stessa per il primo giro (host) e per i giri successivi (tutti pronti).
+  function startGame(room, winScore, custom) {
+    room.winScore = winScore;
+    room.custom = custom;
+    for (const p of room.players) p.ready = false;
+    room.game = new Game(
+      room.players.map((p) => ({ id: p.id, name: p.name, isBot: false })),
+      mergeCustom(cards, custom),
+      { winScore },
+    );
+    room.game.start();
+    afterChange(room);
+  }
+
+  // Dopo la vittoria la stanza resta aperta: quando tutti i telefoni connessi sono pronti, si ricomincia.
+  function maybeAutoStart(room) {
+    if (room.game || !room.winScore) return;
+    const connected = room.players.filter((p) => p.conn);
+    if (connected.length >= ROOM_MIN_PLAYERS && connected.every((p) => p.ready)) startGame(room, room.winScore, room.custom);
+  }
+
   function addPlayer(room, conn, name) {
-    const player = { id: randomHex(8), name, token: randomHex(16), conn: null };
+    const player = { id: randomHex(8), name, token: randomHex(16), conn: null, ready: false };
     room.players.push(player);
     if (!room.hostId) room.hostId = player.id;
     attachPlayer(room, player, conn);
@@ -197,13 +218,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         if (room.game) throw new Error("La partita è già iniziata");
         if (room.players.length < ROOM_MIN_PLAYERS) throw new Error(`Servono almeno ${ROOM_MIN_PLAYERS} giocatori`);
         const winScore = ROOM_WIN_SCORES.includes(msg.winScore) ? msg.winScore : 5;
-        room.game = new Game(
-          room.players.map((p) => ({ id: p.id, name: p.name, isBot: false })),
-          mergeCustom(cards, msg.custom),
-          { winScore },
-        );
-        room.game.start();
-        afterChange(room);
+        startGame(room, winScore, msg.custom);
         return;
       }
       case "play": {
@@ -226,6 +241,25 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         if (!room.game) throw new Error("La partita non è iniziata");
         room.game.nextRound();
         afterChange(room);
+        return;
+      }
+      case "ready": {
+        const { room, player } = requireRoom(conn);
+        if (room.game) throw new Error("La partita è già in corso");
+        player.ready = !player.ready;
+        maybeAutoStart(room);
+        if (!room.game) broadcast(room);
+        return;
+      }
+      case "back": {
+        // Dalla schermata di vittoria si torna alla stanza: la partita finisce, tutti devono confermare di nuovo.
+        const { room } = requireRoom(conn);
+        if (!room.game || room.game.phase !== "over") throw new Error("La partita non è finita");
+        clearTimeout(room.timer);
+        room.timer = null;
+        room.game = null;
+        for (const p of room.players) p.ready = false;
+        broadcast(room);
         return;
       }
       case "leave":

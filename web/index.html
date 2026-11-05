@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 120 96%27%3E%3Crect x=%2710%27 y=%2714%27 width=%2756%27 height=%2776%27 rx=%279%27 fill=%27%23111%27 transform=%27rotate(-10 38 52)%27/%3E%3Crect x=%2750%27 y=%2710%27 width=%2756%27 height=%2776%27 rx=%279%27 fill=%27%23fff%27 stroke=%27%23111%27 stroke-width=%273%27 transform=%27rotate(8 78 48)%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%23000%27/%3E%3Crect x=%2710%27 y=%2712%27 width=%2744%27 height=%277%27 fill=%27%23fff%27/%3E%3Crect x=%2710%27 y=%2728%27 width=%2736%27 height=%277%27 fill=%27%23ff7a3d%27/%3E%3Crect x=%2710%27 y=%2744%27 width=%2744%27 height=%277%27 fill=%27%23fff%27/%3E%3C/svg%3E">
 <title>CAH Italiano</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Fraunces:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=Permanent+Marker&display=swap">
@@ -1631,6 +1631,15 @@ const Sound = (() => {
         burst(t + k * 0.9 + Math.random() * 0.04, 0.07, 1500 + Math.random() * 1400, 0.8, 0.12 + 0.12 * Math.sin(Math.PI * k), sfxBus);
       }
     },
+    // Suoni scelti nelle prove: sovrascrivono quelli sopra con lo stesso nome.
+    pick: (t) => { burst(t, 0.02, 3500, 2, 0.3, sfxBus); blip(2000, t, 0.02, "sine", sfxBus, 0.1); },
+    deal: (t) => { for (let k = 0; k < 5; k++) burst(t + k * 0.07, 0.025, 2600, 2, 0.25, sfxBus); },
+    flip: (t) => { burst(t, 0.03, 1500, 3, 0.3, sfxBus); burst(t + 0.07, 0.03, 1500, 3, 0.3, sfxBus); },
+    tap: (t) => burst(t, 0.02, 1800, 2, 0.2, sfxBus),
+    error: (t) => blip(90, t, 0.15, "sine", sfxBus, 0.5),
+    win: (t) => blip(784, t, 0.8, "sine", sfxBus, 0.35),
+    confirm: (t) => { blip(523, t, 0.12, "sine", sfxBus, 0.35); blip(659, t + 0.05, 0.12, "sine", sfxBus, 0.35); blip(784, t + 0.1, 0.2, "sine", sfxBus, 0.35); },
+    turn: (t) => { blip(440, t, 0.07, "sine", sfxBus, 0.3); blip(660, t + 0.11, 0.1, "sine", sfxBus, 0.3); },
   };
 
   // Rumore bianco riusato, filtrato per ottenere i vari versi.
@@ -1922,7 +1931,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
       you: player.id,
       hostId: room.hostId,
       turnSeconds,
-      players: room.players.map((p) => ({ id: p.id, name: p.name, connected: !!p.conn })),
+      players: room.players.map((p) => ({ id: p.id, name: p.name, connected: !!p.conn, ready: !!p.ready })),
       game: g ? { ...g.publicState(player.id), winScore: g.opts.winScore, lastWinner: g.lastWinner } : null,
     };
   }
@@ -1972,8 +1981,29 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
     room.cleanup = null;
   }
 
+  // Avvia una partita: la stessa per il primo giro (host) e per i giri successivi (tutti pronti).
+  function startGame(room, winScore, custom) {
+    room.winScore = winScore;
+    room.custom = custom;
+    for (const p of room.players) p.ready = false;
+    room.game = new Game(
+      room.players.map((p) => ({ id: p.id, name: p.name, isBot: false })),
+      mergeCustom(cards, custom),
+      { winScore },
+    );
+    room.game.start();
+    afterChange(room);
+  }
+
+  // Dopo la vittoria la stanza resta aperta: quando tutti i telefoni connessi sono pronti, si ricomincia.
+  function maybeAutoStart(room) {
+    if (room.game || !room.winScore) return;
+    const connected = room.players.filter((p) => p.conn);
+    if (connected.length >= ROOM_MIN_PLAYERS && connected.every((p) => p.ready)) startGame(room, room.winScore, room.custom);
+  }
+
   function addPlayer(room, conn, name) {
-    const player = { id: randomHex(8), name, token: randomHex(16), conn: null };
+    const player = { id: randomHex(8), name, token: randomHex(16), conn: null, ready: false };
     room.players.push(player);
     if (!room.hostId) room.hostId = player.id;
     attachPlayer(room, player, conn);
@@ -2074,13 +2104,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         if (room.game) throw new Error("La partita è già iniziata");
         if (room.players.length < ROOM_MIN_PLAYERS) throw new Error(`Servono almeno ${ROOM_MIN_PLAYERS} giocatori`);
         const winScore = ROOM_WIN_SCORES.includes(msg.winScore) ? msg.winScore : 5;
-        room.game = new Game(
-          room.players.map((p) => ({ id: p.id, name: p.name, isBot: false })),
-          mergeCustom(cards, msg.custom),
-          { winScore },
-        );
-        room.game.start();
-        afterChange(room);
+        startGame(room, winScore, msg.custom);
         return;
       }
       case "play": {
@@ -2103,6 +2127,25 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         if (!room.game) throw new Error("La partita non è iniziata");
         room.game.nextRound();
         afterChange(room);
+        return;
+      }
+      case "ready": {
+        const { room, player } = requireRoom(conn);
+        if (room.game) throw new Error("La partita è già in corso");
+        player.ready = !player.ready;
+        maybeAutoStart(room);
+        if (!room.game) broadcast(room);
+        return;
+      }
+      case "back": {
+        // Dalla schermata di vittoria si torna alla stanza: la partita finisce, tutti devono confermare di nuovo.
+        const { room } = requireRoom(conn);
+        if (!room.game || room.game.phase !== "over") throw new Error("La partita non è finita");
+        clearTimeout(room.timer);
+        room.timer = null;
+        room.game = null;
+        for (const p of room.players) p.ready = false;
+        broadcast(room);
         return;
       }
       case "leave":
@@ -2207,7 +2250,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.5";
+const APP_VERSION = "0.2.6";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -3165,7 +3208,8 @@ function renderWinner() {
       el("span", { class: "cr-slot" }, el("span", { class: "cr-gap" }), el("span", { class: "cr-name" }, w.name)),
       el("span", { class: "cr-line" }, "grazie"),
       el("span", { class: "cr-pslot" }, el("span", { class: "cr-pgap" }), el("span", { class: "cr-phrase" }, rest))),
-    el("button", { class: "primary cr-btn", type: "button", onclick: exitGame }, "Nuova partita")));
+    el("button", { class: "primary cr-btn", type: "button", onclick: online ? () => netSend({ type: "back" }) : () => { homeTab = "local"; exitGame(); } },
+      online ? "Torna alla stanza" : "Torna al locale")));
   Sound.setTheme("menu");
 }
 
@@ -3182,6 +3226,7 @@ function render() {
     selected = [];
     judgeSel = null;
     curtain = !online && humanIds().length > 1;
+    if (curtain) Sound.play("turn");
   }
   viewer = next;
   const s = game.publicState(viewer);
@@ -3747,6 +3792,7 @@ function renderLobby() {
     return;
   }
   const isHost = st.hostId === online.you;
+  const me = st.players.find((p) => p.id === online.you);
   const total = st.players.length;
   const ok = total >= 3;
   const seg = [3, 5, 8].map((n) => el("button", {
@@ -3766,9 +3812,12 @@ function renderLobby() {
         el("span", { class: "label", style: "margin-top:6px" }, `Giocatori (${total}/10)`),
         el("ul", { class: "plist" }, st.players.map((p) => el("li", {},
           el("span", { class: "dot" + (p.connected ? " on" : "") }),
-          `${p.name}${p.id === st.hostId ? " · host" : ""}${p.id === online.you ? " (tu)" : ""}`))),
+          `${p.name}${p.id === st.hostId ? " · host" : ""}${p.id === online.you ? " (tu)" : ""}${p.ready ? " · pronto" : ""}`))),
         isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Vittoria") : null,
         isHost ? el("div", { class: "seg" }, seg) : null,
+        // Dopo una partita la stanza resta aperta: ognuno si dichiara pronto, e quando lo sono tutti si ricomincia.
+        me ? el("button", { type: "button", class: me.ready ? "ghost" : "primary", onclick: () => netSend({ type: "ready" }) },
+          me.ready ? "Pronto: aspetto gli altri" : "Sono pronto") : null,
         isHost
           ? el("button", { type: "button", class: "primary", disabled: !ok, onclick: () => netSend({ type: "start", winScore: onlineWin, custom: customPayload() }) }, "Avvia partita")
           : el("p", { class: "hidden-msg" }, ok ? "In attesa che l'host avvii la partita." : "Servono almeno 3 giocatori per iniziare."),

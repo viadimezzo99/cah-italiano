@@ -84,6 +84,15 @@ const Sound = (() => {
         burst(t + k * 0.9 + Math.random() * 0.04, 0.07, 1500 + Math.random() * 1400, 0.8, 0.12 + 0.12 * Math.sin(Math.PI * k), sfxBus);
       }
     },
+    // Suoni scelti nelle prove: sovrascrivono quelli sopra con lo stesso nome.
+    pick: (t) => { burst(t, 0.02, 3500, 2, 0.3, sfxBus); blip(2000, t, 0.02, "sine", sfxBus, 0.1); },
+    deal: (t) => { for (let k = 0; k < 5; k++) burst(t + k * 0.07, 0.025, 2600, 2, 0.25, sfxBus); },
+    flip: (t) => { burst(t, 0.03, 1500, 3, 0.3, sfxBus); burst(t + 0.07, 0.03, 1500, 3, 0.3, sfxBus); },
+    tap: (t) => burst(t, 0.02, 1800, 2, 0.2, sfxBus),
+    error: (t) => blip(90, t, 0.15, "sine", sfxBus, 0.5),
+    win: (t) => blip(784, t, 0.8, "sine", sfxBus, 0.35),
+    confirm: (t) => { blip(523, t, 0.12, "sine", sfxBus, 0.35); blip(659, t + 0.05, 0.12, "sine", sfxBus, 0.35); blip(784, t + 0.1, 0.2, "sine", sfxBus, 0.35); },
+    turn: (t) => { blip(440, t, 0.07, "sine", sfxBus, 0.3); blip(660, t + 0.11, 0.1, "sine", sfxBus, 0.3); },
   };
 
   // Rumore bianco riusato, filtrato per ottenere i vari versi.
