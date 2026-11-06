@@ -110,7 +110,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.18";
+const APP_VERSION = "0.2.19";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -982,13 +982,6 @@ function comboRow(s, selectedIdx, interactive, peekIdx = null) {
   return row;
 }
 
-// Stessi pulsanti del Re, ma spenti: chi non è Re guarda la stessa schermata senza scegliere.
-function spectatorActions() {
-  return el("div", { class: "judge-nav" },
-    el("button", { type: "button", disabled: true }, "Rivedi una per una"),
-    el("button", { class: "primary", type: "button", disabled: true }, "Scegli questa risposta"));
-}
-
 function markCompare() {
   if (online) netSend({ type: "compare" });
   else if (game) game.compareAll(game.judge.id);
@@ -1273,10 +1266,9 @@ function render() {
     // Gli altri vedono le combinazioni affiancate, come il Re, e la scelta che sta facendo.
     note = el("p", { class: "hidden-msg" }, `${s.players.find((p) => p.id === s.judgeId)?.name ?? "Il Re"} sta scegliendo…`);
     mainCard = comboRow(s, s.selected, false);
-    actions = spectatorActions();
   } else if (s.phase === "judging") {
     note = el("p", { class: "hidden-msg" }, `${game.judge.name} sta leggendo le risposte…`);
-    if (!isJudge) { mainCard = comboRow(s, null, false, s.peek ?? -1); actions = spectatorActions(); }
+    if (!isJudge) { mainCard = comboRow(s, null, false, s.peek ?? -1); }
   } else if (s.phase === "roundEnd") {
     const last = game.lastWinner ? game.player(game.lastWinner) : null;
     if (wonRound !== s.round && last) {

@@ -66,7 +66,7 @@ public class MainActivity extends Activity {
             r.setTitle("Cards Against Humanity");
             r.setDescription("Aggiornamento");
             r.setMimeType("application/vnd.android.package-archive");
-            r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+            r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             r.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "aggiornamento.apk");
             dlId = dm.enqueue(r);
             if (dlDone != null) return;
