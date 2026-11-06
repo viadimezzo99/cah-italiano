@@ -44,6 +44,11 @@ public class MainActivity extends Activity {
     }
 
     // Avvisi per la pagina, al posto di una chiusura improvvisa dell'app.
+    // Il nome dell'errore e il suo testo, così si capisce la causa.
+    private static String dettaglio(Exception e) {
+        return e.getClass().getSimpleName() + (e.getMessage() == null ? "" : " - " + e.getMessage());
+    }
+
     private void avvisa(String msg) {
         if (web == null) return;
         web.post(() -> web.evaluateJavascript(
@@ -78,7 +83,7 @@ public class MainActivity extends Activity {
                         install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(install);
                     } catch (Exception e) {
-                        avvisa("Non riesco ad avviare l'installazione.");
+                        avvisa("Non riesco ad avviare l'installazione: " + dettaglio(e));
                     }
                 }
             };
@@ -87,7 +92,7 @@ public class MainActivity extends Activity {
             else registerReceiver(dlDone, f);
         } catch (Exception e) {
             dlDone = null;
-            avvisa("Non riesco ad avviare l'aggiornamento. Riprova più tardi.");
+            avvisa("Non riesco ad avviare l'aggiornamento: " + dettaglio(e));
         }
     }
 

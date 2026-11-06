@@ -2402,7 +2402,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.16";
+const APP_VERSION = "0.2.17";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -3697,7 +3697,7 @@ function shrinkWinner(total, from = null) {
     width: a.width + "px", height: a.height + "px", margin: "0",
     zIndex: "200", pointerEvents: "none", transform: "none",
   });
-  document.body.append(ghost);
+  app.append(ghost);   // dentro la schermata: la prossima aggiornamento della partita la toglie, senza copie vaganti
   if (card) card.style.visibility = "hidden";
   ghost.animate([{ transform: "none" }, { transform: `translate(${dx}px, ${dy}px) scale(${k})` }],
     { duration: run, delay: wait, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
