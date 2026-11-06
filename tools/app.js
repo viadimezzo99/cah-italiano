@@ -68,7 +68,12 @@ let shrinkRound = -1;  // round in cui la carta vincente è già diventata il se
 let botTimer = null;
 let judgeTimer = null;
 let roundTimer = null;     // passaggio automatico al round successivo (solo locale)
-const LOCAL_ROUND_PAUSE_MS = 1300;   // dopo il volo della carta (150 + 900 ms) parte subito il turno dopo
+const LOCAL_ROUND_PAUSE_MS = 1900;   // dopo il volo della carta scelta (600 ms) e il punto (1050 ms)
+const BOT_JUDGE_STEP_MS = 2500;      // tempo tra un passo e l'altro del Re bot (sfogliare, confrontare, scegliere)
+let wordsShown = 0;                  // quante parole sono già comparse sulla carta nera (non si ripetono)
+let scrolledSel = null;
+let comboScroll = null;               // posizione della fila combinazioni prima di un aggiornamento              // combinazione già portata in vista nella fila
+let stripShown = -1;                 // ultima combinazione già comparsa nella fila
 let shrinkGhost = null;             // copia della carta vincente in volo: si toglie se si salta la pausa
 let online = null;      // partita online: { code, you, state, offline, winScore } oppure null
 
@@ -105,7 +110,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.15";
+const APP_VERSION = "0.2.16";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -897,9 +902,9 @@ function step() {
   if (!game) return;
   if (game.phase === "playing") {
     const botsPending = game.players.some((p) => p.isBot && p.id !== game.judge.id && !game.submissions.has(p.id));
-    if (botsPending) botTimer = setTimeout(() => { game.playBots(); step(); }, 150);
+    if (botsPending) botTimer = setTimeout(() => { game.playBots(); step(); }, 2000);
   } else if (game.phase === "judging" && game.judge.isBot) {
-    judgeTimer = setTimeout(() => { game.judgeIfBot(); step(); }, 400);
+    judgeTimer = setTimeout(() => { game.advanceBotJudge(); step(); }, BOT_JUDGE_STEP_MS);   // il Re bot sfoglia e sceglie a passi
   }
   render();
 }
@@ -918,8 +923,11 @@ function humanPlay() {
   step();
 }
 
+let pendingFrom = null;   // carta scelta dal Re: da dove parte il volo verso il punto
 function humanConfirmJudge() {
   if (judgeSel === null) return;
+  const src = app.querySelector(`.combo[data-idx="${judgeSel}"] .black`);
+  pendingFrom = src ? { rect: src.getBoundingClientRect(), node: src } : null;
   game.pick(viewer, judgeSel);
   judgeSel = null;
   Sound.play("confirm");
@@ -946,19 +954,43 @@ function setJudgeView(i) {
 }
 
 // Le risposte in fila: le altre persone le vedono comparire mentre il Re le sfoglia, e poi quella scelta si evidenzia.
-function revealStrip(s) {
-  const judging = s.phase === "judging";
-  if (!(judging && s.judgeId !== viewer) && s.phase !== "roundEnd") return null;
-  const peek = judging ? (s.peek ?? -1) : s.reveal.length - 1;
-  const items = s.reveal.map((r) => {
-    const seen = r.index <= peek;
-    const picked = s.phase === "roundEnd" && s.pickedIndex === r.index;
-    const text = seen ? fillSentence(s.black.text, r.cards.map((c) => c.text)).map((x) => (x.t === "slot" ? "_____" : x.v)).join("") : "…";
-    return el("div", { class: "rv-card" + (seen ? "" : " hidden") + (picked ? " picked" : "") },
-      el("span", {}, text),
-      el("span", { class: "foot" }, `Combinazione ${r.index + 1}`));
-  });
-  return el("div", { class: "rv-wrap" }, el("span", { class: "label" }, "Risposte"), el("div", { class: "rv-strip" }, items));
+// Combinazioni a grandezza di carta, affiancate: le vede il Re e, dopo "Vedi tutte", anche gli altri.
+function comboRow(s, selectedIdx, interactive, peekIdx = null) {
+  const total = s.reveal.length;
+  let k = 0;
+  const row = el("div", { class: "combo-row", role: "group", "aria-label": "Combinazioni" },
+    s.reveal.map((r) => {
+      // peekIdx: fino a quale combinazione il Re ha sfogliato. Le altre restano coperte per chi non è il Re.
+      const unseen = peekIdx !== null && r.index > peekIdx;
+      const fresh = peekIdx !== null && !unseen && r.index > stripShown;
+      let card;
+      if (unseen || !r.cards) {
+        card = el("div", { class: "black-wrap", role: "img", "aria-label": `Combinazione ${r.index + 1} di ${total}, ancora coperta` },
+          el("div", { class: "black hidden-black" },
+            el("div", { class: "text" }, "…"),
+            el("div", { class: "foot" }, `Combinazione ${r.index + 1}`)));
+      } else {
+        card = blackCard(s, r.cards.map((c) => c.text), { label: `Combinazione ${r.index + 1} di ${total}` });
+      }
+      card.className = "black-wrap combo" + (selectedIdx === r.index ? " sel" : "") + (unseen ? " unseen" : "") + (fresh ? " rv-new" : "");
+      card.dataset.idx = String(r.index);
+      if (fresh) { const txt = card.querySelector(".text"); if (txt) txt.style.animationDelay = `${k * 220}ms`; k += 1; }
+      if (interactive) card.onclick = () => { setJudgeSel(judgeSel === r.index ? null : r.index); Sound.play("pick"); render(); };
+      return card;
+    }));
+  if (peekIdx !== null) stripShown = Math.max(stripShown, peekIdx);
+  return row;
+}
+
+function markCompare() {
+  if (online) netSend({ type: "compare" });
+  else if (game) game.compareAll(game.judge.id);
+}
+
+function setJudgeSel(i) {
+  judgeSel = i;
+  if (online) netSend({ type: "select", index: i });
+  else if (game) game.selectTo(game.judge.id, i);
 }
 
 function resetJudgeIfNewRound() {
@@ -980,6 +1012,7 @@ function previewWhites(s) {
   // Dopo la scelta del Re la carta nera mostra la risposta vincente, compilata.
   if (s.phase === "roundEnd" && s.winnerCards?.length) return [...s.winnerCards];
   const out = new Array(s.black.blanks).fill(null);
+  if (s.phase === "judging" && s.judgeId !== viewer && s.mine) return s.mine.slice(0, out.length);
   if (s.phase === "judging" && s.judgeId === viewer) {
     const r = s.reveal[judgeView];
     if (r) r.cards.forEach((c, i) => { out[i] = c.text; });
@@ -991,11 +1024,14 @@ function previewWhites(s) {
 
 function blackCard(s, whites, { canPlay, label, slam } = {}) {
   const segs = fillSentence(s.black.text, whites);
+  // Solo le parole appena inserite si animano; le altre restano ferme quando si tocca altro.
+  let k = 0;
   const nodes = segs.map((x) => {
     if (x.t === "text") return x.v;
-    if (x.t === "word") return el("span", { class: "word" }, x.v);
+    if (x.t === "word") { const fresh = canPlay && k >= wordsShown; k += 1; return el("span", { class: "word" + (fresh ? " fresh" : "") }, x.v); }
     return el("span", { class: canPlay ? "slot lit" : "slot" }, "_____");
   });
+  wordsShown = k;
   return el("div", { class: "black-wrap" },
     el("div", { class: "black" + (slam ? " slam" : ""), role: "region", "aria-label": "Carta nera" },
       el("div", { class: "text" }, ...nodes),
@@ -1151,6 +1187,10 @@ function render() {
   }
   viewer = next;
   const s = game.publicState(viewer);
+  // Le copie della carta in volo non devono sopravvivere fuori dalla pausa di fine round.
+  if (s.phase !== "roundEnd") document.querySelectorAll(".shrink-ghost").forEach((n) => n.remove());
+  if (s.phase === "playing" && selected.length === 0) wordsShown = 0;
+  if (s.phase === "playing") stripShown = -1;   // nuovo giro: le combinazioni ripartono coperte
   if (s.phase === "over") return renderWinner();
   const isJudge = s.judgeId === viewer;
   const me = s.players.find((p) => p.id === viewer);
@@ -1190,6 +1230,7 @@ function render() {
     el("button", { type: "button", class: "home-settings", "aria-label": "Impostazioni", onclick: openSettings }));
 
   let mainCard = null;
+  let extraRow = null;    // fila delle combinazioni, sotto la carta nera (per chi non è il Re)
   let note = null;
   let actions = null;
   let rail = null;
@@ -1211,29 +1252,23 @@ function render() {
         el("button", { type: "button", disabled: judgeView === 0, onclick: () => { setJudgeView(judgeView - 1); render(); } }, "← Precedente"),
         judgeView < total - 1
           ? el("button", { class: "primary", type: "button", onclick: () => { setJudgeView(judgeView + 1); Sound.play("flip"); render(); } }, "Successiva →")
-          : el("button", { class: "primary", type: "button", onclick: () => { setJudgeView(total - 1); judgeMode = "compare"; enterPending = true; Sound.play("flip"); render(); } }, vediTutteLabel(total)));
+          : el("button", { class: "primary", type: "button", onclick: () => { setJudgeView(total - 1); markCompare(); judgeMode = "compare"; enterPending = true; Sound.play("flip"); render(); } }, vediTutteLabel(total)));
     } else {
       note = el("p", { class: "hidden-msg" }, "Tutte le combinazioni. Scegli quella che ti ha fatto ridere di più.");
       const enter = enterPending;
       enterPending = false;
-      mainCard = el("div", { class: "minis", role: "group", "aria-label": "Combinazioni" },
-        s.reveal.map((r) => {
-          const text = fillSentence(s.black.text, r.cards.map((c) => c.text)).map((x) => (x.t === "slot" ? "_____" : x.v)).join("");
-          const node = el("button", {
-            class: "mini" + (judgeSel === r.index ? " sel" : "") + (enter ? " enter" : ""),
-            type: "button",
-            "aria-pressed": String(judgeSel === r.index),
-            onclick: () => { judgeSel = judgeSel === r.index ? null : r.index; Sound.play("pick"); render(); },
-          }, el("span", {}, text), el("span", { class: "foot" }, `Combinazione ${r.index + 1}`));
-          node.style.setProperty("--i", r.index);
-          return node;
-        }));
+      mainCard = comboRow(s, judgeSel, true);
       actions = el("div", { class: "judge-nav" },
         el("button", { type: "button", onclick: () => { judgeMode = "browse"; judgeView = 0; render(); } }, "Rivedi una per una"),
         el("button", { class: "primary", type: "button", disabled: judgeSel === null, onclick: humanConfirmJudge }, "Scegli questa risposta"));
     }
+  } else if (s.phase === "judging" && s.compare) {
+    // Gli altri vedono le combinazioni affiancate, come il Re, e la scelta che sta facendo.
+    note = el("p", { class: "hidden-msg" }, `${s.players.find((p) => p.id === s.judgeId)?.name ?? "Il Re"} sta scegliendo…`);
+    extraRow = comboRow(s, s.selected, false);
   } else if (s.phase === "judging") {
     note = el("p", { class: "hidden-msg" }, `${game.judge.name} sta leggendo le risposte…`);
+    if (!isJudge) extraRow = comboRow(s, null, false, s.peek ?? -1);
   } else if (s.phase === "roundEnd") {
     const last = game.lastWinner ? game.player(game.lastWinner) : null;
     if (wonRound !== s.round && last) {
@@ -1270,7 +1305,8 @@ function render() {
     rail = el("div", { class: "rail", role: "group", "aria-label": "La tua mano" },
       handForRail(me.hand).map((c, i) => {
         const idx = selected.indexOf(c.id);
-        const full = selected.length >= need && idx < 0;
+        // Con una sola risposta da dare, toccarne un'altra sostituisce la scelta; con più risposte si deseleziona prima.
+        const full = need > 1 && selected.length >= need && idx < 0;
         const held = { v: false };
         const node = el("button", {
           class: "card" + (idx >= 0 ? " sel" : "") + (deal ? " deal" : ""),
@@ -1281,6 +1317,7 @@ function render() {
             if (held.v) return;
             // Scelte in ordine: deselezionando la prima, la seconda diventa la prima.
             if (idx >= 0) selected.splice(idx, 1);
+            else if (need === 1) { selected = [c.id]; wordsShown = 0; }   // la parola nuova deve comparire con l'animazione
             else selected.push(c.id);
             Sound.play("pick");
             render();
@@ -1315,14 +1352,33 @@ function render() {
   // Al primo render di pausa la carta resta visibile: sarà shrinkWinner a farla rimpicciolire.
   // Nei render successivi (stesso round) è già finita, quindi resta nascosta.
   if (s.phase === "roundEnd" && !shrinkNow && shrinkRound === s.round && mainCard) mainCard.style.visibility = "hidden";
+  // Se il Re ha già scelto, il punto parte dalla combinazione che gli altri vedevano.
+  const oldSrc = s.phase === "roundEnd" && s.pickedIndex != null ? app.querySelector(`.combo[data-idx="${s.pickedIndex}"] .black`) : null;
+  if (oldSrc && !pendingFrom) pendingFrom = { rect: oldSrc.getBoundingClientRect(), node: oldSrc };
+  // Il volo parte dalla combinazione che si vedeva: la carta grande della vincente non compare a parte.
+  if (s.phase === "roundEnd" && pendingFrom && mainCard) mainCard.style.visibility = "hidden";
   requestAnimationFrame(() => fitText(app));
+  const oldRow = app.querySelector(".combo-row");
+  comboScroll = oldRow ? oldRow.scrollLeft : null;
   app.replaceChildren(
     el("div", { class: "game" },
       el("header", { class: "hud" }, board, roundline),
-      el("main", { class: "stage" }, mainCard, note),
-      el("footer", { class: "dock" }, actions, railBlock, revealStrip(s)),
+      el("main", { class: "stage" }, mainCard, extraRow, note),
+      el("footer", { class: "dock" }, actions, railBlock),
       who));
-  if (shrinkNow) shrinkWinner(roundPause);
+  // La fila ricostruita riprende la posizione in cui la stava guardando chi scorre.
+  const row = app.querySelector(".combo-row");
+  if (row && comboScroll !== null) row.scrollLeft = comboScroll;
+  comboScroll = null;
+  // Si scorre alla combinazione scelta solo quando cambia, non a ogni aggiornamento.
+  const selNode = app.querySelector(".combo.sel");
+  const selKey = selNode ? selNode.dataset.idx : null;
+  if (selKey !== scrolledSel) { scrolledSel = selKey; selNode?.scrollIntoView({ inline: "center", block: "nearest" }); }
+  if (shrinkNow) {
+    const from = pendingFrom;
+    pendingFrom = null;
+    setTimeout(() => shrinkWinner(roundPause, from), 0);
+  }
   // Offline: toccando lo schermo durante la pausa si passa subito al turno dopo.
   if (!online && s.phase === "roundEnd") {
     app.querySelector(".game")?.addEventListener("click", () => { if (game && game.phase === "roundEnd") nextRound(); }, { once: true });
@@ -1331,16 +1387,18 @@ function render() {
 
 // Animazione della carta vincente: una copia fissa sopra tutto scende fino al segnaposto sotto il vincitore.
 // La copia sta fuori dalla scena (che taglia ciò che esce), così passa sopra le informazioni e non sparisce.
-function shrinkWinner(total) {
+function shrinkWinner(total, from = null) {
   const card = app.querySelector(".stage .black");
   const mini = app.querySelector(".seat.won .mini-black.fresh");
-  if (!card || !mini) return;
+  const src = from ? from.node : card;
+  if (!src || !mini) return;
   const wait = 150, run = 900; // il volo dura poco; il segnaposto resta dopo
-  const a = card.getBoundingClientRect(), t = mini.getBoundingClientRect();
+  const a = from ? from.rect : card.getBoundingClientRect(), t = mini.getBoundingClientRect();
   const k = Math.min(t.width / a.width, 0.2);
   const dx = t.left + t.width / 2 - (a.left + a.width / 2);
   const dy = t.top + t.height / 2 - (a.top + a.height / 2);
-  const ghost = card.cloneNode(true);
+  const ghost = src.cloneNode(true);
+  ghost.classList.add("shrink-ghost");
   ghost.removeAttribute("style");
   Object.assign(ghost.style, {
     position: "fixed", left: a.left + "px", top: a.top + "px",
@@ -1348,7 +1406,7 @@ function shrinkWinner(total) {
     zIndex: "200", pointerEvents: "none", transform: "none",
   });
   document.body.append(ghost);
-  card.style.visibility = "hidden";
+  if (card) card.style.visibility = "hidden";
   ghost.animate([{ transform: "none" }, { transform: `translate(${dx}px, ${dy}px) scale(${k})` }],
     { duration: run, delay: wait, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
   mini.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: wait + run, fill: "forwards" });
@@ -1910,7 +1968,23 @@ button:active:not(:disabled) { transform: scale(.96); }
 .rv-strip { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: none; }
 .rv-card { flex: 0 0 150px; min-height: 92px; border-radius: 14px; background: var(--paper); color: var(--fg); border: 1px solid var(--line); padding: 10px; font-size: 14px; line-height: 1.2; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; transition: opacity .25s; }
 .rv-card.hidden { opacity: .35; }
-.rv-card.picked { outline: 3px solid var(--accent); }
+.rv-card.picked { outline: 3px solid var(--accent); animation: rv-pop .5s ease-out; }
+.rv-card.rv-new { animation: rv-in .45s ease-out both; }
+.combo-row { width: 100%; min-width: 0; align-self: stretch; box-sizing: border-box; display: flex; align-items: center; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 14px 10px 18px; scrollbar-width: none; }
+.combo-row > .combo { flex: 0 0 86%; scroll-snap-align: center; opacity: .72; transition: opacity .2s, transform .2s; cursor: pointer; }
+.combo-row > .combo.sel { opacity: 1; transform: scale(1.03); }
+.combo-row > .combo.sel .black { outline: 3px solid var(--accent); outline-offset: 3px; }
+/* Le combinazioni hanno la stessa grandezza della carta nera, anche se la riga è in uno spazio con contenitore a misura. */
+.stage .combo-row > .combo { container-type: normal; width: auto; min-height: 0; flex: 0 0 min(72%, calc(44vh * 5 / 7)); }
+.stage .combo-row .combo .black { width: 100%; height: auto; aspect-ratio: 5 / 7; }
+.stage .combo-row .combo .black { font-size: 15px; line-height: 1.2; }
+.stage .combo-row .combo .black .text { font-size: inherit; }
+.combo-row > .combo.unseen { opacity: .4; }
+.combo-row > .combo.unseen .black { background: color-mix(in srgb, var(--ink) 55%, var(--paper)); }
+.combo-row > .combo.rv-new .black .text { animation: rv-focus .6s cubic-bezier(.2,.8,.2,1) backwards; }
+@keyframes rv-focus { from { opacity: 0; transform: scale(.85); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes rv-in { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes rv-pop { 0% { transform: scale(1); } 45% { transform: scale(1.08); } 100% { transform: scale(1); } }
 .rv-card .foot { font-size: 11px; color: var(--muted); }
   .rail .card { width: calc(var(--ch) * 0.82 * 5 / 7); height: calc(var(--ch) * 0.82); font-size: calc(var(--ch) * 0.074 * var(--ts) * var(--cs)); }
   .rail .card .txt { overflow-wrap: normal; word-break: normal; hyphens: none; }
@@ -1948,6 +2022,8 @@ body.in-game::before { content: ""; position: fixed; inset: 0; z-index: -1; poin
 // Nessuna parola spezzata: se una parola è più larga della carta, il testo si rimpicciolisce.
 function fitText(root = document) {
   root.querySelectorAll(".black .text, .rail .card .txt, .zoom .txt, .pcard .txt").forEach((node) => {
+    // Le combinazioni affiancate hanno una grandezza unica (CSS): non si ridimensionano a ogni aggiornamento.
+    if (node.closest(".combo-row")) return;
     node.style.fontSize = "";
     let size = parseFloat(getComputedStyle(node).fontSize);
     let guard = 0;

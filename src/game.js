@@ -75,6 +75,8 @@ export class Game {
     this.revealOrder = []; // playerIds in ordine mischiato per il giudice
     this.lastWinner = null;
     this.peek = -1;        // quante combinazioni il Re ha già sfogliato: le altre le vedono in fila
+    this.compare = false;  // il Re ha premuto "Vedi tutte": tutti vedono le combinazioni affiancate
+    this.selected = null;  // la combinazione che il Re sta guardando, vista da tutti
     this.pickedIndex = null;
     this.winner = null;
   }
@@ -199,8 +201,10 @@ export class Game {
       this.phase = "judging";
       this.revealOrder = shuffle([...this.submissions.keys()], this.rng);
       this.pickedIndex = null;
-      // Il Re umano parte dalla prima; quello bot le legge tutte subito.
-      this.peek = this.judge.isBot ? this.revealOrder.length - 1 : 0;
+      this.compare = false;
+      this.selected = null;
+      // Tutti partono dalla prima combinazione: il Re bot le sfoglia come quello umano.
+      this.peek = 0;
       events.push({ type: "judging", count: this.revealOrder.length });
     }
     return events;
@@ -215,11 +219,31 @@ export class Game {
     }));
   }
 
+  /** Durante il giudizio chi non è il Re riceve il testo solo delle combinazioni già sfogliate. */
+  revealFor(forPlayerId) {
+    const all = this.reveal();
+    if (this.phase !== "judging" || forPlayerId === this.judge?.id || this.compare) return all;
+    return all.map((r) => (r.index <= this.peek ? r : { index: r.index, cards: null }));
+  }
+
   /** Il Re ha sfogliato fino a questa combinazione: gli altri la vedono comparire. */
   peekTo(judgeId, index) {
     if (this.phase !== "judging" || judgeId !== this.judge.id) return;
     if (!Number.isInteger(index) || index < 0 || index >= this.revealOrder.length) return;
     this.peek = Math.max(this.peek, index);
+  }
+
+  /** Il Re ha premuto "Vedi tutte": tutti vedono le combinazioni affiancate. */
+  compareAll(judgeId) {
+    if (this.phase !== "judging" || judgeId !== this.judge.id) return;
+    this.compare = true;
+    this.peek = this.revealOrder.length - 1;
+  }
+
+  /** La combinazione che il Re sta guardando (o null): la vedono anche gli altri. */
+  selectTo(judgeId, index) {
+    if (this.phase !== "judging" || judgeId !== this.judge.id) return;
+    this.selected = Number.isInteger(index) && index >= 0 && index < this.revealOrder.length ? index : null;
   }
 
   /** Il Re sceglie la risposta preferita. */
@@ -292,10 +316,14 @@ export class Game {
     return events;
   }
 
-  /** Se il giudice è un bot, sceglie per lui. */
-  judgeIfBot() {
-    if (this.phase === "judging" && this.judge.isBot) return this.autoPick();
-    return [];
+  /** Il Re bot procede a passi: sfoglia le combinazioni, le affianca, sceglie e assegna il punto. Un passo ogni BOT_JUDGE_STEP_MS. */
+  advanceBotJudge() {
+    if (this.phase !== "judging" || !this.judge.isBot) return;
+    const last = this.revealOrder.length - 1;
+    if (this.peek < last) return this.peekTo(this.judge.id, this.peek + 1);
+    if (!this.compare) return this.compareAll(this.judge.id);
+    if (this.selected === null) return this.selectTo(this.judge.id, Math.floor(this.rng() * this.revealOrder.length));
+    return this.pick(this.judge.id, this.selected);
   }
 
   /** Stato pubblico: nessuna carta coperta visibile a nessun altro giocatore. */
@@ -314,10 +342,14 @@ export class Game {
         hasPlayed: this.submissions.has(p.id),
         hand: p.id === forPlayerId ? p.hand.map((id) => ({ id, text: this.text(id), cat: this.catById.get(id) })) : undefined,
       })),
-      reveal: this.reveal(),
+      reveal: this.revealFor(forPlayerId),
       peek: this.phase === "judging" ? this.peek : null,
       pickedIndex: this.phase === "roundEnd" ? this.pickedIndex : null,
+      compare: this.phase === "judging" ? this.compare : false,
+      selected: this.phase === "judging" ? this.selected : null,
       winnerCards: this.phase === "roundEnd" ? this.lastWinCards ?? [] : [],
+      // La mia risposta, compilata: la vedo sulla carta nera anche mentre il Re sfoglia.
+      mine: forPlayerId && this.submissions.has(forPlayerId) ? this.submissions.get(forPlayerId).map((id) => this.text(id)) : null,
       winner: this.winner,
     };
   }

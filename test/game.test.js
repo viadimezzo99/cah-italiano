@@ -151,7 +151,7 @@ test("fine partita quando qualcuno raggiunge winScore", () => {
   g.start();
   for (let i = 0; i < 500 && g.phase !== "over"; i++) {
     if (g.phase === "playing") g.playBots();
-    else if (g.phase === "judging") g.judgeIfBot();
+    else if (g.phase === "judging") g.advanceBotJudge();
     else if (g.phase === "roundEnd") g.nextRound();
   }
   assert.equal(g.phase, "over");
@@ -169,7 +169,7 @@ test("partita completa con soli bot termina", () => {
   g.start();
   for (let i = 0; i < 2000 && g.phase !== "over"; i++) {
     if (g.phase === "playing") g.playBots();
-    else if (g.phase === "judging") g.judgeIfBot();
+    else if (g.phase === "judging") g.advanceBotJudge();
     else if (g.phase === "roundEnd") g.nextRound();
   }
   assert.equal(g.phase, "over");
@@ -227,4 +227,19 @@ test("categorie: ogni carta personale porta la sua categoria fino in mano", () =
   g.start();
   const hand = g.publicState("a").players.find((p) => p.id === "a").hand;
   assert.ok(hand.every((card) => typeof card.cat === "string"));
+});
+
+test("durante il giudizio chi non è il Re vede solo le combinazioni già sfogliate", () => {
+  const g = newGame(4);
+  g.start();
+  for (const p of g.players.filter((x) => x.id !== g.judge.id)) g.play(p.id, [p.hand[0]]);
+  assert.equal(g.phase, "judging");
+  g.peekTo(g.judge.id, 1);
+  const other = g.players.find((x) => x.id !== g.judge.id).id;
+  const seen = g.publicState(other).reveal;
+  assert.ok(seen[0].cards && seen[1].cards);
+  assert.equal(seen[2].cards, null);
+  assert.ok(g.publicState(g.judge.id).reveal.every((r) => r.cards));
+  g.compareAll(g.judge.id);
+  assert.ok(g.publicState(other).reveal.every((r) => r.cards));
 });

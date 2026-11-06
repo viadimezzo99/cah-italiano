@@ -24,7 +24,7 @@ test("flusso interfaccia: umano + 3 bot fino alla fine", () => {
       }
     } else if (g.phase === "judging") {
       if (g.judge.id === "me") g.pick("me", 0);
-      else g.judgeIfBot();
+      else g.advanceBotJudge();
     } else if (g.phase === "roundEnd") {
       g.nextRound();
     }

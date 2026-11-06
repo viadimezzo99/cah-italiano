@@ -120,7 +120,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   color: transparent; padding: 0 3px;
 }
 .slot.lit { animation: pulse 1.6s ease-in-out infinite; border-bottom-style: solid; border-color: var(--accent); }
-.word { display: inline-block; color: inherit; animation: pop .45s cubic-bezier(.2,.9,.3,1.5); }
+.word { display: inline-block; color: inherit; }
+.word.fresh { animation: rv-focus .6s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes pulse { 0%,100% { background: transparent; } 50% { background: color-mix(in srgb, var(--accent) 26%, transparent); } }
 @keyframes pop { 0% { transform: scale(.3) rotate(-12deg); opacity: 0; } 70% { transform: scale(1.12) rotate(2deg); opacity: 1; } 100% { transform: scale(1) rotate(0); } }
 @keyframes slam { from { transform: translateY(-12px); opacity: 0; } to { transform: none; opacity: 1; } }

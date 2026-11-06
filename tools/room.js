@@ -9,6 +9,7 @@ const ROOM_WIN_SCORES = [3, 5, 8];
 const ROOM_CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // niente I, L, O, 0, 1
 const ROOM_PAUSE_MS = 12000;
 const BOT_NAMES = ["Bot Gigi", "Bot Nina", "Bot Remo", "Bot Sara", "Bot Tito", "Bot Ugo", "Bot Vera", "Bot Zeno"];
+const ROOM_BOT_JUDGE_STEP_MS = 2500;   // tempo tra un passo e l'altro del Re bot
 
 function randomHex(bytes) {
   const b = new Uint8Array(bytes);
@@ -97,10 +98,10 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
       if (room.game !== g || g.phase !== phase || g.round !== round) return;
       try {
         if (phase === "playing") g.playBots();
-        else g.judgeIfBot();
+        else g.advanceBotJudge();
       } catch { /* stato già cambiato */ }
       afterChange(room);
-    }, phase === "judging" ? 400 : 150);
+    }, phase === "judging" ? ROOM_BOT_JUDGE_STEP_MS : 2000);   // il Re bot sfoglia e sceglie a passi
   }
 
   function afterChange(room) {
@@ -265,6 +266,20 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         const { room, player } = requireRoom(conn);
         if (!room.game) throw new Error("La partita non è iniziata");
         room.game.peekTo(player.id, msg.index);
+        broadcast(room);
+        return;
+      }
+      case "compare": {
+        const { room, player } = requireRoom(conn);
+        if (!room.game) throw new Error("La partita non è iniziata");
+        room.game.compareAll(player.id);
+        broadcast(room);
+        return;
+      }
+      case "select": {
+        const { room, player } = requireRoom(conn);
+        if (!room.game) throw new Error("La partita non è iniziata");
+        room.game.selectTo(player.id, msg.index);
         broadcast(room);
         return;
       }
