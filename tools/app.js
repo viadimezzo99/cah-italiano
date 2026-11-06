@@ -110,7 +110,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.17";
+const APP_VERSION = "0.2.18";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -982,6 +982,13 @@ function comboRow(s, selectedIdx, interactive, peekIdx = null) {
   return row;
 }
 
+// Stessi pulsanti del Re, ma spenti: chi non è Re guarda la stessa schermata senza scegliere.
+function spectatorActions() {
+  return el("div", { class: "judge-nav" },
+    el("button", { type: "button", disabled: true }, "Rivedi una per una"),
+    el("button", { class: "primary", type: "button", disabled: true }, "Scegli questa risposta"));
+}
+
 function markCompare() {
   if (online) netSend({ type: "compare" });
   else if (game) game.compareAll(game.judge.id);
@@ -1265,10 +1272,11 @@ function render() {
   } else if (s.phase === "judging" && s.compare) {
     // Gli altri vedono le combinazioni affiancate, come il Re, e la scelta che sta facendo.
     note = el("p", { class: "hidden-msg" }, `${s.players.find((p) => p.id === s.judgeId)?.name ?? "Il Re"} sta scegliendo…`);
-    extraRow = comboRow(s, s.selected, false);
+    mainCard = comboRow(s, s.selected, false);
+    actions = spectatorActions();
   } else if (s.phase === "judging") {
     note = el("p", { class: "hidden-msg" }, `${game.judge.name} sta leggendo le risposte…`);
-    if (!isJudge) extraRow = comboRow(s, null, false, s.peek ?? -1);
+    if (!isJudge) { mainCard = comboRow(s, null, false, s.peek ?? -1); actions = spectatorActions(); }
   } else if (s.phase === "roundEnd") {
     const last = game.lastWinner ? game.player(game.lastWinner) : null;
     if (wonRound !== s.round && last) {
@@ -1288,7 +1296,8 @@ function render() {
 
   // Carta nera in cima. Nella vista "tutte e tre" del Re compare solo quando ha scelto una risposta,
   // già compilata con quella scelta; le altre restano in elenco.
-  const comparing = judging && judgeMode === "compare" && showPrivate;
+  // Chi non è il Re vede la stessa schermata del Re (combinazioni affiancate), senza poter scegliere.
+  const comparing = (judging && judgeMode === "compare" && showPrivate) || (s.phase === "judging" && !isJudge);
   if (!comparing) {
     const canPlay = s.phase === "playing" && !isJudge && !me.hasPlayed && showPrivate;
     const slam = slamPending;
@@ -1979,6 +1988,9 @@ button:active:not(:disabled) { transform: scale(.96); }
 .stage .combo-row .combo .black { width: 100%; height: auto; aspect-ratio: 5 / 7; }
 .stage .combo-row .combo .black { font-size: 15px; line-height: 1.2; }
 .stage .combo-row .combo .black .text { font-size: inherit; }
+/* Con la fila sotto, la carta nera mantiene la sua grandezza: non si restringe per far posto. */
+.stage:has(.combo-row) > .black-wrap { flex: 0 0 auto; container-type: normal; }
+.stage:has(.combo-row) > .black-wrap .black { width: min(64vw, calc(34vh * 5 / 7)); height: auto; aspect-ratio: 5 / 7; }
 .combo-row > .combo.unseen { opacity: .4; }
 .combo-row > .combo.unseen .black { background: color-mix(in srgb, var(--ink) 55%, var(--paper)); }
 .combo-row > .combo.rv-new .black .text { animation: rv-focus .6s cubic-bezier(.2,.8,.2,1) backwards; }
