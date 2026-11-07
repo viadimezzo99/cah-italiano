@@ -2557,7 +2557,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.21";
+const APP_VERSION = "0.2.22";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -3001,6 +3001,18 @@ function cardsScreen() {
   const toggle = (key, label) => el("button", { type: "button", class: "switch", "aria-pressed": String(d[key]),
     onclick: () => { const x = loadCustom(); x[key] = !x[key]; saveCustom(x); cardsScreen(); } },
     `${label}: ${d[key] ? "sì" : "no"}`);
+  // Equilibrio: quante carte per categoria, per aiutare a bilanciare quelle nuove.
+  const balance = (c, pool) => {
+    const counts = catsOf(c).map((n) => ({ n, k: pool.filter((x) => x.color === c && x.cat === n).length }));
+    const max = Math.max(1, ...counts.map((x) => x.k));
+    const min = Math.min(...counts.map((x) => x.k));
+    return el("div", { class: "balance" },
+      el("span", { class: "label" }, `Equilibrio ${c === "b" ? "nere" : "bianche"} per categoria`),
+      ...counts.map(({ n, k }) => el("div", { class: "bal-row", style: `--cat:${catColor(n)}` },
+        el("span", { class: "bal-name" }, n),
+        el("span", { class: "bal-bar" }, el("span", { class: "bal-fill", style: `width:${Math.round((k / max) * 100)}%` })),
+        el("span", { class: k === min && k !== max ? "bal-n low" : "bal-n" }, String(k)))));
+  };
   const stat = (n, label) => el("div", { class: "stat" }, el("strong", {}, String(n)), el("span", { class: "label" }, label));
 
   // Pacchetti: esporta le proprie carte, importa quelle ricevute.
@@ -3032,6 +3044,7 @@ function cardsScreen() {
       stat(count("w"), "Bianche"), stat(count("b"), "Nere"), stat(mine.length, "Mie")),
     el("div", { class: "tabs", role: "group", "aria-label": "Tipo di carta" },
       tabBtn("white", "Bianche"), tabBtn("black", "Nere"), tabBtn("mine-w", "Mie bianche"), tabBtn("mine-b", "Mie nere")),
+    balance(v.tab === "black" || v.tab === "mine-b" ? "b" : "w", all),
     isMine ? null : el("div", { class: "chips", role: "group", "aria-label": "Categorie" },
       ["Tutte", ...catsOf(color)].map(catBtn)),
     list.length
@@ -4368,7 +4381,7 @@ html, body, p, button, input, textarea, h1, h2 { hyphens: none !important; -webk
 .lg { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--fg); }
 .lg::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--cat); }
 .cat-list { display: flex; flex-direction: column; }
-.cat-row { display: grid; grid-template-columns: 6px 1fr auto auto; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.cat-row { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .cat-row .bar { width: 6px; height: 36px; border-radius: 3px; background: var(--cat); }
 .cat-name { display: flex; flex-direction: column; min-width: 0; }
 .cat-name strong { font-family: "Bricolage Grotesque", sans-serif; font-size: 20px; font-weight: 800; }
@@ -4387,6 +4400,13 @@ document.head.append(el("style", {}, `
 .cards-screen { display: flex; flex-direction: column; gap: 14px; }
 .cards-screen h2 { font-size: 30px; }
 .cstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.balance { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; }
+.bal-row { display: grid; grid-template-columns: 96px 1fr 36px; gap: 10px; align-items: center; font-size: 13px; }
+.bal-name { font-weight: 600; color: var(--fg); }
+.bal-bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.bal-fill { display: block; height: 100%; background: var(--cat); border-radius: 999px; }
+.bal-n { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.bal-n.low { color: var(--accent); font-weight: 700; }
 .stat { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; }
 .stat strong { font-family: "Bricolage Grotesque", sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
 .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
