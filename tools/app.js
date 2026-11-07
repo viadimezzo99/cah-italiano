@@ -15,7 +15,7 @@ const FONTS = {
   tecnico: { label: "Tecnico", css: '"IBM Plex Sans", system-ui, sans-serif' },
   fumetto: { label: "Fumetto", css: '"Permanent Marker", cursive' },
 };
-const DEFAULT_SETTINGS = { theme: "system", font: "moderno", textScale: 1, cardScale: 1, music: true, musicVol: 0.6, sfx: true, vibration: true, motion: true };
+const DEFAULT_SETTINGS = { theme: "system", font: "moderno", textScale: 1, cardScale: 1, music: true, musicVol: 0.6, sfx: true, sfxVol: 1, vibration: true, motion: true };
 
 function loadSettings() {
   try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("cah-settings") || "{}") }; }
@@ -104,6 +104,7 @@ function applySettings() {
   document.body.classList.toggle("no-motion", !settings.motion);
   document.body.classList.toggle("motion-on", settings.motion);
   Sound.setSfx(settings.sfx);
+  Sound.setSfxVolume(settings.sfxVol);
   Sound.setHaptics(settings.vibration);
   Sound.setVolume(settings.musicVol);
   // La musica parte già all'avvio; il browser può bloccarla finché non c'è un tocco, e il primo tocco la riattiva.
@@ -111,7 +112,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.22";
+const APP_VERSION = "0.2.23";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -187,6 +188,7 @@ function openSettings() {
       toggle("music", "Musica di sottofondo"),
       slider("musicVol", "Volume musica", 0, 1, 0.05, (v) => `${Math.round(v * 100)}%`),
       toggle("sfx", "Effetti sonori"),
+      slider("sfxVol", "Volume effetti", 0, 1, 0.05, (v) => `${Math.round(v * 100)}%`),
       toggle("vibration", "Vibrazione")),
     el("div", { class: "group" }, el("span", { class: "label" }, "Movimento"),
       toggle("motion", "Animazioni")),
@@ -352,8 +354,10 @@ function localPanel() {
       : "Servono almeno 3 giocatori: aggiungi dei bot se siete meno.";
   };
 
+  // I bot si gestiscono come i giocatori: il nome si modifica direttamente nella riga.
   const botRows = () => cfg.bots.map((n, i) => el("div", { class: "nrow" },
-    el("span", { class: "txt" }, `${n} · bot`),
+    el("input", { type: "text", value: n, maxlength: "16", placeholder: BOT_SUGGEST[i % BOT_SUGGEST.length], "aria-label": `Nome bot ${i + 1}`,
+      oninput: (e) => { cfg.bots[i] = e.target.value; refresh(); } }),
     el("button", { type: "button", class: "ghost", "aria-label": "Togli bot", onclick: () => { cfg.bots.splice(i, 1); setup(); } }, "✕")));
 
   const nameRows = () => cfg.names.map((n, i) => el("div", { class: "nrow" },
@@ -390,7 +394,7 @@ function start() {
   unlocked = true;
   applySettings();
   const names = cfg.names.map((n, i) => (n || "").trim().slice(0, 16) || `Giocatore ${i + 1}`);
-  const bots = cfg.bots.map((n, i) => ({ id: `b${i}`, name: n, isBot: true }));
+  const bots = cfg.bots.map((n, i) => ({ id: `b${i}`, name: n.trim() || BOT_SUGGEST[i % BOT_SUGGEST.length], isBot: true }));
   const players = [...names.map((name, i) => ({ id: `h${i}`, name })), ...bots];
   game = new Game(players, deckFor(), { winScore: cfg.winScore, pool: localPool });
   selected = [];
@@ -523,6 +527,50 @@ function allCards() {
 }
 
 // Un'unica schermata: carte, categorie, interruttori per le proprie carte, pacchetti.
+// Griglia delle carte: 2, 4 o 6 colonne. Due dita che si avvicinano aumentano le colonne, che si allontanano le riducono.
+const GRID_STEPS = [2, 4, 6];
+let gridCols = (() => { try { const v = Number(localStorage.getItem("cah-grid-cols")); return GRID_STEPS.includes(v) ? v : 2; } catch (e) { return 2; } })();
+function setGridCols(n) {
+  gridCols = n;
+  try { localStorage.setItem("cah-grid-cols", String(n)); } catch (e) { /* memoria del browser non disponibile */ }
+}
+// Cambio di colonne animato: ogni carta parte dalla vecchia posizione e scorre nella nuova.
+function regrid(node, next) {
+  const tiles = [...node.children];
+  const before = tiles.map((t) => t.getBoundingClientRect());
+  setGridCols(next);
+  node.style.setProperty("--cols", String(next));
+  node.style.setProperty("--k", String(2 / next));
+  fitText(node);
+  if (document.body.classList.contains("no-motion") || !node.animate) return;
+  tiles.forEach((t, i) => {
+    const a = before[i], b = t.getBoundingClientRect();
+    if (!a.width || !b.width || !b.height) return;
+    t.animate([
+      { transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width}, ${a.height / b.height})`, transformOrigin: "0 0" },
+      { transform: "none", transformOrigin: "0 0" },
+    ], { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)" });
+  });
+}
+function gridNode(children) {
+  const node = el("div", { class: "cgrid", style: `--cols:${gridCols};--k:${2 / gridCols}` }, children);
+  const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  let d0 = 0;
+  node.addEventListener("touchstart", (e) => { if (e.touches.length === 2) d0 = dist(e.touches); }, { passive: true });
+  node.addEventListener("touchmove", (e) => {
+    if (e.touches.length !== 2 || !d0) return;
+    const d = dist(e.touches);
+    const i = GRID_STEPS.indexOf(gridCols);
+    let next = null;
+    if (d < d0 * 0.8 && i < GRID_STEPS.length - 1) next = GRID_STEPS[i + 1];      // si avvicinano: più carte
+    else if (d > d0 * 1.25 && i > 0) next = GRID_STEPS[i - 1];                   // si allontanano: carte più grandi
+    if (next !== null) { regrid(node, next); d0 = d; }
+  }, { passive: true });
+  node.addEventListener("touchend", (e) => { if (e.touches.length < 2) d0 = 0; }, { passive: true });
+  requestAnimationFrame(() => fitText(node)); // il testo si adatta alla densità scelta
+  return node;
+}
+
 function cardsScreen() {
   game = null;
   still("cards");
@@ -602,7 +650,7 @@ function cardsScreen() {
     isMine ? null : el("div", { class: "chips", role: "group", "aria-label": "Categorie" },
       ["Tutte", ...catsOf(color)].map(catBtn)),
     list.length
-      ? el("div", { class: "cgrid" }, list.map(tile))
+      ? gridNode(list.map(tile))
       : el("p", { class: "hidden-msg" }, isMine ? `Non hai ancora carte ${v.tab === "mine-b" ? "nere" : "bianche"} tue: tocca + per aggiungerne.` : "Nessuna carta con questo filtro."),
     Object.keys(d.hidden).length
       ? el("button", { type: "button", class: "ghost", onclick: () => { const x = loadCustom(); x.hidden = {}; saveCustom(x); cardsScreen(); } },
@@ -831,6 +879,7 @@ function openCardForm(done) {
     (color === "w" ? d.white : d.black).push({ text, cat: color === "w" ? catVal : blackCatFor(text) });
     saveCustom(d);
     bg.remove();
+    Sound.play("saved");
     done(color);
   };
   const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) bg.remove(); } },
@@ -1965,13 +2014,15 @@ document.head.append(el("style", {}, `
 .stat strong { font-family: "Bricolage Grotesque", sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
 .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
 .chip { flex: 0 0 auto; padding: 7px 13px; font-size: 13px; border-radius: 999px; }
-.cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; }
-.pcard { position: relative; aspect-ratio: 5 / 7; border-radius: 11px; padding: 9px 9px 10px; text-align: left; display: flex; flex-direction: column; justify-content: flex-end;
-  font-family: var(--card-font); font-weight: 600; font-size: 12px; line-height: 1.28; hyphens: auto; -webkit-hyphens: auto; overflow: hidden; border: 1px solid #d6d0c2; box-shadow: 0 8px 16px -12px rgba(0,0,0,.5); }
+.cgrid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 10px; touch-action: pan-y; background: var(--bg); } /* niente puntini del fondo tra le carte */
+.pcard { position: relative; aspect-ratio: 5 / 7; border-radius: calc(11px * var(--k, 1)); padding: calc(9px * var(--k, 1)) calc(9px * var(--k, 1)) calc(10px * var(--k, 1)); text-align: left; display: flex; flex-direction: column; justify-content: flex-end;
+  font-family: var(--card-font); font-weight: 600; font-size: calc(12px * var(--k, 1)); line-height: 1.28; hyphens: auto; -webkit-hyphens: auto; overflow: hidden; border: 1px solid #d6d0c2; box-shadow: 0 8px 16px -12px rgba(0,0,0,.5); }
 .pcard.w { background: #fff; color: #111; }
 .pcard.b { background: #111; color: #fff; border-color: #111; }
 .pcard .txt { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
-.pcard .tag { position: absolute; top: 7px; left: 8px; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .6; }
+.cgrid .pcard { border-width: calc(3px * var(--k, 1)); }
+.pcard .txt { font-size: calc(12px * var(--k, 1) * var(--fit, 1)); }
+.pcard .tag { position: absolute; top: calc(7px * var(--k, 1)); left: calc(8px * var(--k, 1)); font-size: calc(9.5px * var(--k, 1)); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .6; }
 .pcard:active { transform: scale(.97); }
 .card-form { display: flex; flex-direction: column; gap: 12px; }
 .card-form textarea { font: inherit; color: inherit; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; resize: vertical; width: 100%; }
@@ -2061,6 +2112,8 @@ function fitText(root = document) {
   root.querySelectorAll(".black .text, .rail .card .txt, .zoom .txt, .pcard .txt").forEach((node) => {
     // Le combinazioni affiancate hanno una grandezza unica (CSS): non si ridimensionano a ogni aggiornamento.
     if (node.closest(".combo-row")) return;
+    const tileEl = node.closest(".pcard");
+    if (tileEl && node.closest(".cgrid")) tileEl.style.setProperty("--fit", "1");
     node.style.fontSize = "";
     let size = parseFloat(getComputedStyle(node).fontSize);
     let guard = 0;
@@ -2069,9 +2122,16 @@ function fitText(root = document) {
     const box = node.closest(".black") || node;
     const fits = () => box.scrollWidth <= box.clientWidth + 1 && box.scrollHeight <= box.clientHeight + 1
       && node.scrollWidth <= node.clientWidth + 1 && node.scrollHeight <= node.clientHeight + 1;
-    while (!fits() && size > (box !== node ? 9 : 8) && guard++ < 120) {
+    const floor = node.closest(".cgrid") ? 2 : (box !== node ? 9 : 8); // nella griglia a 6 colonne il testo scende in proporzione alla carta
+    while (!fits() && size > floor && guard++ < 120) {
       size -= 0.5;
       node.style.fontSize = `${size}px`;
+    }
+    if (tileEl && node.closest(".cgrid")) {
+      // Nella griglia il testo è una frazione della carta: si salva il rapporto, così resta proporzionale.
+      const k = parseFloat(getComputedStyle(tileEl).getPropertyValue("--k")) || 1;
+      tileEl.style.setProperty("--fit", String(size / (12 * k)));
+      node.style.fontSize = "";
     }
   });
 }

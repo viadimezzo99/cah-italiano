@@ -7,6 +7,7 @@ const Sound = (() => {
   let STEP = 60 / 100 / 4; // sedicesimi: cambia con il tema (menu più lento, partita più ritmata)
   let theme = "menu";
   let musicLevel = 1;                 // volume scelto nelle impostazioni (0..1)
+  let sfxLevel = 1;                   // volume effetti scelto nelle impostazioni (0..1)
   let pausedByApp = false;            // la pagina è in secondo piano o chiusa: la musica tace
   // Brano del menu (file incorporato nella pagina). Il volume è più basso degli effetti, così non li copre.
   const MENU_MP3 = "/*MENU_MP3*/";
@@ -33,6 +34,7 @@ const Sound = (() => {
       master.gain.value = 0.8;
       master.connect(ctx.destination);
       sfxBus = ctx.createGain();
+      sfxBus.gain.value = sfxLevel;
       sfxBus.connect(master);
       musicBus = ctx.createGain();
       musicBus.gain.value = 0.18;
@@ -62,6 +64,7 @@ const Sound = (() => {
   const tap = (t, f, peak) => blip(f, t, 0.06, "sine", sfxBus, peak, f * 0.5);
   // Vibrazione breve per ogni evento (millisecondi; liste = pausa, vibrazione, ...).
   const HAPTIC = {
+    saved: [10, 40, 14], // carta salvata: solo vibrazione, nessun suono
     tap: 6, key: 3, pick: 10, confirm: [10, 40, 14], deal: 8, flip: 12, paper: 10, tick: 4,
     shuffle: [6, 30, 6, 30, 6, 30, 6], slam: 25, error: [30, 60, 30], win: [40, 80, 40, 80, 120],
   };
@@ -262,6 +265,7 @@ const Sound = (() => {
     setHaptics(on) { hapticsOn = !!on; },
     setTheme(name) { theme = name === "game" ? "game" : "menu"; STEP = 60 / TEMPO[theme] / 4; if (musicOn) { stopAll(); startMusic(); } },
     setSfx(on) { sfxOn = !!on; },
+    setSfxVolume(v) { sfxLevel = Math.max(0, Math.min(1, v)); if (sfxBus) sfxBus.gain.value = sfxLevel; },
     setVolume(v) { musicLevel = v; if (musicOn) startMusic(); },
     setMusic(on) {
       musicOn = !!on;

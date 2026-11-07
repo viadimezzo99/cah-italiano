@@ -6,7 +6,7 @@
 
 Righe vuote e righe che iniziano con # vengono ignorate.
 Le carte già presenti mantengono id e categoria; quelle nuove prendono
-la categoria "Situazioni" (bianche) o "1 risposta" (nere).
+la categoria "Situazioni" (bianche) o "1 risposta", "2 risposte", "3 risposte" (nere, in base agli spazi).
 
 Uso: python3 tools/import_cards.py [carte.txt] [cards.json]
 """
@@ -53,7 +53,8 @@ def main():
             if key in old_black:
                 card = dict(old_black[key])
             else:
-                card = {"id": f"b{next_b:03d}", "text": text, "cat": "1 risposta"}
+                n = min(3, max(1, text.count(BLANK)))
+                card = {"id": f"b{next_b:03d}", "text": text, "cat": {1: "1 risposta", 2: "2 risposte", 3: "3 risposte"}[n]}
                 next_b += 1
             card["text"] = text
             card["blanks"] = max(1, text.count(BLANK))

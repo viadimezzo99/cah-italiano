@@ -41,16 +41,16 @@ test("il numero di carte deve corrispondere agli spazi della nera", () => {
   const g = newGame(4);
   g.start();
   const p = g.players.find((x) => x.id !== g.judge.id);
-  assert.equal(g.currentBlack.blanks, 1);
-  assert.throws(() => g.play(p.id, [p.hand[0], p.hand[1]]), /Servono 1/);
+  const n = g.currentBlack.blanks;
+  assert.throws(() => g.play(p.id, p.hand.slice(0, n + 1)), /Servono/);
 });
 
 test("non si può giocare due volte nello stesso round", () => {
   const g = newGame(4);
   g.start();
   const p = g.players.find((x) => x.id !== g.judge.id);
-  g.play(p.id, [p.hand[0]]);
-  assert.throws(() => g.play(p.id, [p.hand[0]]), /Hai già giocato/);
+  g.play(p.id, p.hand.slice(0, g.currentBlack.blanks));
+  assert.throws(() => g.play(p.id, p.hand.slice(0, g.currentBlack.blanks)), /Hai già giocato/);
 });
 
 test("le carte giocate escono dalla mano e la fase passa a judging", () => {
@@ -59,8 +59,8 @@ test("le carte giocate escono dalla mano e la fase passa a judging", () => {
   const others = g.players.filter((x) => x.id !== g.judge.id);
   for (const p of others) {
     const before = p.hand.length;
-    g.play(p.id, [p.hand[0]]);
-    assert.equal(p.hand.length, before - 1);
+    g.play(p.id, p.hand.slice(0, g.currentBlack.blanks));
+    assert.equal(p.hand.length, before - g.currentBlack.blanks);
   }
   assert.equal(g.phase, "judging");
   assert.equal(g.reveal().length, others.length);
@@ -69,7 +69,7 @@ test("le carte giocate escono dalla mano e la fase passa a judging", () => {
 test("le risposte rivelate non espongono chi le ha giocate", () => {
   const g = newGame(4);
   g.start();
-  for (const p of g.players.filter((x) => x.id !== g.judge.id)) g.play(p.id, [p.hand[0]]);
+  for (const p of g.players.filter((x) => x.id !== g.judge.id)) g.play(p.id, p.hand.slice(0, g.currentBlack.blanks));
   const reveal = g.reveal();
   for (const r of reveal) assert.equal("playerId" in r, false);
 });
@@ -78,7 +78,7 @@ test("il giudice sceglie: il vincitore prende un punto e il Re ruota", () => {
   const g = newGame(4);
   g.start();
   const firstJudge = g.judge.id;
-  for (const p of g.players.filter((x) => x.id !== g.judge.id)) g.play(p.id, [p.hand[0]]);
+  for (const p of g.players.filter((x) => x.id !== g.judge.id)) g.play(p.id, p.hand.slice(0, g.currentBlack.blanks));
   const winnerId = g.revealOrder[0];
   g.pick(firstJudge, 0);
   assert.equal(g.player(winnerId).score, 1);
@@ -91,7 +91,7 @@ test("il giudice sceglie: il vincitore prende un punto e il Re ruota", () => {
 test("solo il Re può scegliere", () => {
   const g = newGame(4);
   g.start();
-  for (const p of g.players.filter((x) => x.id !== g.judge.id)) g.play(p.id, [p.hand[0]]);
+  for (const p of g.players.filter((x) => x.id !== g.judge.id)) g.play(p.id, p.hand.slice(0, g.currentBlack.blanks));
   const notJudge = g.players.find((x) => x.id !== g.judge.id);
   assert.throws(() => g.pick(notJudge.id, 0), /Solo il Re/);
 });
@@ -232,7 +232,7 @@ test("categorie: ogni carta personale porta la sua categoria fino in mano", () =
 test("durante il giudizio chi non è il Re vede solo le combinazioni già sfogliate", () => {
   const g = newGame(4);
   g.start();
-  for (const p of g.players.filter((x) => x.id !== g.judge.id)) g.play(p.id, [p.hand[0]]);
+  for (const p of g.players.filter((x) => x.id !== g.judge.id)) g.play(p.id, p.hand.slice(0, g.currentBlack.blanks));
   assert.equal(g.phase, "judging");
   g.peekTo(g.judge.id, 1);
   const other = g.players.find((x) => x.id !== g.judge.id).id;

@@ -13,6 +13,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|keyboardHidden" />
         <!-- Ingresso dal launcher: un nome nuovo, così il telefono non riusa l'icona vecchia in cache. -->
         <activity-alias
