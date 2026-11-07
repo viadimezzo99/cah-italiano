@@ -7,7 +7,7 @@ const ROOM_MIN_PLAYERS = 3;
 const ROOM_MAX_PLAYERS = 10;
 const ROOM_WIN_SCORES = [3, 5, 8];
 const ROOM_CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // niente I, L, O, 0, 1
-const ROOM_PAUSE_MS = 12000;
+const ROOM_PAUSE_MS = 4000;
 const BOT_NAMES = ["Bot Gigi", "Bot Nina", "Bot Remo", "Bot Sara", "Bot Tito", "Bot Ugo", "Bot Vera", "Bot Zeno"];
 const ROOM_BOT_JUDGE_STEP_MS = 2500;   // tempo tra un passo e l'altro del Re bot
 
@@ -123,10 +123,12 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
     room.winScore = winScore;
     room.custom = custom;
     for (const p of room.players) p.ready = false;
+    // Il registro delle carte uscite resta alla stanza: le partite successive non ripetono carte.
+    room.pool ??= { white: new Set(), black: new Set() };
     room.game = new Game(
       room.players.map((p) => ({ id: p.id, name: p.name, isBot: !!p.isBot })),
       mergeCustom(cards, custom),
-      { winScore },
+      { winScore, pool: room.pool },
     );
     room.game.start();
     afterChange(room);
@@ -281,6 +283,13 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         if (!room.game) throw new Error("La partita non è iniziata");
         room.game.selectTo(player.id, msg.index);
         broadcast(room);
+        return;
+      }
+      case "reshuffle": {
+        const { room, player } = requireRoom(conn);
+        if (!room.game) throw new Error("La partita non è iniziata");
+        room.game.reshuffleHand(player.id);
+        afterChange(room);
         return;
       }
       case "next": {

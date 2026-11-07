@@ -283,7 +283,7 @@
   },
   {
    "id": "w057",
-   "text": "Pizza con la nutella.",
+   "text": "Pizza con la Nutella.",
    "cat": "Oggetti"
   },
   {
@@ -442,9 +442,9 @@
    "cat": "Luoghi"
   },
   {
-   "id": "w089",
-   "text": "Rubare veramente una caramella ad un bambino.",
-   "cat": "Azioni"
+   "id": "w471",
+   "text": "Rubare veramente una caramella a un bambino.",
+   "cat": "Situazioni"
   },
   {
    "id": "w090",
@@ -582,8 +582,8 @@
    "cat": "Soggetti"
   },
   {
-   "id": "w117",
-   "text": "Obbiettivi politici degli omosessuali.",
+   "id": "w472",
+   "text": "Obiettivi politici degli omosessuali.",
    "cat": "Situazioni"
   },
   {
@@ -957,9 +957,9 @@
    "cat": "Situazioni"
   },
   {
-   "id": "w192",
-   "text": "Dredlock.",
-   "cat": "Oggetti"
+   "id": "w473",
+   "text": "Dreadlock.",
+   "cat": "Situazioni"
   },
   {
    "id": "w193",
@@ -1102,14 +1102,14 @@
    "cat": "Situazioni"
   },
   {
-   "id": "w221",
-   "text": "Bop it",
-   "cat": "Oggetti"
+   "id": "w474",
+   "text": "Bop it.",
+   "cat": "Situazioni"
   },
   {
-   "id": "w222",
-   "text": "La carriera di attore di Shaquille O'Neal.",
-   "cat": "Soggetti"
+   "id": "w475",
+   "text": "La carriera da attore di Shaquille O'Neal.",
+   "cat": "Situazioni"
   },
   {
    "id": "w223",
@@ -1262,9 +1262,9 @@
    "cat": "Situazioni"
   },
   {
-   "id": "w253",
-   "text": "Euphoria di Calvin Klein",
-   "cat": "Oggetti"
+   "id": "w476",
+   "text": "Euphoria di Calvin Klein.",
+   "cat": "Situazioni"
   },
   {
    "id": "w254",
@@ -1713,7 +1713,7 @@
   },
   {
    "id": "w343",
-   "text": "Assoli di Sassofoni.",
+   "text": "Assoli di sassofoni.",
    "cat": "Situazioni"
   },
   {
@@ -1797,8 +1797,8 @@
    "cat": "Situazioni"
   },
   {
-   "id": "w360",
-   "text": "Permanenza degli oggetti nella sviluppo cognitivo.",
+   "id": "w477",
+   "text": "Permanenza degli oggetti nello sviluppo cognitivo.",
    "cat": "Situazioni"
   },
   {
@@ -2107,9 +2107,9 @@
    "cat": "Soggetti"
   },
   {
-   "id": "w422",
-   "text": "Lo Schiaccianoci: La danza della Fata Cofanetto.",
-   "cat": "Oggetti"
+   "id": "w478",
+   "text": "Lo Schiaccianoci: la danza della Fata Confetto.",
+   "cat": "Situazioni"
   },
   {
    "id": "w423",
@@ -2167,9 +2167,9 @@
    "cat": "Oggetti"
   },
   {
-   "id": "w435",
-   "text": "Travestiti passabili",
-   "cat": "Soggetti"
+   "id": "w479",
+   "text": "Travestiti passabili.",
+   "cat": "Situazioni"
   },
   {
    "id": "w436",
@@ -2272,9 +2272,9 @@
    "cat": "Situazioni"
   },
   {
-   "id": "w456",
-   "text": "Lady Gaga",
-   "cat": "Soggetti"
+   "id": "w480",
+   "text": "Lady Gaga.",
+   "cat": "Situazioni"
   },
   {
    "id": "w457",
@@ -2361,16 +2361,16 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b003",
-   "text": "Fra 1.000 anni, quando le banconote saranno soltanto un ricordo lontano, ____ sarà il nostro denaro.",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b103",
+   "text": "Fra 1.000 anni, quando le banconote saranno soltanto un ricordo lontano, il nostro denaro sarà ____.",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
-   "id": "b004",
-   "text": "La lega serie A ha vietato ____ poiché dà un vantaggio ingiusto ai giocatori.",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b104",
+   "text": "La Serie A ha vietato ____ perché dà un vantaggio ingiusto ai giocatori.",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b005",
@@ -2379,16 +2379,16 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b006",
-   "text": "Il prossimo romanzo di J.K.Rowling. Harry Potter e la camera dei ____",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b108",
+   "text": "Il prossimo romanzo di J.K. Rowling: Harry Potter e la camera di ____",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
-   "id": "b007",
-   "text": "Sì, ho ucciso ____ Ti domandi come? ____",
-   "blanks": 2,
-   "cat": "2 risposte"
+   "id": "b092",
+   "text": "Sì, ho ucciso ____. Ti domandi come? ____",
+   "cat": "1 risposta",
+   "blanks": 2
   },
   {
    "id": "b008",
@@ -2421,10 +2421,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b013",
-   "text": "____? C'è un app per quello.",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b109",
+   "text": "Hai mai pensato a ____? C'è un'app per quello.",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b014",
@@ -2433,10 +2433,10 @@
    "cat": "2 risposte"
   },
   {
-   "id": "b015",
-   "text": "____ Scommetto che non ne desideri soltanto uno!",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b110",
+   "text": "Ti offro ____. Scommetto che non ne desideri soltanto uno!",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b016",
@@ -2475,10 +2475,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b022",
-   "text": "Quando il faraone rimase impassibile, Mosè scateno la piaga ____",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b105",
+   "text": "Quando il faraone rimase impassibile, Mosè scatenò la piaga di ____",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b023",
@@ -2493,10 +2493,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b025",
-   "text": "Mentre ero sotto gli effetti di acidi, ____ si trasformò in ____",
-   "blanks": 2,
-   "cat": "2 risposte"
+   "id": "b106",
+   "text": "Mentre ero sotto gli effetti degli acidi, ho visto ____ trasformarsi in ____",
+   "cat": "1 risposta",
+   "blanks": 2
   },
   {
    "id": "b026",
@@ -2523,10 +2523,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b030",
-   "text": "Cosa usano gli insegnanti per ispirare al successo i ragazzi? ____",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b107",
+   "text": "Cosa usano gli insegnanti per motivare i ragazzi? ____",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b031",
@@ -2541,16 +2541,16 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b033",
-   "text": "Ai neri piace ____",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b111",
+   "text": "Cosa piace ai neri? ____",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
-   "id": "b034",
-   "text": "____ è una tendenza pericolosa che porta a ____",
-   "blanks": 2,
-   "cat": "2 risposte"
+   "id": "b112",
+   "text": "Il mio medico mi ha sconsigliato ____.",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b035",
@@ -2613,10 +2613,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b045",
-   "text": "In un mondo depredato da ____ il nostro unico conforto è ____",
-   "blanks": 2,
-   "cat": "2 risposte"
+   "id": "b096",
+   "text": "In un mondo depredato da ____, il nostro unico conforto è ____",
+   "cat": "1 risposta",
+   "blanks": 2
   },
   {
    "id": "b046",
@@ -2625,10 +2625,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b047",
-   "text": "Nel nuovo film di Shyamalan Bruce Willis scopre che ____ era invece ____ per tutto il tempo.",
-   "blanks": 2,
-   "cat": "2 risposte"
+   "id": "b113",
+   "text": "Nel nuovo film di Shyamalan, Bruce Willis scopre che la cosa più importante è ____.",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b048",
@@ -2637,22 +2637,22 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b049",
-   "text": "____ buono fino all'ultima goccia.",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b114",
+   "text": "Ho bevuto ____ fino all'ultima goccia.",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
-   "id": "b050",
-   "text": "Ho un sacco di problemi ma ____ non è fra questi.",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b115",
+   "text": "Ho un sacco di problemi, ma non ho mai avuto ____.",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
-   "id": "b051",
-   "text": "____ è una trappola!",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b116",
+   "text": "Ti sei fatto fregare da ____!",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b052",
@@ -2661,10 +2661,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b053",
-   "text": "Cos'è che mia nonna troverebbe allarmante ma nello stesso tempo anche stranamente affascinante? ____",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b098",
+   "text": "Cos'è che mia nonna troverebbe allarmante ma allo stesso tempo anche stranamente affascinante? ____",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b054",
@@ -2697,10 +2697,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b059",
-   "text": "____ Così è come voglio morire!",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b117",
+   "text": "Voglio morire facendo ____. Così è come voglio morire!",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b060",
@@ -2745,10 +2745,10 @@
    "cat": "2 risposte"
   },
   {
-   "id": "b067",
-   "text": "____: testato dai bambini, approvato dalle madri.",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b118",
+   "text": "Ho provato ____: testato dai bambini, approvato dalle madri.",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b068",
@@ -2769,16 +2769,16 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b071",
-   "text": "Questo è come il mondo finirà, non con un'esplosione ma con ____",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b099",
+   "text": "Così finirà il mondo: non con un'esplosione, ma con ____",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
-   "id": "b072",
-   "text": "In arrivo a Broadway quest'anno, ____: il musical.",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b119",
+   "text": "Quest'anno a Broadway debutta un musical su ____.",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b073",
@@ -2787,10 +2787,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b074",
-   "text": "Ma prima che la uccida Signor Bond le voglio mostrare ____",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b100",
+   "text": "Ma prima che la uccida, signor Bond, le voglio mostrare ____",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b075",
@@ -2853,10 +2853,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b085",
-   "text": "Quale cosa l'Italia ha paracadutato ai bambini afghani? ____",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b101",
+   "text": "Cosa ha paracadutato l'Italia ai bambini afghani? ____",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b086",
@@ -2865,10 +2865,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b087",
-   "text": "Durante il trascurato Periodo Marrone, Picasso ha prodotto centinai di quadri su ____",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b102",
+   "text": "Durante il trascurato Periodo Marrone, Picasso ha prodotto centinaia di quadri su ____",
+   "cat": "1 risposta",
+   "blanks": 1
   },
   {
    "id": "b088",
@@ -2883,10 +2883,10 @@
    "cat": "1 risposta"
   },
   {
-   "id": "b090",
-   "text": "____ Dammi un cinque fratello!",
-   "blanks": 1,
-   "cat": "1 risposta"
+   "id": "b121",
+   "text": "Ti va di provare ____? Dammi un cinque, fratello!",
+   "cat": "1 risposta",
+   "blanks": 1
   }
  ]
 }

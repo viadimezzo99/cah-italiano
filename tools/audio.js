@@ -6,7 +6,17 @@ const Sound = (() => {
   let musicOn = false, sfxOn = true, timer = null, step = 0, nextTime = 0;
   let STEP = 60 / 100 / 4; // sedicesimi: cambia con il tema (menu più lento, partita più ritmata)
   let theme = "menu";
-  const TEMPO = { menu: 92, game: 110 };
+  let musicLevel = 1;                 // volume scelto nelle impostazioni (0..1)
+  let pausedByApp = false;            // la pagina è in secondo piano o chiusa: la musica tace
+  // Brano del menu (file incorporato nella pagina). Il volume è più basso degli effetti, così non li copre.
+  const MENU_MP3 = "/*MENU_MP3*/";
+  const MENU_VOLUME = 0.4;
+  let menuAudio = null;
+  function menuTrack() {
+    if (!menuAudio) { menuAudio = new Audio(MENU_MP3); menuAudio.loop = true; menuAudio.preload = "auto"; }
+    return menuAudio;
+  }
+  const TEMPO = { menu: 66, game: 66 };   // notturno lento, uguale in menu e in partita
   // Basso: quattro note per battuta, una ogni quattro sedicesimi (MIDI).
   const BASS = [[33, 33, 36, 38], [31, 31, 34, 36], [33, 33, 29, 31], [28, 28, 31, 33]];
   // Versi nel loop: "battuta:sedicesimo" -> verso.
@@ -176,12 +186,23 @@ const Sound = (() => {
 
   // Tema dei menu: musica d'attesa, accordi morbidi e arpeggio, come in un ascensore elegante.
   const MENU_CHORDS = [[60, 64, 67, 71], [57, 60, 64, 67], [53, 57, 60, 64], [55, 59, 62, 65]];
+  // Notturno al piano: un solo sottofondo, lento e dolce, in loop per tutta l'app (menu e partita).
+  // Accordi morbidi, una melodia di pianoforte sul quarto e una risonanza lontana. Volume sotto i suoni del gioco.
+  const NOCTURNE = [[57, 60, 64, 69], [53, 57, 60, 65], [50, 53, 57, 62], [52, 56, 59, 64]];
+  const NOCT_MELODY = [0, 2, 1, 2];
   function menuStep(t, s) {
     const pos = s % 64;
     const bar = Math.floor(pos / 16), st = pos % 16;
-    const chord = MENU_CHORDS[bar];
-    if (st === 0) chord.forEach((n) => blip(hz(n - 12), t, STEP * 15, "sine", musicBus, 0.035));
-    if (st % 2 === 0) blip(hz(chord[(st / 2) % 4] + 12), t, STEP * 1.6, "triangle", musicBus, 0.07);
+    const chord = NOCTURNE[bar];
+    if (st === 0) {
+      blip(hz(chord[0] - 12), t, STEP * 14, "sine", musicBus, 0.06);
+      chord.slice(1).forEach((n) => blip(hz(n - 12), t, STEP * 14, "sine", musicBus, 0.025));
+    }
+    if (st % 4 === 0) {
+      const n = chord[NOCT_MELODY[(st / 4) % 4]] + 12;
+      blip(hz(n), t, STEP * 6, "triangle", musicBus, 0.07);
+    }
+    if (st === 6 || st === 14) blip(hz(chord[0] + 24), t, STEP * 5, "sine", musicBus, 0.02);
   }
 
   // Tema della partita: musica da quiz, con l'orologio che ticchetta e un basso che pulsa.
@@ -203,7 +224,7 @@ const Sound = (() => {
   }
 
   function musicStep(t, s) {
-    if (theme === "menu") menuStep(t, s); else gameStep(t, s);
+    if (theme === "game") menuStep(t, s);   // in partita: notturno al piano; nel menu suona il brano
   }
 
   function pump() {
@@ -214,6 +235,23 @@ const Sound = (() => {
     }
   }
 
+  // Musica solo con l'app in primo piano: in secondo piano o alla chiusura il brano si ferma.
+  function hideMusic() {
+    if (!musicOn || pausedByApp) return;
+    pausedByApp = true;
+    stopAll();
+    if (ctx && ctx.state === "running") ctx.suspend().catch(() => { /* nessun contesto attivo */ });
+  }
+  function showMusic() {
+    if (!pausedByApp) return;
+    pausedByApp = false;
+    if (!musicOn) return;
+    if (ctx && ctx.state === "suspended") ctx.resume().catch(() => { /* il browser lo rifiuta: si riprova al prossimo tocco */ });
+    startMusic();
+  }
+  if (typeof document !== "undefined" && document.addEventListener) document.addEventListener("visibilitychange", () => (document.hidden ? hideMusic() : showMusic()));
+  if (typeof window !== "undefined" && window.addEventListener) window.addEventListener("pagehide", hideMusic);
+
   return {
     unlock() { return ensure(); },
     play(name) {
@@ -222,19 +260,41 @@ const Sound = (() => {
       SFX[name]?.(ctx.currentTime + 0.01);
     },
     setHaptics(on) { hapticsOn = !!on; },
-    setTheme(name) { theme = name === "game" ? "game" : "menu"; STEP = 60 / TEMPO[theme] / 4; },
+    setTheme(name) { theme = name === "game" ? "game" : "menu"; STEP = 60 / TEMPO[theme] / 4; if (musicOn) { stopAll(); startMusic(); } },
     setSfx(on) { sfxOn = !!on; },
-    setVolume(v) { if (ensure()) musicBus.gain.value = 0.18 * v; },
+    setVolume(v) { musicLevel = v; if (musicOn) startMusic(); },
     setMusic(on) {
       musicOn = !!on;
-      if (!musicOn) { clearInterval(timer); timer = null; if (ctx) musicBus.gain.value = 0; return; }
-      if (!ensure()) return;
-      musicBus.gain.value = 0.18;
-      if (!timer) {
-        nextTime = ctx.currentTime + 0.05;
-        step = 0;
-        timer = setInterval(pump, 60);
-      }
+      if (!musicOn) { stopAll(); return; }
+      startMusic();
     },
   };
+
+  // Ferma sia il brano sia il sintetizzatore.
+  function stopAll() {
+    clearInterval(timer); timer = null;
+    if (menuAudio) menuAudio.pause();
+    if (ctx) musicBus.gain.value = 0;
+  }
+
+  // Menu: il brano in loop. Partita: il notturno sintetizzato.
+  function startMusic() {
+    if (pausedByApp) return;
+    if (theme === "menu") {
+      if (ctx) musicBus.gain.value = 0;
+      if (timer) { clearInterval(timer); timer = null; }
+      const a = menuTrack();
+      a.volume = Math.max(0, Math.min(1, MENU_VOLUME * musicLevel));
+      a.play().catch(() => { /* il browser chiede prima un tocco */ });
+      return;
+    }
+    if (menuAudio) menuAudio.pause();
+    if (!ensure()) return;
+    musicBus.gain.value = 0.18 * musicLevel;
+    if (!timer) {
+      nextTime = ctx.currentTime + 0.05;
+      step = 0;
+      timer = setInterval(pump, 60);
+    }
+  }
 })();

@@ -55,12 +55,20 @@ function pickForm(lemma, cat, g, n) {
   if (!list || !list.length) return null;
   return list.find((f) => !/issim/.test(f)) ?? list[0];
 }
-const PROPER_OVERRIDE = new Set(["babbo", "dio", "hitler", "maometto", "gandhi", "skeletor", "robocop", "scientology", "nickelback", "gengis", "obama", "reagan", "sean", "keanu", "tom", "lady", "natalie", "kim", "sarah", "michael", "barack", "shaquille", "britney", "stephen", "christopher", "nicolas", "martin", "arnold", "hulk", "darth", "mr", "totò", "dario", "gigi", "benny", "justin", "giorgio", "christian", "giuliano", "bruno", "diego", "winx", "batman"]);
+const PROPER_OVERRIDE = new Set(["babbo", "dio", "hitler", "maometto", "gandhi", "skeletor", "robocop", "scientology", "nickelback", "gengis", "obama", "reagan", "sean", "keanu", "tom", "lady", "natalie", "kim", "sarah", "michael", "barack", "shaquille", "britney", "stephen", "christopher", "nicolas", "martin", "arnold", "hulk", "darth", "mr", "totò", "dario", "gigi", "benny", "justin", "giorgio", "christian", "giuliano", "bruno", "diego", "winx", "batman", "platinette", "kitekat", "mosè"]);
 
 const VOWEL = /^[aeiouàèéìòù]/i;
 // Parole che richiedono "lo/uno/gli" davanti (s+consonante, z, gn, ps, x, y, i+vocale).
 const IMPURE = /^(s[^aeiouàèéìòù\s]|z|gn|ps|x|y|i[aeouàèéìòù])/i;
 const SINGULAR_IN_I = new Set(["analisi", "crisi", "tesi", "ipotesi", "sintesi", "noi"]);
+const INFINITIVE = /(are|ere|ire|arsi|ersi|irsi)$/i;
+// Parole in -are/-ere/-ire che sono nomi, non verbi.
+const NOUN_IN_ERE = new Set(["padre", "madre", "mare", "cenere", "sere"]);
+// Una risposta che inizia con un infinito ("Essere ricco", "Covare un uovo") è un'azione, non un sintagma nominale.
+function isInfinitivePhrase(words) {
+  const w = words[0].toLowerCase();
+  return INFINITIVE.test(w) && !NOUN_IN_ERE.has(w);
+}
 
 const ART = {
   il: { g: "m", n: "s" }, lo: { g: "m", n: "s" }, "l'": { g: "m", n: "s" }, la: { g: "f", n: "s" },
@@ -86,10 +94,18 @@ export function whiteAgreement(text) {
   const words = text.replace(/[^\p{L}'\s-]/gu, " ").trim().split(/\s+/).filter(Boolean);
   if (!words.length) return null;
   const first = words[0].toLowerCase();
+  if (isInfinitivePhrase(words)) return null;
   // "l'" non dice il genere: lo prendo dal nome che segue; "un'" è sempre femminile singolare.
   if (/^l'/.test(first)) { const info = nounOf(words[0].slice(2)); return info ? { g: info.g, n: info.n } : { g: "m", n: "s" }; }
   if (/^un'/.test(first)) return { g: "f", n: "s" };
   if (ART[first]) return { ...ART[first] };
+  // Il lessico conosce numero e genere della parola: più affidabile di qualunque regola sulla desinenza.
+  const lexN = (LEX_DB[first] || []).filter((c) => c.startsWith("N"));
+  if (lexN.length) {
+    const pool = lexN.filter((c) => c.endsWith("s")).length ? lexN.filter((c) => c.endsWith("s")) : lexN;
+    const pick = pool.find((c) => c[1] === "m") && first.endsWith("a") ? pool.find((c) => c[1] === "f") : pool[0];
+    return { g: pick[1], n: pick[2] };
+  }
   if (SINGULAR_IN_I.has(first)) return { g: null, n: "s" };
   if (/(zione|sione|tà|ù)$/.test(first) || /a$/.test(first)) return { g: "f", n: "s" };
   if (/o$/.test(first)) return { g: "m", n: "s" };
@@ -122,10 +138,26 @@ function matchMirror(s, c) {
   return s[0] === s[0].toUpperCase() && s[0] !== s[0].toLowerCase() ? c[0].toUpperCase() + c.slice(1) : c;
 }
 
+// Nome proprio: "Lady Gaga", "Pac-Man", "Bruno Vespa". Non prende articolo.
+function isProperName(text) {
+  const words = text.trim().replace(/[.!?]+$/, "").split(/\s+/);
+  const w0 = words[0] || "";
+  if (ART[w0.toLowerCase()] || /^(l'|un')/i.test(w0)) return false;
+  if (words.length > 1 && /^\p{Lu}/u.test(w0) && /^\p{Lu}/u.test(words[1])) return true;
+  if (/-/.test(w0) && /^\p{Lu}/u.test(w0)) return true;
+  return PROPER_OVERRIDE.has(w0.replace(/[^\p{L}]/gu, "").toLowerCase());
+}
+
 // Riscrive l'articolo che precede lo spazio, in base alla risposta scelta.
 export function fixArticle(before, white) {
   const agr = whiteAgreement(white);
-  if (!agr) return { before, consumed: false };
+  const proper = isProperName(white);
+  if (!agr && !proper) {
+    // Risposta di cui non so il numero: un articolo indeterminativo sarebbe quasi sempre sbagliato, lo tolgo.
+    const bare = before.match(/(^|[\s(])((?:di|a|da|in|su)\s+)?(un'|un|uno|una)(\s*)$/i);
+    if (!bare) return { before, consumed: false };
+    return { before: before.slice(0, before.length - bare[0].length) + bare[1] + (bare[2] ? bare[2].trim() + " " : ""), consumed: true };
+  }
   const m = before.match(/(^|[\s(])((?:di|a|da|in|su)\s+)?(il|lo|la|l'|i|gli|le|un'|un|uno|una|del|dello|della|dell'|dei|degli|delle|al|allo|alla|all'|ai|agli|alle|dal|dallo|dalla|dall'|dai|dagli|dalle|nel|nello|nella|nell'|nei|negli|nelle|sul|sullo|sulla|sull'|sui|sugli|sulle)(\s*)$/i);
   if (!m) return { before, consumed: false };
   const head = before.slice(0, before.length - m[0].length);
@@ -134,7 +166,9 @@ export function fixArticle(before, white) {
   let art = m[3].toLowerCase();
   if (UNCONTRACT[art]) { prep = UNCONTRACT[art].prep; art = UNCONTRACT[art].art; }
   const trail = m[4];
-  const next = firstWord(white);
+  if (proper) return { before: head + lead + (prep ? prep + " " : ""), consumed: true };
+  // La parola che conta per l'articolo è quella dopo un eventuale articolo già presente nella risposta.
+  const next = firstWord(white.replace(/^((?:il|lo|la|i|gli|le|uno|una|un)\s+|l'|un')/i, ""));
   const isDef = ["il", "lo", "l'", "la", "i", "gli", "le"].includes(art);
   let form;
   if (isDef) form = defForm(agr.g, agr.n, next, prep);
@@ -161,14 +195,9 @@ function lowerIfMidSentence(text) {
   const article = /^(Una|Un|Uno|Il|Lo|La|Gli|Le|I)$/.test(words[0]) || /^L'/.test(words[0]);
   const twoCaps = !article && words.length > 1 && /^\p{Lu}/u.test(words[0]) && /^\p{Lu}/u.test(words[1]);
   if (twoCaps) return text;
-  // Una parola maiuscola dopo l'articolo è un nome proprio: "il Messico".
-  if (words.length > 1 && words.slice(1).some((w) => /^\p{Lu}/u.test(w) && w.length > 1 && !/^(I|II|III)$/.test(w))) {
-    // Il nome proprio dentro la frase resta maiuscolo; la prima parola si abbassa se è comune.
-    const firstProper = /^\p{Lu}/u.test(words[0]) && !article;
-    return firstProper ? text : text.charAt(0).toLowerCase() + text.slice(1);
-  }
-  // Nomi propri riconosciuti anche a una parola: restano con la maiuscola.
+  // Nomi propri riconosciuti anche a una parola, o con trattino ("Pac-Man"): restano con la maiuscola.
   if (PROPER_OVERRIDE.has(words[0].replace(/[^\p{L}]/gu, "").toLowerCase())) return text;
+  if (/-/.test(words[0]) && /^\p{Lu}/u.test(words[0])) return text;
   return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
@@ -197,9 +226,10 @@ const QUESTION_PREP = /^\s*(a|di|da|in|con|su|per)\s+(cosa|chi|quale|quali)\b/i;
 function contractFromWhite(before, white) {
   const m = before.match(/(^|[\s(])(di|a|da|in|su)\s+$/i);
   if (!m) return null;
-  const a = white.trim().match(/^(il|lo|la|l'|i|gli|le)(\s+|(?=\p{Lu}|\p{Ll}))/iu);
+  // Articolo con spazio ("la Lady") o con apostrofo ("l'odore"): mai la sillaba iniziale di una parola ("Lady").
+  const a = white.trim().match(/^((?:il|lo|la|i|gli|le)\s+|l')/iu);
   if (!a) return null;
-  const art = a[1].toLowerCase();
+  const art = a[1].trim().toLowerCase();
   const joined = CONTRACT[m[2].toLowerCase()][art];
   if (!joined) return null;
   const rest = white.trim().slice(a[0].length);
@@ -213,6 +243,7 @@ function nounOf(text) {
   // Parte da un articolo o da un'elisione: ha già la sua forma, la gestisce fixArticle.
   if (/^(il|lo|la|l'|i|gli|le|un|uno|una|un'|del|della|dell'|dei|degli|delle|al|alla|all'|ai|agli|alle)\b/i.test(clean)) return null;
   const words = clean.replace(/[^\p{L}'\s-]/gu, " ").trim().split(/\s+/);
+  if (isInfinitivePhrase(words)) return null;
   const hi = headIndex(words);
   if (hi < 0) return null;
   const head = (words[hi] || "").toLowerCase();
@@ -226,7 +257,8 @@ function nounOf(text) {
   // Tra più possibilità: singolare prima del plurale, maschile prima del femminile salvo le parole in -a.
   const sing = codes.filter((c) => c.endsWith("s"));
   const pool = sing.length ? sing : codes;
-  const preferF = head.endsWith("a") && pool.some((c) => c[1] === "f");
+  // Parole in -a e in -e (voce, chiave...) con entrambi i generi: preferisco il femminile.
+  const preferF = (head.endsWith("a") || head.endsWith("e")) && pool.some((c) => c[1] === "f");
   const pick = pool.find((c) => (preferF ? c[1] === "f" : c[1] === "m")) || pool[0];
   return { g: pick[1], n: pick[2] };
 }
@@ -291,7 +323,8 @@ function agreeVerbAfter(text, num) {
 function numberCue(blackText, before) {
   const tail = (before.trim().split(/\s+/).pop() || "").toLowerCase();
   if (/^(i|gli|le|dei|degli|delle|tutti|tutte|alcuni|alcune|quali)$/.test(tail)) return "p";
-  if (/^(il|lo|la|l'|un|uno|una|un'|del|dello|della|dell'|questo|questa|quel|quella|nel|nello|nella|nell')$/.test(tail)) return "s";
+  // "un/una" non dice il numero: lo decide la risposta, poi l'articolo si corregge da solo.
+  if (/^(il|lo|la|l'|del|dello|della|dell'|questo|questa|quel|quella|nel|nello|nella|nell')$/.test(tail)) return "s";
   if (/\b(quali|siamo|tutti|tutte|quanti|quante|usano|mangiano|stanno|ci sono|quali sono)\b/i.test(blackText)) return "p";
   return null;
 }
@@ -343,7 +376,7 @@ export function fillSentence(blackText, whites) {
     const atStart = before.trim() === "";
     // Carta bianca con nome comune: la porto al numero della frase, poi metto l'articolo.
     const cue = numberCue(blackText, parts[i] ?? "");
-    const artRe = /^(il|lo|la|l'|i|gli|le|un|uno|una|un')\s*/i;
+    const artRe = /^((?:il|lo|la|i|gli|le|uno|una|un)\s+|l'|un')/i;
     const stripped = artRe.test(white.trim()) && !/\s\p{Lu}/u.test(white.trim().replace(artRe, "")) ? white.trim().replace(artRe, "") : white.trim();
     const hasArt = stripped !== white.trim();
     const noCapsInside = !/\s\p{Lu}/u.test(white.trim());
@@ -351,7 +384,7 @@ export function fillSentence(blackText, whites) {
       const own = nounOf(stripped);
       if (own) {
         const flexed = inflectPhrase(stripped, cue ?? own.n) ?? stripped;
-        const artWord = hasArt ? white.trim().match(artRe)[1].toLowerCase() : "";
+        const artWord = hasArt ? white.trim().match(artRe)[1].trim().toLowerCase() : "";
         const kind = hasArt ? (/^(il|lo|la|l'|i|gli|le)$/.test(artWord) ? "def" : "indef") : null;
         const det = /(^|\s)(questo|questa|quest'|quel|quella|ogni|mio|mia|tuo|tua|suo|sua|nostro|nostra|vostro|vostra|loro|alcuni|alcune|qualche|nessun|nessuna|molto|molti|molte|poco|tanto|troppo|ogni)\s*$/i.test(before);
         const bare = nounPhrase(flexed, atStart, { n: cue ?? own.n, kind, noArt: det });
@@ -389,8 +422,9 @@ export function fillSentence(blackText, whites) {
     // Nome proprio dopo l'articolo ("il Messico"): mantiene la maiuscola.
     // Con l'opzione "i" \p{Lu} accetta anche le minuscole: l'articolo si toglie prima di controllare la maiuscola.
   const wTrim = white.trim();
-  const artMatch = wTrim.match(/^(il|lo|la|l'|i|gli|le|un|uno|una|un')\s*/i);
-  const keepCase = !!artMatch && /^\p{Lu}/u.test(wTrim.slice(artMatch[0].length));
+  const artMatch = wTrim.match(artRe);
+  // La maiuscola dopo l'articolo resta solo per i nomi propri ("il Messico"), non per "il Papa".
+  const keepCase = !!artMatch && isProperName(wTrim.slice(artMatch[0].length));
     if (!atStart) w = keepCase ? w : elideUna(lowerIfMidSentence(w));
     segs.push({ t: "text", v: fixed.before }, { t: "word", v: w, i });
     // il testo dopo lo spazio può essere stato già concordato (verbo): non lo riscrivo

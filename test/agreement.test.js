@@ -17,7 +17,7 @@ test("articolo indeterminativo davanti a s impura", () => {
 
 test("plurale indeterminato", () => {
   assert.equal(sentencePlain("Oggi ho visto un ____.", ["Serpenti volanti."]), "Oggi ho visto dei serpenti volanti.");
-  assert.equal(sentencePlain("Oggi ho visto un ____.", ["Caccole."]), "Oggi ho visto un caccole.");
+  assert.equal(sentencePlain("Oggi ho visto un ____.", ["Caccole."]), "Oggi ho visto caccole.");
 });
 
 test("articolo definito e preposizione articolata", () => {

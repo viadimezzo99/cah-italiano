@@ -12,7 +12,10 @@ inflect = read("data/lexicon_it/inflect.json").replace("</", "<\\/")
 verbs3 = read("data/lexicon_it/verbs3.json").replace("</", "<\\/")
 engine = (f"const LEX = {lex};\nconst REGGENZE = {reggenze};\nconst INFLECT = {inflect};\nconst VERBS3 = {verbs3};\n"
           + read("src/game.js") + "\n" + read("src/agreement.js"))
-audio = read("tools/audio.js")
+import base64
+# Brano del menu, incorporato nella pagina (nessun file esterno).
+menu_mp3 = "data:audio/mpeg;base64," + base64.b64encode((root / "tools/menu.mp3").read_bytes()).decode()
+audio = read("tools/audio.js").replace("/*MENU_MP3*/", menu_mp3)
 spell = read("tools/spell.js")
 app = spell + "\n" + read("tools/room.js") + "\n" + read("tools/app.js")
 cards = json.loads(read("data/cards.json"))

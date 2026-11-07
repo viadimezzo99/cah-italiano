@@ -61,11 +61,18 @@ export class Game {
       isBot: !!p.isBot,
       hand: [],
       score: 0,
+      reshuffledRound: null,   // ultimo turno in cui ha rimescolato la mano
     }));
-    this.deck = shuffle(cards.white.map((c) => c.id), this.rng);
+    // Registro delle carte già uscite nella stanza: sopravvive alle partite, si azzera solo quando i mazzi sono finiti.
+    this.pool = this.opts.pool ?? { white: new Set(), black: new Set() };
+    this.allWhite = cards.white.map((c) => c.id);
+    this.allBlack = cards.black.map((c) => c.id);
     this.discard = [];
-    this.blackDeck = shuffle(cards.black.map((c) => c.id), this.rng);
     this.blackDiscard = [];
+    this.deck = [];
+    this.blackDeck = [];
+    this.refillWhite();
+    this.refillBlack();
 
     this.phase = "lobby"; // lobby | playing | judging | roundEnd | over
     this.round = 0;
@@ -83,13 +90,36 @@ export class Game {
 
   // ---------------------------------------------------------------- mazzi
 
-  // Le carte già giocate non tornano nel mazzo: a mazzo esaurito la pesca si ferma.
+  // Ogni carta esce una volta prima che il mazzo ricominci: a mazzo esaurito si ricomincia dalle carte non ancora uscite.
   draw() {
-    return this.deck.pop() ?? null;
+    if (!this.deck.length) this.refillWhite();
+    const id = this.deck.pop() ?? null;
+    if (id !== null) this.pool.white.add(id);
+    return id;
   }
 
   drawBlack() {
-    return this.blackDeck.pop() ?? null;
+    if (!this.blackDeck.length) this.refillBlack();
+    const id = this.blackDeck.pop() ?? null;
+    if (id !== null) this.pool.black.add(id);
+    return id;
+  }
+
+  // Nuovo mazzo bianco: prima le carte che non sono uscite nella stanza, poi tutte quelle non in gioco.
+  refillWhite() {
+    const inUse = new Set([...this.discard, ...this.players.flatMap((p) => p.hand)]);
+    const fresh = this.allWhite.filter((id) => !inUse.has(id));
+    const notRecent = fresh.filter((id) => !this.pool.white.has(id));
+    if (!notRecent.length) this.pool.white.clear();
+    this.deck = shuffle(notRecent.length ? notRecent : fresh.length ? fresh : this.allWhite, this.rng);
+  }
+
+  refillBlack() {
+    const inUse = new Set([...this.blackDiscard, this.currentBlack?.id].filter(Boolean));
+    const fresh = this.allBlack.filter((id) => !inUse.has(id));
+    const notRecent = fresh.filter((id) => !this.pool.black.has(id));
+    if (!notRecent.length) this.pool.black.clear();
+    this.blackDeck = shuffle(notRecent.length ? notRecent : fresh.length ? fresh : this.allBlack, this.rng);
   }
 
   text(cardId) {
@@ -150,6 +180,7 @@ export class Game {
       }
       for (const id of picks) {
         p.hand.push(id);
+        this.pool.white.add(id);
         events.push({ type: "draw", playerId: p.id, cardId: id });
       }
     }
@@ -279,6 +310,25 @@ export class Game {
   }
 
   /** Dopo la scelta: rimette in mano le carte, passa il Re, apre la nuova nera. */
+  /** Una volta per turno il giocatore rimescola la mano: le carte in mano vanno via e ne pesca altrettante nuove. */
+  canReshuffle(playerId) {
+    const p = this.players.find((x) => x.id === playerId);
+    if (!p || this.phase !== "playing") return false;
+    if (this.judge && this.judge.id === playerId) return false;
+    if (this.submissions.has(playerId)) return false;
+    return p.reshuffledRound !== this.round;
+  }
+
+  reshuffleHand(playerId) {
+    if (!this.canReshuffle(playerId)) throw new Error("Non puoi rimescolare la mano adesso");
+    const p = this.player(playerId);
+    p.reshuffledRound = this.round;
+    this.discard.push(...p.hand.splice(0));
+    const events = [];
+    this.fill(p, events);
+    return events;
+  }
+
   nextRound() {
     if (this.phase !== "roundEnd") throw new Error("Il round non è ancora concluso");
     const events = [];
@@ -331,6 +381,7 @@ export class Game {
     return {
       phase: this.phase,
       round: this.round,
+      canReshuffle: forPlayerId ? this.canReshuffle(forPlayerId) : false,
       judgeId: this.judge?.id ?? null,
       black: this.currentBlack ? { id: this.currentBlack.id, text: this.currentBlack.text, blanks: this.currentBlack.blanks } : null,
       players: this.players.map((p) => ({

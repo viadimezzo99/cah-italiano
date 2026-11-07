@@ -106,11 +106,12 @@ function applySettings() {
   Sound.setSfx(settings.sfx);
   Sound.setHaptics(settings.vibration);
   Sound.setVolume(settings.musicVol);
-  Sound.setMusic(unlocked && settings.music);
+  // La musica parte già all'avvio; il browser può bloccarla finché non c'è un tocco, e il primo tocco la riattiva.
+  Sound.setMusic(settings.music);
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.19";
+const APP_VERSION = "0.2.20";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -391,7 +392,7 @@ function start() {
   const names = cfg.names.map((n, i) => (n || "").trim().slice(0, 16) || `Giocatore ${i + 1}`);
   const bots = cfg.bots.map((n, i) => ({ id: `b${i}`, name: n, isBot: true }));
   const players = [...names.map((name, i) => ({ id: `h${i}`, name })), ...bots];
-  game = new Game(players, deckFor(), { winScore: cfg.winScore });
+  game = new Game(players, deckFor(), { winScore: cfg.winScore, pool: localPool });
   selected = [];
   judgeSel = null;
   viewer = null;
@@ -885,6 +886,8 @@ function importPack(text) {
 
 const readingMs = (n) => Math.min(60000, 15000 + 8000 * n);
 const humanIds = () => game.players.filter((p) => !p.isBot).map((p) => p.id);
+// Carte già uscite nelle partite locali di questa pagina: non si ripetono finché i mazzi non finiscono.
+const localPool = { white: new Set(), black: new Set() };
 
 // Chi deve guardare lo schermo adesso: chi deve giocare, o il Re.
 function viewerFor() {
@@ -906,6 +909,14 @@ function step() {
   } else if (game.phase === "judging" && game.judge.isBot) {
     judgeTimer = setTimeout(() => { game.advanceBotJudge(); step(); }, BOT_JUDGE_STEP_MS);   // il Re bot sfoglia e sceglie a passi
   }
+  render();
+}
+
+// Una volta per turno: la mano viene sostituita con 10 carte nuove. Le carte selezionate spariscono con la mano.
+function reshuffleMine(id) {
+  try { game.reshuffleHand(id); Sound.play("pick"); } catch { /* già rimescolata in questo turno */ }
+  selected = [];
+  wordsShown = 0;
   render();
 }
 
@@ -1199,8 +1210,8 @@ function render() {
   if (judging) resetJudgeIfNewRound();
   const showPrivate = !curtain;
 
-  // La carta vincente si rimpicciolisce lentamente per tutta la pausa e finisce sotto il nome del vincitore.
-  const roundPause = online ? 12000 : LOCAL_ROUND_PAUSE_MS;
+  // La carta vincente vola sotto il nome del vincitore all'inizio della pausa, poi il turno successivo parte.
+  const roundPause = online ? 4000 : LOCAL_ROUND_PAUSE_MS;
   const shrinkNow = s.phase === "roundEnd" && shrinkRound !== s.round;
   if (shrinkNow) shrinkRound = s.round;
 
@@ -1332,7 +1343,8 @@ function render() {
       }));
     if (canSelect) {
       actions = el("div", { class: "actions" },
-        el("button", { class: "primary", type: "button", disabled: selected.length !== need, onclick: humanPlay }, "Conferma e gioca"));
+        el("button", { class: "primary", type: "button", disabled: selected.length !== need, onclick: humanPlay }, "Conferma e gioca"),
+        s.canReshuffle ? el("button", { class: "ghost", type: "button", onclick: () => reshuffleMine(me.id) }, "Rimescola la mano (10 nuove)") : null);
     }
   }
 
@@ -1667,6 +1679,7 @@ function makeAdapter(m) {
     play: (_id, ids) => netSend({ type: "play", cards: ids }),
     pick: (_id, index) => netSend({ type: "pick", index }),
     nextRound: () => netSend({ type: "next" }),
+    reshuffleHand: () => netSend({ type: "reshuffle" }),
   };
 }
 
