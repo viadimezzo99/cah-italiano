@@ -4,2347 +4,2816 @@
   {
    "id": "w001",
    "text": "Una maledizione di un Gitano.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w002",
    "text": "Un momento di silenzio.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w003",
    "text": "Un festival della salsiccia.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w004",
    "text": "Un poliziotto onesto che non ha niente da perdere.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w005",
    "text": "Carestia.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w006",
    "text": "Batteri Mangia-Carne.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w007",
    "text": "Serpenti volanti che fanno sesso.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w008",
    "text": "Non fregarsene un cazzo del Terzo Mondo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w009",
    "text": "Sexting.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w010",
    "text": "Benny Benassi.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w011",
    "text": "Pornostar.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w012",
    "text": "Stupro e Saccheggio.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w013",
    "text": "72 vergini.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NUMERO_NOME"
   },
   {
    "id": "w014",
    "text": "Sparatoria da auto in corsa.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w015",
    "text": "Un paradosso da viaggio nel tempo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w016",
    "text": "Cucina autentica messicana.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w017",
    "text": "Gioielli da rapper.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w018",
    "text": "Consulente.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w019",
    "text": "Oberato dai debiti.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "PARTICIPIO_AGGETTIVO"
   },
   {
    "id": "w020",
    "text": "Problemi col babbo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w021",
    "text": "Avere l'approvazione di Lapo Elkan.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w022",
    "text": "Far cadere un lampadario sopra ai tuoi nemici e farsi sollevare dalla corda che lo sosteneva.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w023",
    "text": "L'ex presidente George W. Bush.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w024",
    "text": "Nudità completa.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w025",
    "text": "Iniezioni ormonali.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w026",
    "text": "Covare un uovo.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w027",
    "text": "Spogliarsi e mettersi a guardare l'Albero Azzurro.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w028",
    "text": "Far finta di interessarsi.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w029",
    "text": "Ridicolizzarsi in pubblico.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w030",
    "text": "Scambiarsi le siringhe.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w031",
    "text": "Caccole.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w032",
    "text": "L'inevitabile morte termica dell'universo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w033",
    "text": "Il miracolo della nascita.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w034",
    "text": "Il rapimento alieno.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w035",
    "text": "Tirarlo fuori.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w036",
    "text": "I privilegi dei bianchi.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w037",
    "text": "Compiti da moglie.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w038",
    "text": "La banda Bassotti.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w039",
    "text": "Deodorante AXE.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w040",
    "text": "Il sangue di Cristo.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w041",
    "text": "Orribili incidenti dovuti alla depilazione laser.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w042",
    "text": "BATMAN!!!",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w043",
    "text": "Agricoltura.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w044",
    "text": "Un robusto mongoloide.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w045",
    "text": "Selezione naturale.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w046",
    "text": "Aborti fatti con l'appendiabiti.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w047",
    "text": "Mangiarsi tutti i dolci prima dell'inizio della cena di beneficenza per i malati di AIDS.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w048",
    "text": "Le braccia di Michelle Obama.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w049",
    "text": "World of Warcraft.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w050",
    "text": "Andare in picchiata.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w051",
    "text": "Obesità.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w052",
    "text": "Un montaggio pallavolistico omoerotico.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w053",
    "text": "Tetano.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w054",
    "text": "Una dimostrazione di un accoppiamento.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w055",
    "text": "Torsione del testicolo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w056",
    "text": "Cena a buffet per 5 euro.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w057",
    "text": "Pizza con la Nutella.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w058",
    "text": "Gigi D'Alessio.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w059",
    "text": "Formaggio piccante.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w060",
    "text": "Attacchi da Velociraptor.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w061",
    "text": "Togliersi la maglietta.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w062",
    "text": "Smegma.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w063",
    "text": "Alcolismo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w064",
    "text": "Un uomo di mezza età con un paio di pattini in linea.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w065",
    "text": "Lo sguardo fisso di una Winx.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w066",
    "text": "Abbuffarsi e vomitare.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w067",
    "text": "Lecca-Lecca giganti.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w068",
    "text": "Disgusto di sé.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w069",
    "text": "Bambini al guinzaglio.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w070",
    "text": "Preliminari meschini.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w071",
    "text": "La sacra Bibbia.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w072",
    "text": "Porno in un sotterraneo tedesco.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w073",
    "text": "Essere in fiamme.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w074",
    "text": "Gravidanza in età adolescenziale.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w075",
    "text": "Gandhi.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w076",
    "text": "Lasciare un messaggio imbarazzante in segreteria.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w077",
    "text": "Montanti.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "AGGETTIVO"
   },
   {
    "id": "w078",
    "text": "Agente del servizio clienti.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w079",
    "text": "Un'erezione che dura più di quattro ore.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w080",
    "text": "I miei genitali.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w081",
    "text": "Rimorchiare ragazze all'ospedale dopo un aborto.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w082",
    "text": "Scienza.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w083",
    "text": "Sesso orale non ricambiato.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w084",
    "text": "Uccelli incapaci di volare.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w085",
    "text": "Una buona sniffata.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w086",
    "text": "Tortura cinese.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w087",
    "text": "Una colazione bilanciata.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w088",
    "text": "Scuole gestite da suore.",
-   "cat": "Luoghi"
+   "cat": "Luoghi",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w471",
    "text": "Rubare veramente una caramella a un bambino.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w090",
    "text": "La fondazione Make-A-Wish.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w091",
    "text": "Una grattata di culo clandestina.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w092",
    "text": "Post-it passivi aggressivi.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w093",
    "text": "La squadra di ginnastica artistica cinese.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w094",
    "text": "Passare a Vodafone.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w095",
    "text": "Fare solo un pochino di pipì.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w096",
    "text": "Video di Barbara D'Urso in lacrime mentre ascolta una storia triste.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w097",
    "text": "Polluzione notturna.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w098",
    "text": "Ebrei.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w099",
    "text": "Le mie tette.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w100",
    "text": "Cosce poderose.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w101",
    "text": "Fare l'occhiolino a persone anziane.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w102",
    "text": "Mr. Muscolo, giusto dietro di te.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w103",
    "text": "Una gentile carezza nell'interno della coscia.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w104",
    "text": "Tensione sessuale.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w105",
    "text": "Il frutto proibito.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w106",
    "text": "Skeletor.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w107",
    "text": "KiteKat.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w108",
    "text": "Essere ricco.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "INFINITO"
   },
   {
    "id": "w109",
    "text": "Dolce, dolce vendetta.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "PARTICIPIO_AGGETTIVO"
   },
   {
    "id": "w110",
    "text": "Popolo delle Libertà.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w111",
    "text": "Centauri.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w112",
    "text": "Un'antilope che soffre di flatulenza.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w113",
    "text": "Natalie Portman.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w114",
    "text": "Toccare una tetta senza dare nell'occhio.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w115",
    "text": "Piloti Kamikaze.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w116",
    "text": "Sean Connery.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w472",
    "text": "Obiettivi politici degli omosessuali.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w118",
    "text": "Un operoso cinese.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w119",
    "text": "Un falco con un cappuccio in testa.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w120",
    "text": "Chierichetti.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w121",
    "text": "Pac-Man.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w122",
    "text": "Diventare così arrabbiati da farsi venire un'erezione.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w123",
    "text": "Campioni gratuiti.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w124",
    "text": "Un gran rumore per nulla.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w125",
    "text": "Fare la cosa giusta.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w126",
    "text": "I patti Lateranensi.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w127",
    "text": "Allattamento.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w128",
    "text": "La pace nel mondo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w129",
    "text": "RoboCop.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w130",
    "text": "Faccia tosta.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w131",
    "text": "Justin Bieber.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w132",
    "text": "Oompa-Loompa.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w133",
    "text": "Gorgheggi in momenti inappropriati.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w134",
    "text": "Pubertà.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w135",
    "text": "Fantasmi.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w136",
    "text": "Una spagnola non simmetrica.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w137",
    "text": "Mani vigorose da jazzista.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w138",
    "text": "Ditalini.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w139",
    "text": "Bruno Vespa che si impiglia con lo scroto in un gancio per le tende.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w140",
    "text": "Polaretti.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w141",
    "text": "Violenza della polizia.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w142",
    "text": "Totò Riina.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w143",
    "text": "Preadolescente.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w144",
    "text": "Scalpare.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w145",
    "text": "Mascherare una risata quando vengono menzionati gli Hutu e i Tutsi.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w146",
    "text": "Twittare.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w147",
    "text": "Darth Fenner.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w148",
    "text": "Una pugnetta triste.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w149",
    "text": "Esattamente quello che ti aspetti.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w150",
    "text": "Aspettarsi un rutto e invece vomitare sul pavimento.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w151",
    "text": "Psicofarmaci.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w152",
    "text": "Cellule staminali embrionali.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w153",
    "text": "Un succulento seno.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w154",
    "text": "Sesso tra panda.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w155",
    "text": "Una lobotomia fatta con un punteruolo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w156",
    "text": "Tom Cruise.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w157",
    "text": "Herpes labiale.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w158",
    "text": "Capodogli.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w159",
    "text": "Barboni.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w160",
    "text": "Petting duro.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w161",
    "text": "Incesto.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w162",
    "text": "Pac-Man che trangugia sperma.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w163",
    "text": "Un mimo che ha un infarto.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w164",
    "text": "Hulk Hogan.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w165",
    "text": "Dio.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w166",
    "text": "Esfoliarsi la pelle sotto i rotoli di grasso.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w167",
    "text": "Doccia di piscio.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w168",
    "text": "Emozioni.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w169",
    "text": "Leccare cose per rivendicarle come proprie.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w170",
    "text": "Birra Moretti.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w171",
    "text": "La placenta.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w172",
    "text": "Combustione umana spontanea.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w173",
    "text": "Scopamici.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w174",
    "text": "Dipingere con le dita.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w175",
    "text": "L'odore delle persone vecchie.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w176",
    "text": "Avere soltanto un pollo di gomma con una carrucola in mezzo.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w177",
    "text": "I miei demoni interiori.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w178",
    "text": "Un Liquidator pieno di piscio di gatto.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w179",
    "text": "Giuseppe Mazzini.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w180",
    "text": "Coccolarsi.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w181",
    "text": "Rosso relativo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w182",
    "text": "Combattimenti tra galli.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w183",
    "text": "Fuoco amico.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w184",
    "text": "Ronald Reagan.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w185",
    "text": "Un compleanno deludente.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w186",
    "text": "Una sfacciata donna di colore.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w187",
    "text": "Ragazzini che partecipano alle olimpiadi della matematica.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w188",
    "text": "Un minuscolo cavallo.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w189",
    "text": "Diego Abatantuono.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w190",
    "text": "Cavalcare al tramonto.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w191",
    "text": "Un colpo di scena degno di M. Night Shyamalan.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w473",
    "text": "Dreadlock.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w193",
    "text": "Distruzione reciproca.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w194",
    "text": "Pedofili.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w195",
    "text": "Lievito.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w196",
    "text": "Saccheggiare tombe.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w197",
    "text": "Mangiare l'ultimo bisonte.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w198",
    "text": "Catapulte.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w199",
    "text": "Persone povere.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w200",
    "text": "Il nome della rosa.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w201",
    "text": "Hustle — I signori della truffa.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w202",
    "text": "La forza.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w203",
    "text": "Pulirle il culo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w204",
    "text": "Creazionismo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w205",
    "text": "Bocca larga.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w206",
    "text": "AIDS.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w207",
    "text": "Foto di tette.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w208",
    "text": "Il superuomo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w209",
    "text": "Sarah Palin.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w210",
    "text": "Giochi senza frontiere.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w211",
    "text": "Sballarsi.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w212",
    "text": "Scientology.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w213",
    "text": "L'invidia per il pene.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w214",
    "text": "Curare l'omosessualità pregando.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w215",
    "text": "Spassarsela.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w216",
    "text": "Due nani che stanno cagando in un secchio.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w217",
    "text": "Il KKK.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w218",
    "text": "Gengis Khan.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w219",
    "text": "Cristalli di metanfetamina.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w220",
    "text": "Servi della gleba. Il pericolo degli sconosciuti.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w474",
    "text": "Bop it.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w475",
    "text": "La carriera da attore di Shaquille O'Neal.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w223",
    "text": "Baldanzoso.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "AGGETTIVO"
   },
   {
    "id": "w224",
    "text": "La giustizia spicciola.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w225",
    "text": "Un bukkake censurato.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w226",
    "text": "Una vita di tristezza.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w227",
    "text": "Razzismo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w228",
    "text": "Lancio dei nani.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w229",
    "text": "Sole e arcobaleni.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w230",
    "text": "Una scimmia che fuma un sigaro.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w231",
    "text": "Inondazione improvvisa.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w232",
    "text": "Il testicolo mancante di Lance Armstrong.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w233",
    "text": "Conati di vomito.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w234",
    "text": "Terroristi.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w235",
    "text": "Britney Spears a 55 anni.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w236",
    "text": "Atteggiamento.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w237",
    "text": "Entrare a canzone iniziata e mettersi a ballare selvaggiamente.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w238",
    "text": "Lebbra.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w239",
    "text": "Gloryholes.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w240",
    "text": "Lame nei capezzoli.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w241",
    "text": "Il cuore di un bambino.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w242",
    "text": "Cuccioli!",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w243",
    "text": "Svegliarsi mezzo nudo nel parcheggio di un McDonald.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w244",
    "text": "Dighe dentali.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w245",
    "text": "La vagina di Oriana Fallaci.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w246",
    "text": "Il perineo.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w247",
    "text": "Ascolto interessato.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w248",
    "text": "Pulizia etnica.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w249",
    "text": "Il brutto anatroccolo.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w250",
    "text": "La mano invisibile.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w251",
    "text": "Aspettare fino al matrimonio.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w252",
    "text": "Stupidità incomprensibile.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w476",
    "text": "Euphoria di Calvin Klein.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w254",
    "text": "Riciclare regali.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w255",
    "text": "Disfunzione erettile.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w256",
    "text": "Sovracompensazione.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w257",
    "text": "Autocannibalismo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w258",
    "text": "La mia collezione di giocattoli erotici high-tech.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w259",
    "text": "Il Papa.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w260",
    "text": "Persone non di colore.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w261",
    "text": "Porno Tentacolari.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w262",
    "text": "Giuliano Ferrara che vomita convulsamente mentre una nidiata di granchi-ragno si schiude nel suo cervello e fuoriesce dai suoi condotti lacrimali.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w263",
    "text": "Troppo gel per capelli.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "PARTICIPIO_AGGETTIVO"
   },
   {
    "id": "w264",
    "text": "Seppuku.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w265",
    "text": "Ballare su ghiaccio con persone dello stesso sesso.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w266",
    "text": "Barare alle Paraolimpiadi.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w267",
    "text": "Carisma.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w268",
    "text": "Keanu Reeves.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w269",
    "text": "Dario Argento.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w270",
    "text": "Nickelback.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w271",
    "text": "Una rapida occhiata.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w272",
    "text": "Cagarsi l'anima.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w273",
    "text": "Bambini con il cancro al culo.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w274",
    "text": "Una sorpresa salata.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w275",
    "text": "Il sud.",
-   "cat": "Luoghi"
+   "cat": "Luoghi",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w276",
    "text": "La violazione dei nostri diritti umani basilari.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w277",
    "text": "DEVI COSTRUIRE ALTRI PILONI.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w278",
    "text": "Stupro su appuntamento.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w279",
    "text": "Essere fantastici.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "INFINITO"
   },
   {
    "id": "w280",
    "text": "Necrofilia.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w281",
    "text": "Super Quark.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "PARTICIPIO_AGGETTIVO"
   },
   {
    "id": "w282",
    "text": "Persone di colore.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w283",
    "text": "Codice cavalleresco.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w284",
    "text": "Lunchables.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w285",
    "text": "Stronze.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w286",
    "text": "Persone totalmente handicappate.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w287",
    "text": "Orfani commoventi.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w288",
    "text": "Hitler.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w289",
    "text": "Cacca che fa bruciare il culo.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w290",
    "text": "Un altro dannato film sui vampiri.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w291",
    "text": "Molle Slinky attorcigliate.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w292",
    "text": "Il vero significato del Natale.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w293",
    "text": "Estrogeni.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w294",
    "text": "Un'aspra marmellata per colazione.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w295",
    "text": "Quella cosa che dà la scossa agli addominali.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w296",
    "text": "Espellere un calcolo renale.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "INFINITO"
   },
   {
    "id": "w297",
    "text": "Un buco del culo sbiancato.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w298",
    "text": "Michael Jackson.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w299",
    "text": "Impianti cibernetici.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w300",
    "text": "Ragazzi che non telefonano.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w301",
    "text": "Untori.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w302",
    "text": "Masturbazione.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w303",
    "text": "Allusione sul ceto sociale.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w304",
    "text": "Flato vaginale.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "PARTICIPIO_AGGETTIVO"
   },
   {
    "id": "w305",
    "text": "Nascondere un'erezione.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "INFINITO"
   },
   {
    "id": "w306",
    "text": "Intimo commestibile.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w307",
    "text": "Viagra.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w308",
    "text": "Zuppa che è troppo calda.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w309",
    "text": "Maometto.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w310",
    "text": "Sesso a sorpresa!",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w311",
    "text": "Mac.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w312",
    "text": "Bere da solo.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w313",
    "text": "Dita a forma di cazzo.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w314",
    "text": "Ferite da arma da taglio multiple.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w315",
    "text": "Farsela addosso.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w316",
    "text": "Abusi infantili.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w317",
    "text": "Palline anali.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w318",
    "text": "Morti civili.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w319",
    "text": "Salto della quaglia.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w320",
    "text": "Christian De Sica.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w321",
    "text": "Carne di cavallo.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w322",
    "text": "Un cappello davvero alla moda.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w323",
    "text": "Kim Jong-il.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w324",
    "text": "Peli pubici sul bordo del cesso.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w325",
    "text": "Testimoni di Geova.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w326",
    "text": "Discriminazione politica.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w327",
    "text": "Farlo dall'entrata posteriore.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w328",
    "text": "Imboccare Platinette.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w329",
    "text": "Insegnare a un robot ad amare.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w428",
    "text": "Un mare di guai.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w331",
    "text": "Un mulino a vento pieno di cadaveri.",
-   "cat": "Luoghi"
+   "cat": "Luoghi",
+   "family": "FRASE"
   },
   {
    "id": "w332",
    "text": "La tigre dei Kellogg's.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w333",
    "text": "Indossare la biancheria al contrario per evitare di lavarla.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w334",
    "text": "Un raggio della morte.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w335",
    "text": "Il soffitto di vetro.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w336",
    "text": "Un frigorifero pieno di organi.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w337",
    "text": "Il sogno americano.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w338",
    "text": "Bere un barile di birra a testa in giù.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w339",
    "text": "Quando scoreggi ma ti esce anche una sgommata.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w340",
    "text": "Rimangiarsi quello che si è detto.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w341",
    "text": "Neonati morti.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w342",
    "text": "Prepuzio.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w343",
    "text": "Assoli di sassofoni.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w344",
    "text": "Americani.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w345",
    "text": "Un feto.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w346",
    "text": "Sparare fucilate al cielo mentre stai penetrando fino alle palle un cinghiale urlante.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w347",
    "text": "Giorgio Napolitano.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w348",
    "text": "Mutilati.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "AGGETTIVO"
   },
   {
    "id": "w349",
    "text": "Eugenetica.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w350",
    "text": "La mia situazione sentimentale.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w351",
    "text": "Christopher Walken.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w352",
    "text": "Api?",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w353",
    "text": "Harry Potter erotica.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w354",
    "text": "Scuole Superiori.",
-   "cat": "Luoghi"
+   "cat": "Luoghi",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w355",
    "text": "Sbronzarsi di collutorio.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w356",
    "text": "Nazisti.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w357",
    "text": "1 kg di eroina Messicana di scarsa qualità.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w358",
    "text": "Stephen Hawking che parla sporco.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w359",
    "text": "Genitori morti.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w477",
    "text": "Permanenza degli oggetti nello sviluppo cognitivo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w361",
    "text": "Pollici opponibili.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w362",
    "text": "Test di intelligenza con domande razziste.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w363",
    "text": "Parlare a vanvera.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w364",
    "text": "Motoseghe al posto delle mani.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w365",
    "text": "Nicolas Cage.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w366",
    "text": "Una sfilata di bellezza per bambini.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w367",
    "text": "Esplosioni.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w368",
    "text": "Sniffare colla.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w369",
    "text": "Bruno Vespa molestato da uno stormo di avvoltoi.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w370",
    "text": "Repressione.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w371",
    "text": "Rufis.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w372",
    "text": "La mia vagina.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w373",
    "text": "Pantaloni da cowboy senza sedere.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w374",
    "text": "Psyco.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w375",
    "text": "Dare il 110%.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w376",
    "text": "Sua altezza reale, regina Elisabetta II.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w377",
    "text": "I Rhapsody of Fire.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w378",
    "text": "Essere tenuto in disparte.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w379",
    "text": "Goblin.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w380",
    "text": "Speranza.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w381",
    "text": "Martin Luther King.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w382",
    "text": "Un micropene.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w383",
    "text": "La mia anima.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w384",
    "text": "Un'orgia.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w385",
    "text": "Vichinghi.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w386",
    "text": "Persone eccitanti.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w387",
    "text": "Seduzione.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w388",
    "text": "Il complesso di Edipo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w389",
    "text": "Oche.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w390",
    "text": "Riscaldamento globale.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w391",
    "text": "Musica New Age.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w392",
    "text": "Scaldamani tascabili.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w393",
    "text": "Fare il labbrino.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w394",
    "text": "Omicidio mediante veicolo a motore.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w395",
    "text": "Suffragio femminile.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w396",
    "text": "Un profilattico difettoso.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w397",
    "text": "Forum.",
-   "cat": "Luoghi"
+   "cat": "Luoghi",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w398",
    "text": "Bambini africani.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w399",
    "text": "Massacro di Utoya in Norvegia.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w400",
    "text": "Barack Obama.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w401",
    "text": "Asiatici che non sono bravi in matematica.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w402",
    "text": "Anziani uomini giapponesi.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w403",
    "text": "Scambiarsi battute divertenti.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w404",
    "text": "Coppie omosessuali.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w405",
    "text": "Dividere le acque del Mar Rosso.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w406",
    "text": "Arnold Schwarzenegger.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w407",
    "text": "Pompino alla guida.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w408",
    "text": "Addominali spettacolari.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "PARTICIPIO_AGGETTIVO"
   },
   {
    "id": "w409",
    "text": "Panettone.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w410",
    "text": "Un leone depresso.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w411",
    "text": "Un sacchetto di fagioli magici.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w412",
    "text": "Scelte di vita sbagliate.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w413",
    "text": "La mia vita sessuale.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w414",
    "text": "Auschwitz.",
-   "cat": "Luoghi"
+   "cat": "Luoghi",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w415",
    "text": "Una tartaruga alligatore che ti sta mordendo la punta del pene.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w416",
    "text": "Una detonazione termonucleare.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w417",
    "text": "Il clitoride.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w418",
    "text": "Il Big Bang.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w419",
    "text": "Mine antiuomo.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w420",
    "text": "Amici che si mangiano tutti i salatini.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w421",
    "text": "Capre che si stanno mangiando lattine.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "FRASE"
   },
   {
    "id": "w478",
    "text": "Lo Schiaccianoci: la danza della Fata Confetto.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w423",
    "text": "Farsi una sega in una piscina di lacrime di bambini.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w424",
    "text": "Flauto a pelle.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w425",
    "text": "Il mio momento.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w426",
    "text": "La metropolitana.",
-   "cat": "Luoghi"
+   "cat": "Luoghi",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w427",
    "text": "Battute fuori luogo sull'olocausto.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w429",
    "text": "Fantasie di un taglialegna.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w430",
    "text": "Voce di Morgan Freeman.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w431",
    "text": "Donne nelle pubblicità di yogurt.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w432",
    "text": "Metodo naturale di allungamento del pene.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w433",
    "text": "Essere un fottuto stregone.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "INFINITO"
   },
   {
    "id": "w434",
    "text": "Piercing nei genitali.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w479",
    "text": "Travestiti passabili.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w436",
    "text": "Combattimenti sexy con i cuscini.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w437",
    "text": "Palle.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w438",
    "text": "Nonna.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w439",
    "text": "Attrito.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w440",
    "text": "Rompicoglioni.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w441",
    "text": "Scoreggiare e andarsene via.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w442",
    "text": "Essere uno stronzo con i bambini.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w443",
    "text": "Installare, in casa, trappole esplosive per ostacolare i ladri.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "FRASE"
   },
   {
    "id": "w444",
    "text": "Sistema Oasi Tecnologica del Riposo materassi Eminflex.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "FRASE"
   },
   {
    "id": "w445",
    "text": "Morire.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "INFINITO"
   },
   {
    "id": "w446",
    "text": "L'uragano Katrina.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w447",
    "text": "Gay.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w448",
    "text": "La follia di un uomo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w449",
    "text": "Uomini.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w450",
    "text": "Amish.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w451",
    "text": "Uova di pterodattilo.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w452",
    "text": "Esercizi di “costruzione del gruppo”.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w453",
    "text": "Un tumore al cervello.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w454",
    "text": "Carte contro l'umanità.",
-   "cat": "Oggetti"
+   "cat": "Oggetti",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w455",
    "text": "Aver paura di se stesso.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w480",
    "text": "Lady Gaga.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w457",
    "text": "L'uomo del latte.",
-   "cat": "Soggetti"
+   "cat": "Soggetti",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w458",
    "text": "Essere sboccati.",
-   "cat": "Azioni"
+   "cat": "Azioni",
+   "family": "INFINITO"
   },
   {
    "id": "w459",
    "text": "Mestruazioni.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_NUDO"
   },
   {
    "id": "w460",
    "text": "Farsi prosciugare il conto da un onlyfanser.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w461",
    "text": "Uscire il cazzo nei direct.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "INFINITO"
   },
   {
    "id": "w462",
    "text": "Comprare 10 copie del mondo al contrario.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w463",
    "text": "Andare a votare disegnando un cazzo sulla scheda.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w464",
    "text": "Amare un boiler di 200 kg.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w465",
    "text": "Leccare lo scroto di un caso al limite.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w466",
    "text": "Pagare un travone con Klarna.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "INFINITO"
   },
   {
    "id": "w467",
    "text": "Provare a infilare il cazzo nel collo di una bottiglia.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "FRASE"
   },
   {
    "id": "w468",
    "text": "Scopare una nana culona.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "INFINITO"
   },
   {
    "id": "w469",
    "text": "Il gioco d'azzardo.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   },
   {
    "id": "w470",
    "text": "La prostituzione.",
-   "cat": "Situazioni"
+   "cat": "Situazioni",
+   "family": "NOME_DETERMINATO"
   }
  ],
  "black": [

@@ -10,8 +10,8 @@ android {
         applicationId 'it.cah.gioco'
         minSdk 24
         targetSdk 34
-        versionCode 25
-        versionName '0.2.23'
+        versionCode 26
+        versionName '0.2.24'
     }
 
     // Firma fissa: la stessa chiave in ogni build, così l'aggiornamento si installa sopra la versione precedente.

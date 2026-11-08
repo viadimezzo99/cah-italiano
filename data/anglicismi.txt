@@ -1,0 +1,235 @@
+# Anglicismi e inglesismi usati in italiano. Formato: parola<TAB>categoria
+# Fonte: elenco compilato a mano (conoscenza dell'uso dell'italiano contemporaneo), nessuna copia da fonti esterne.
+# Categorie: N = nome, A = aggettivo, V = verbo (forma base in -are, da coniugare), I = invariabile o interiezione
+gaslighting	N
+cherry picking	N
+sniperare	V
+sexting	N
+hater	N
+boomer	N
+mobbing	N
+hating	N
+trolling	N
+trollare	V
+cringe	A
+cringiare	V
+flexare	V
+ghostare	V
+ghosting	N
+spoilerare	V
+taggare	V
+postare	V
+linkare	V
+scrollare	V
+swipare	V
+droppare	V
+crashare	V
+bannare	V
+resettare	V
+downloadare	V
+uploadare	V
+streammare	V
+stalkerare	V
+ship	N
+shippare	V
+meme	N
+vlog	N
+vlogger	N
+influencer	N
+influencing	N
+hype	N
+hypare	V
+fake	N
+fake news	N
+burnout	N
+stress	N
+step	N
+pitch	N
+brief	N
+briefing	N
+meeting	N
+deadline	N
+feedback	N
+networking	N
+team building	N
+hangover	N
+party	N
+drink	N
+selfie	N
+weekend	N
+week end	N
+happy hour	N
+slow motion	N
+close up	N
+reality	N
+talk show	N
+soap opera	N
+cult	N
+fan	N
+fanclub	N
+flop	N
+boom	N
+trend	N
+top ten	N
+outfit	N
+look	N
+dress code	N
+make up	N
+hair style	N
+body shaming	N
+body positivity	N
+cheat meal	N
+fitness	N
+workout	N
+coach	N
+personal trainer	N
+gym	N
+jogging	N
+running	N
+footing	N
+surfare	V
+skateboard	N
+snowboard	N
+sponsor	N
+sponsorizzare	V
+brand	N
+marketing	N
+content	N
+creator	N
+follower	N
+like	N
+hashtag	N
+social	N
+chat	N
+chattare	V
+call	N
+call center	N
+customer care	N
+ticket	N
+voucher	N
+check in	N
+check out	N
+check	N
+checkare	V
+booking	N
+bookare	V
+parking	N
+cocktail	N
+happy	A
+hot	A
+sexy	A
+one night stand	N
+single	N
+dating	N
+date	N
+ex	N
+crush	N
+flirt	N
+flirtare	V
+gossip	N
+gossipare	V
+spam	N
+spammare	V
+hacker	N
+hackerare	V
+cyberbullismo	N
+bullismo	N
+password	N
+login	N
+logout	N
+account	N
+gaming	N
+gamer	N
+streamer	N
+streaming	N
+podcast	N
+podcaster	N
+newsletter	N
+mail	N
+email	N
+mailare	V
+spoiler	N
+nerd	N
+geek	N
+hipster	N
+mainstream	A
+underground	A
+vintage	A
+retro	A
+cool	A
+okay	I
+ok	I
+wow	I
+hello	I
+bye	I
+sorry	I
+thanks	I
+please	I
+fighting	N
+sparring	N
+boxare	V
+knockout	N
+knock out	N
+ko	N
+ring	N
+round	N
+match	N
+game	N
+game over	N
+game boy	N
+videogame	N
+joystick	N
+console	N
+online	A
+offline	A
+off topic	N
+on line	A
+pizza delivery	N
+delivery	N
+fast food	N
+junk food	N
+take away	N
+takeaway	N
+drive in	N
+drive-through	N
+bar	N
+pub	N
+rock	N
+rap	N
+punk	N
+hip hop	N
+dj	N
+disc jockey	N
+clubbing	N
+rave	N
+festival	N
+hostare	V
+hostessa	N
+steward	N
+manager	N
+boss	N
+leader	N
+staff	N
+team	N
+job	N
+jobs act	N
+startup	N
+smart working	N
+smart	A
+lockdown	N
+lockdownare	V
+quarantena	N
+shopping	N
+shoppare	V
+outlet	N
+store	N
+mall	N
+brunch	N
+delivery food	N
+slow food	N
+food truck	N
+street food	N
+cheesecake	N
+cookies	N
+snack	N
+snackare	V

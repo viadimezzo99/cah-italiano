@@ -55,7 +55,7 @@ function pickForm(lemma, cat, g, n) {
   if (!list || !list.length) return null;
   return list.find((f) => !/issim/.test(f)) ?? list[0];
 }
-const PROPER_OVERRIDE = new Set(["babbo", "dio", "hitler", "maometto", "gandhi", "skeletor", "robocop", "scientology", "nickelback", "gengis", "obama", "reagan", "sean", "keanu", "tom", "lady", "natalie", "kim", "sarah", "michael", "barack", "shaquille", "britney", "stephen", "christopher", "nicolas", "martin", "arnold", "hulk", "darth", "mr", "totò", "dario", "gigi", "benny", "justin", "giorgio", "christian", "giuliano", "bruno", "diego", "winx", "batman", "platinette", "kitekat", "mosè"]);
+const PROPER_OVERRIDE = new Set(["babbo", "dio", "hitler", "maometto", "gandhi", "skeletor", "robocop", "scientology", "nickelback", "gengis", "obama", "reagan", "sean", "keanu", "tom", "lady", "natalie", "kim", "sarah", "michael", "barack", "shaquille", "britney", "stephen", "christopher", "nicolas", "martin", "arnold", "hulk", "darth", "mr", "totò", "dario", "gigi", "benny", "justin", "giorgio", "christian", "giuliano", "bruno", "diego", "winx", "batman", "platinette", "kitekat", "mosè", "messico", "francia", "spagna", "italia", "russia", "america", "cina", "giappone", "germania", "inghilterra", "egitto", "brasile", "india", "canada", "londra", "parigi", "roma"]);
 
 const VOWEL = /^[aeiouàèéìòù]/i;
 // Parole che richiedono "lo/uno/gli" davanti (s+consonante, z, gn, ps, x, y, i+vocale).
@@ -314,9 +314,10 @@ function agreeVerbAfter(text, num) {
   const m = text.match(/^(\s*)((?:(?:si|ci|mi|ti|vi|ne|lo|la|li|le)\s+)?)(\S+)/i);
   if (!m) return text;
   const verb = m[3].replace(/[^\p{L}']/gu, "");
+  const punct = m[3].match(/[^\p{L}']+$/u)?.[0] ?? "";
   const repl = verbAgree(verb, num);
   if (!repl) return text;
-  return m[1] + m[2] + repl + text.slice(m[0].length);
+  return m[1] + m[2] + repl + punct + text.slice(m[0].length);
 }
 
 // Numero richiesto dalla frase nera nello spazio i: plurale o singolare, oppure null (resta quello della carta).
@@ -324,15 +325,42 @@ function numberCue(blackText, before) {
   const tail = (before.trim().split(/\s+/).pop() || "").toLowerCase();
   if (/^(i|gli|le|dei|degli|delle|tutti|tutte|alcuni|alcune|quali)$/.test(tail)) return "p";
   // "un/una" non dice il numero: lo decide la risposta, poi l'articolo si corregge da solo.
-  if (/^(il|lo|la|l'|del|dello|della|dell'|questo|questa|quel|quella|nel|nello|nella|nell')$/.test(tail)) return "s";
-  if (/\b(quali|siamo|tutti|tutte|quanti|quante|usano|mangiano|stanno|ci sono|quali sono)\b/i.test(blackText)) return "p";
+  if (/^(il|lo|la|l'|del|dello|della|dell'|nel|nello|nella|nell')$/.test(tail)) return "s";
+  // Il verbo plurale conta solo se sta nella stessa frase dello spazio ("Noi siamo ____"), non se è nella domanda precedente ("Cosa mi stanno nascondendo…? ____").
+  const clause = before.split(/[.?!,;:]/).pop() || "";
+  if (/\b(quali|siamo|tutti|tutte|quanti|quante|usano|mangiano|stanno|ci sono|quali sono)\b/i.test(clause)) return "p";
   return null;
 }
 
 // Soggetto comune senza articolo: l'articolo lo sceglie la frase.
 // Singolare: indeterminativo (un/una). Plurale: determinativo (i/gli/le).
+// Determinanti che cambiano con genere e numero della risposta: "questa" + "calze" -> "queste".
+const DET_FAMILIES = [["questo", "questa", "questi", "queste"], ["quel", "quella", "quei", "quelle"], ["mio", "mia", "miei", "mie"],
+  ["tuo", "tua", "tuoi", "tue"], ["suo", "sua", "suoi", "sue"], ["nostro", "nostra", "nostri", "nostre"], ["vostro", "vostra", "vostri", "vostre"]];
+function fixDeterminer(before, g, n) {
+  const m = before.match(/(\p{L}+)(\s*)$/u);
+  if (!m) return before;
+  const low = m[1].toLowerCase();
+  for (const fam of DET_FAMILIES) {
+    const idx = fam.indexOf(low);
+    if (idx < 0) continue;
+    const pick = g === "f" ? (n === "p" ? fam[3] : fam[1]) : (n === "p" ? fam[2] : fam[0]);
+    const cased = /^\p{Lu}/u.test(m[1]) ? pick.charAt(0).toUpperCase() + pick.slice(1) : pick;
+    return before.slice(0, m.index) + cased + m[2];
+  }
+  return before;
+}
+
+// Aggettivo nella forma giusta per il numero richiesto, dal suo genere ("noioso" -> "noiosi").
+function adjustAdj(word, n) {
+  const c = (formIndex().get(word.toLowerCase()) || []).find((x) => x.cat === "A");
+  if (!c) return null;
+  return pickForm(c.lemma, "A", c.g, n);
+}
+
 function nounPhrase(text, atStart, opts = {}) {
-  const info = nounOf(text);
+  const info0 = nounOf(text);
+  const info = info0 && opts.g ? { ...info0, g: opts.g } : info0;
   if (!info) return null;
   const n = opts.n || info.n;
   // Il punto finale è della carta, non del sintagma: lo riattacco alla fine.
@@ -347,16 +375,31 @@ function nounPhrase(text, atStart, opts = {}) {
     const kind = opts.kind || (n === "s" ? "indef" : "def");
     let art;
     if (kind === "def") art = defForm(info.g, n, next, null);
-    else art = n === "s" ? indefForm(info.g, n, next) : defForm(info.g, n, next, null);
+    else art = indefForm(info.g, n, next);
     out = (art.endsWith("'") ? art : art + " ") + noun;
   }
   if (atStart) out = out.charAt(0).toUpperCase() + out.slice(1);
   return out + endPunct;
 }
 
+// Copula prima dello spazio con un soggetto "neutro" ("la cosa più importante è ____"):
+// il verbo concorda con la risposta, che è il predicato. Esempio: "sono i bambini", non "è i bambini".
+const COPULA = /^(è|sono|era|erano|sarà|saranno|resta|restano|rimane|rimangono|diventa|diventano)$/i;
+const NEUTRAL_SUBJECT = /\b(cosa|cose|problema|problemi|segreto|segreti|differenza|motivo|ragione|risultato|sogno|sogni|regalo|regali|verità)\b[^,.;:!?]*$/i;
+function agreeCopula(text, white) {
+  const m = text.match(/(\p{L}+)(\s*)$/u);
+  if (!m || !COPULA.test(m[1]) || !NEUTRAL_SUBJECT.test(text.slice(0, m.index))) return null;
+  const n = whiteAgreement(white.trim())?.n;
+  if (!n) return null;
+  const repl = verbAgree(m[1], n);
+  if (!repl) return null;
+  return text.slice(0, m.index) + repl + m[2];
+}
+
 export function fillSentence(blackText, whites) {
   const parts = blackText.split("____");
   const segs = [];
+  let prevKept = false, keptPunct = false;
   for (let i = 0; i < parts.length; i++) {
     let before = parts[i];
     if (i === parts.length - 1) {
@@ -364,8 +407,12 @@ export function fillSentence(blackText, whites) {
       break;
     }
     let white = whites[i];
+    if (white != null) {
+      const cop = agreeCopula(before, white);
+      if (cop !== null) { parts[i] = cop; before = cop; }
+    }
     // Lo spazio è il soggetto della frase: il verbo che segue deve concordare con la risposta.
-    const isSubj = /(^\s*$|[,;:(]\s*$|\b(che|quando|mentre|se|e|ma|perché|poiché|dove)\s*$)/i.test(parts[i]);
+    const isSubj = /(^\s*$|^\s*(questo|questa|questi|queste|quel|quella|quei|quelle|mio|mia|miei|mie|tuo|tua|tuoi|tue|suo|sua|suoi|sue|nostro|nostra|nostri|nostre|vostro|vostra|vostri|vostre|ogni|tutto|tutta|tutti|tutte)\s+$|[,;:(]\s*$|\b(che|quando|mentre|se|e|ma|perché|poiché|dove)\s*$)/i.test(parts[i]);
     let subjNum = null;
     if (white == null) {
       segs.push({ t: "text", v: before }, { t: "slot", i });
@@ -373,22 +420,65 @@ export function fillSentence(blackText, whites) {
     }
     const after = parts[i + 1];
     const atEnd = after.trim() === "" && i === parts.length - 2;
-    const atStart = before.trim() === "";
+    // Inizio di frase: solo all'inizio della carta o dopo un punto, non dopo un altro spazio nel mezzo.
+    const atStart = (before.trim() === "" && (i === 0 || prevKept || /[.!?]\s*$/.test(parts[i - 1] ?? ""))) || /[.!?]\s*$/.test(before);
     // Carta bianca con nome comune: la porto al numero della frase, poi metto l'articolo.
     const cue = numberCue(blackText, parts[i] ?? "");
     const artRe = /^((?:il|lo|la|i|gli|le|uno|una|un)\s+|l'|un')/i;
     const stripped = artRe.test(white.trim()) && !/\s\p{Lu}/u.test(white.trim().replace(artRe, "")) ? white.trim().replace(artRe, "") : white.trim();
     const hasArt = stripped !== white.trim();
     const noCapsInside = !/\s\p{Lu}/u.test(white.trim());
-    if (!hasArt || noCapsInside) {
-      const own = nounOf(stripped);
+    // Risposta con preposizione e nome senza articolo ("di pane"): la preposizione si unisce all'articolo giusto ("del pane").
+    let fusedPrep = false;
+    const pp = white.trim().match(/^(di|a|da|in|su)\s+(\p{L}[\p{L}\s'-]*?)([.!?]*)$/iu);
+    if (pp && !hasArt) {
+      const info = whiteAgreement(pp[2]);
+      const artF = info ? defForm(info.g, info.n, firstWord(pp[2]), null) : null;
+      const joined = artF ? CONTRACT[pp[1].toLowerCase()][artF] : null;
+      if (joined) {
+        before = before.replace(/\s*$/, " ") + joined + (joined.endsWith("'") ? "" : " ");
+        parts[i] = before;
+        white = pp[2] + pp[3];
+        fusedPrep = true;
+      }
+    }
+    const firstW = (white.trim().split(/\s+/)[0] || "").toLowerCase().replace(/[^\p{L}']/gu, "");
+    // Verbo di apertura ("balla il tango"): se la parola seguente è un articolo o un pronome, è un verbo anche se il lessico conosce un nome uguale.
+    const second = (white.trim().split(/\s+/)[1] || "").toLowerCase();
+    const verbFirst = !!VERBS3_DB[firstW] && (/^(il|lo|la|i|gli|le|un|una|uno|di|a|da|in|con|su|per|tra|fra|sempre|troppo|molto|tanto|poco|ogni|mai)$/.test(second) || !(LEX_DB[firstW] || []).some((c) => c.startsWith("N")));
+    // Aggettivo dopo una copula ("è noioso"): niente articolo.
+    const adjAfterCopula = /(^|\s)(è|sono|era|erano|sarà|saranno|sembra|sembrano|diventa|diventano|resta|restano|rimane|rimangono)\s*$/i.test(before) && (LEX_DB[firstW] || []).some((c) => c.startsWith("A"));
+    if (adjAfterCopula) {
+      const cop = (before.trim().split(/\s+/).pop() || "").toLowerCase();
+      const plural = /^(sono|erano|saranno|sembrano|diventano|restano|rimangono)$/.test(cop);
+      const core = white.trim().replace(/[.!?]+$/, "");
+      const adjN = adjustAdj(core, plural ? "p" : "s");
+      if (adjN) white = adjN + white.trim().slice(core.length);
+    }
+    if ((!hasArt || noCapsInside) && !verbFirst && !fusedPrep && !adjAfterCopula) {
+      // Il numero lo dice la risposta ("calze" è plurale), non la sola desinenza.
+      const own0 = nounOf(stripped);
+      const wa = whiteAgreement(stripped);
+      const own = own0 && wa ? { ...own0, n: wa.n, g: wa.g } : own0;
       if (own) {
         const flexed = inflectPhrase(stripped, cue ?? own.n) ?? stripped;
         const artWord = hasArt ? white.trim().match(artRe)[1].trim().toLowerCase() : "";
         const kind = hasArt ? (/^(il|lo|la|l'|i|gli|le)$/.test(artWord) ? "def" : "indef") : null;
-        const det = /(^|\s)(questo|questa|quest'|quel|quella|ogni|mio|mia|tuo|tua|suo|sua|nostro|nostra|vostro|vostra|loro|alcuni|alcune|qualche|nessun|nessuna|molto|molti|molte|poco|tanto|troppo|ogni)\s*$/i.test(before);
-        const bare = nounPhrase(flexed, atStart, { n: cue ?? own.n, kind, noArt: det });
+        const det = /(^|\s)(quante|quanti|quanta|quanto|tante|tanti|tanta|tanto|poche|pochi|poca|poco|troppe|troppi|troppa|troppo|parecchi|parecchie|due|tre|quattro|cinque|sei|sette|otto|nove|dieci|questo|questa|quest'|quel|quella|ogni|mio|mia|tuo|tua|suo|sua|nostro|nostra|vostro|vostra|loro|alcuni|alcune|qualche|nessun|nessuna|molto|molti|molte|poco|tanto|troppo|ogni)\s*$/i.test(before);
+        if (det) before = fixDeterminer(before, own.g, cue ?? own.n);
+        const afterPrep = /(^|\s)(di|a|da|in|su|con|per|tra|fra)\s*$/i.test(before);
+        const blackArt = /(^|\s)(un|uno|una|un'|il|lo|la|l'|i|gli|le)\s*$/i.test(before);
+        const kindNow = kind ?? ((cue ?? own.n) === "p" && !afterPrep && !blackArt ? "indef" : undefined);
+        const bare = nounPhrase(flexed, atStart, { n: cue ?? own.n, kind: kindNow, noArt: det, g: artWord === "un'" ? "f" : undefined });
         if (bare) white = bare;
+        // Due risposte nella stessa carta: se la prima chiude con "con il ...", la seconda, se è un nome nudo e la domanda è "come?", riprende "con" ("ti domandi come? con dei fantasmi").
+        const rawW = (whites[i] ?? "").trim();
+        if (i > 0 && /\bcome\?/i.test(blackText) && /\bcon\s+(il|lo|la|l'|i|gli|le)\b[^,;:!?]*\.?\s*$/i.test(whites[i - 1] ?? "") && !hasArt && !/^(il|lo|la|l'|i|gli|le|un|una|uno|un'|dei|degli|delle|con|di|a|da|in|su|per)\s/i.test(rawW)) {
+          const wb = isProperName(flexed) ? flexed : flexed.charAt(0).toLowerCase() + flexed.slice(1);
+          const artC = indefForm(own.g, cue ?? own.n, firstWord(flexed));
+          before = before.replace(/\s*$/, " ") + ((/\.\s*$/.test(before) || /\.\s*$/.test(whites[i - 1] ?? "")) && !/\?/.test(parts[i] ?? "") ? "Con " : "con ");
+          white = artC + " " + wb;
+        }
         subjNum = cue ?? own.n;
       }
     }
@@ -396,14 +486,33 @@ export function fillSentence(blackText, whites) {
       const sn = subjNum ?? (nounOf(white.trim())?.n ?? null);
       if (sn) parts[i + 1] = agreeVerbAfter(parts[i + 1], sn);
     }
-    const gov = governedPrep(before);
+    const gov = /sogn\p{L}*\s*$/iu.test(before) && whiteAgreement(white.trim()) !== null ? null : governedPrep(before);
     let prefixed = false;
     let pre = null;
-    if (gov) before = before.replace(/\s*$/, " ") + gov + " ";
+    // Preposizione (richiesta dal verbo, oppure già nel nero: "partecipino a ____") + nome senza articolo: si unisce all'articolo giusto ("ai Ditalini", "alle caccole").
+    const govWord = (white.trim().split(/\s+/)[0] || "").toLowerCase().replace(/[^\p{L}']/gu, "");
+    const trailPrep = !gov ? before.match(/(^|\s)(a|di|da|in|su)\s*$/i) : null;
+    const prepKey = gov ?? (trailPrep ? trailPrep[2].toLowerCase() : null);
+    const barePlain = !hasArt && !verbFirst && !adjAfterCopula && !fusedPrep && !isProperName(white) && !ART[govWord] && !/^(l'|un')/i.test(white.trim()) && !(LEX_DB[govWord] || []).some((c) => c.startsWith("A"));
+    // Il sostantivo in -e (pane, latte) non ha desinenza che dica il genere: lo tratto come singolare maschile.
+    const barInfo = barePlain ? (whiteAgreement(white.trim()) ?? nounOf(white.trim()) ?? (/^\p{Ll}+e[.!?]*$/u.test(white.trim()) && !/(ole|ile|ule|ate|ose)[.!?]*$/.test(white.trim()) ? { g: "m", n: "s" } : null)) : null;
+    const govBare = !!prepKey && !!CONTRACT[prepKey] && !!barInfo;
+    if (govBare) {
+      const info = barInfo;
+      const joined = CONTRACT[prepKey][defForm(info.g, info.n, govWord, null)];
+      const sep = joined.endsWith("'") ? "" : " ";
+      if (trailPrep) before = before.replace(/(^|\s)(a|di|da|in|su)\s*$/i, (m, sp) => sp + joined + sep);
+      else before = before.replace(/\s*$/, " ") + joined + sep;
+    } else if (gov) before = before.replace(/\s*$/, " ") + gov + " ";
     else if (i === 0 && QUESTION_PREP.test(blackText)) {
       // La risposta alla domanda prende la preposizione della domanda, unita all'articolo se c'è.
       const prep = blackText.match(QUESTION_PREP)[1].toLowerCase();
       pre = contractFromWhite(prep + " ", white);
+      // Nome comune senza articolo ("A cosa ...? Ditalini"): la preposizione si unisce all'articolo giusto ("Ai Ditalini").
+      const qWord = (white.trim().split(/\s+/)[0] || "").toLowerCase().replace(/[^\p{L}']/gu, "");
+      const qInfo = !pre && CONTRACT[prep] && !hasArt && !verbFirst && !isProperName(white) && !ART[qWord] && !/^(l'|un')/i.test(white.trim()) ? whiteAgreement(white.trim()) : null;
+      const qJoined = qInfo ? CONTRACT[prep][defForm(qInfo.g, qInfo.n, qWord, null)] : null;
+      if (qJoined) pre = { before: qJoined + " ", white };
       prefixed = true;
       before = before.replace(/\s*$/, " ") + (pre ? pre.before : prep + " ");
     }
@@ -418,19 +527,24 @@ export function fillSentence(blackText, whites) {
     } else if (fixed.consumed && /^(l'|un')(?=\p{L})/iu.test(w)) {
       w = w.replace(/^\S+?'/u, "");
     }
-    if (!atEnd) w = w.replace(/[.!?]+$/, "");
+    // Il punto della risposta si toglie, a meno che la prossima cosa sia un altro spazio: allora chiude una frase.
+    const nextIsBlank = i + 2 < parts.length && parts[i + 1].trim() === "";
+    keptPunct = !atEnd && nextIsBlank && /[.!?]+$/.test(w);
+    if (!atEnd && !keptPunct) w = w.replace(/[.!?]+$/, "");
     // Nome proprio dopo l'articolo ("il Messico"): mantiene la maiuscola.
     // Con l'opzione "i" \p{Lu} accetta anche le minuscole: l'articolo si toglie prima di controllare la maiuscola.
   const wTrim = white.trim();
   const artMatch = wTrim.match(artRe);
   // La maiuscola dopo l'articolo resta solo per i nomi propri ("il Messico"), non per "il Papa".
-  const keepCase = !!artMatch && isProperName(wTrim.slice(artMatch[0].length));
+  const restW = artMatch ? wTrim.slice(artMatch[0].length) : wTrim;
+  const keepCase = isProperName(restW);
     if (!atStart) w = keepCase ? w : elideUna(lowerIfMidSentence(w));
     segs.push({ t: "text", v: fixed.before }, { t: "word", v: w, i });
+    prevKept = keptPunct;
     // il testo dopo lo spazio può essere stato già concordato (verbo): non lo riscrivo
   }
   // Anche nel testo fisso della carta nera: "una" davanti a vocale diventa "un'".
-  return segs.map((x) => (x.t === "text" ? { ...x, v: x.v.replace(/\buna (?=[aeiouàèéìòùAEIOUÀÈÉÌÒÙ])/gi, (m) => (m[0] === "U" ? "Un'" : "un'")) } : x));
+  return segs.map((x) => (x.t === "text" ? { ...x, v: x.v.replace(/ +([.,;:!?])/g, "$1").replace(/\buna (?=[aeiouàèéìòùAEIOUÀÈÉÌÒÙ])/gi, (m) => (m[0] === "U" ? "Un'" : "un'")) } : x));
 }
 
 export function sentencePlain(blackText, whites) {

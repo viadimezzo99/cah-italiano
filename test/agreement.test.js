@@ -35,7 +35,7 @@ test("elisione davanti a vocale", () => {
 });
 
 test("senza articolo non cambia nulla", () => {
-  assert.equal(sentencePlain("Si, ho ucciso ____ Ti domandi come? ____", ["Tetano.", "Rosso relativo."]), "Si, ho ucciso tetano Ti domandi come? rosso relativo.");
+  assert.equal(sentencePlain("Si, ho ucciso ____ Ti domandi come? ____", ["Tetano.", "Rosso relativo."]), "Si, ho ucciso tetano Ti domandi come? Rosso relativo.");
 });
 
 test("la risposta con articolo non raddoppia l'articolo", () => {
@@ -60,4 +60,19 @@ test("accordo riconosciuto dalla prima parola", () => {
   assert.deepEqual(whiteAgreement("Carestia."), { g: "f", n: "s" });
   assert.deepEqual(whiteAgreement("Le caccole."), { g: "f", n: "p" });
   assert.deepEqual(whiteAgreement("Gli ebrei."), { g: "m", n: "p" });
+});
+
+test("preposizione richiesta da domanda + nome plurale: 'ai Ditalini'", () => {
+  assert.equal(sentencePlain("A cosa rinuncio per la quaresima? ____.", ["Ditalini."]), "A cosa rinuncio per la quaresima? ai Ditalini.");
+  assert.equal(sentencePlain("A cosa rinuncio per la quaresima? ____.", ["Roma."]), "A cosa rinuncio per la quaresima? a Roma.");
+});
+
+test("preposizione del nero + nome senza articolo: 'Sapore del pane', 'partecipino ai compiti'", () => {
+  assert.equal(sentencePlain("Amaro Montenegro. Sapore di ____.", ["pane."]), "Amaro Montenegro. Sapore del pane.");
+  assert.equal(sentencePlain("È un peccato che i ragazzini partecipino a ____.", ["compiti da moglie."]), "È un peccato che i ragazzini partecipino ai compiti da moglie.");
+});
+
+test("il verbo plurale della domanda precedente non rende plurale la risposta", () => {
+  assert.equal(sentencePlain("Cosa mi stanno nascondendo i miei genitori? ____.", ["Un uomo di mezza età con un paio di pattini in linea."]),
+    "Cosa mi stanno nascondendo i miei genitori? Un uomo di mezza età con un paio di pattini in linea.");
 });

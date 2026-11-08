@@ -112,7 +112,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.23";
+const APP_VERSION = "0.2.24";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -975,12 +975,6 @@ function step() {
 }
 
 // Una volta per turno: la mano viene sostituita con 10 carte nuove. Le carte selezionate spariscono con la mano.
-function reshuffleMine(id) {
-  try { game.reshuffleHand(id); Sound.play("pick"); } catch { /* già rimescolata in questo turno */ }
-  selected = [];
-  wordsShown = 0;
-  render();
-}
 
 function humanPlay() {
   if (selected.length !== game.currentBlack.blanks) return;
@@ -1405,8 +1399,7 @@ function render() {
       }));
     if (canSelect) {
       actions = el("div", { class: "actions" },
-        el("button", { class: "primary", type: "button", disabled: selected.length !== need, onclick: humanPlay }, "Conferma e gioca"),
-        s.canReshuffle ? el("button", { class: "ghost", type: "button", onclick: () => reshuffleMine(me.id) }, "Rimescola la mano (10 nuove)") : null);
+        el("button", { class: "primary", type: "button", disabled: selected.length !== need, onclick: humanPlay }, "Conferma e gioca"));
     }
   }
 
