@@ -2,6 +2,11 @@
 // Nessuna dipendenza esterna: gira identico nel server Node e nel client.
 // Ogni mutazione restituisce una lista di eventi, utile per animare la UI.
 
+// Jolly: una carta bianca speciale, vinta dal Re con il Memory se lo finisce in tempo.
+// Il giocatore la scrive a mano sulla carta nera. Finché la tiene, nessun altro può vincerla.
+export const JOLLY = "JOLLY";
+export const JOLLY_MAX = 80;
+
 export const DEFAULTS = {
   handSize: 10,
   winScore: 8, // le regole non fissano una fine: è un'opzione della stanza
@@ -86,6 +91,14 @@ export class Game {
     this.selected = null;  // la combinazione che il Re sta guardando, vista da tutti
     this.pickedIndex = null;
     this.winner = null;
+    this.jollyHolder = null;   // id del giocatore che tiene il jolly (o null)
+    this.jollyTexts = new Map(); // playerId -> testo scritto a mano per il jolly giocato in questo turno
+  }
+
+  /** Testo di una carta per un giocatore: il jolly ha il testo scritto da chi l'ha giocato. */
+  cardTextFor(playerId, cardId) {
+    if (cardId === JOLLY) return this.jollyTexts.get(playerId) ?? "";
+    return this.text(cardId);
   }
 
   // ---------------------------------------------------------------- mazzi
@@ -188,7 +201,9 @@ export class Game {
   }
 
   fill(player, events) {
-    while (player.hand.length < this.opts.handSize) {
+    // Il jolly è un'undicesima carta: non riduce la pesca normale.
+    const target = this.opts.handSize + (player.hand.includes(JOLLY) ? 1 : 0);
+    while (player.hand.length < target) {
       const id = this.draw();
       if (id === null) break;
       player.hand.push(id);
@@ -201,13 +216,28 @@ export class Game {
     this.currentBlack = this.blackById.get(this.drawBlack());
     this.round += 1;
     this.submissions = new Map();
+    this.jollyTexts = new Map();
     this.revealOrder = [];
     this.phase = "playing";
     events.push({ type: "round", round: this.round, judgeId: this.judge.id, blackId: this.currentBlack.id });
   }
 
-  /** Il giocatore invia le carte bianche per completare la nera. */
-  play(playerId, cardIds) {
+  /**
+   * Il Re ha finito il Memory prima che tutti abbiano risposto: vince il jolly.
+   * Se qualcuno lo tiene già, o il turno non è più in corso, non succede nulla.
+   */
+  awardJolly(playerId) {
+    if (this.phase !== "playing" || this.jollyHolder !== null) return [];
+    if (!this.judge || this.judge.id !== playerId) return [];
+    if (this.submissions.size >= this.players.length - 1) return [];
+    const p = this.player(playerId);
+    this.jollyHolder = playerId;
+    p.hand.push(JOLLY);
+    return [{ type: "jolly", playerId }];
+  }
+
+  /** Il giocatore invia le carte bianche per completare la nera. Il jolly richiede il testo scritto a mano. */
+  play(playerId, cardIds, jollyText) {
     if (this.phase !== "playing") throw new Error("Non è il momento di giocare");
     const p = this.player(playerId);
     if (p.id === this.judge.id) throw new Error("Il Re delle Carte non gioca carte bianche");
@@ -218,11 +248,25 @@ export class Game {
     for (const id of cardIds) {
       if (!p.hand.includes(id)) throw new Error("Carta non in mano");
     }
+    const usesJolly = cardIds.includes(JOLLY);
+    let text = null;
+    if (usesJolly) {
+      if (this.jollyHolder !== playerId) throw new Error("Il jolly non è tuo");
+      text = typeof jollyText === "string" ? jollyText.replace(/\s+/g, " ").trim() : "";
+      if (!text) throw new Error("Scrivi il testo del jolly");
+      if (text.length > JOLLY_MAX) throw new Error(`Il jolly ammette al massimo ${JOLLY_MAX} caratteri`);
+    }
 
     const events = [];
     for (const id of cardIds) {
       p.hand.splice(p.hand.indexOf(id), 1);
-      this.discard.push(id);
+      // Il jolly non va negli scarti: torna in gioco e può essere rivinto.
+      if (id !== JOLLY) this.discard.push(id);
+    }
+    if (usesJolly) {
+      this.jollyHolder = null;
+      this.jollyTexts.set(playerId, text);
+      events.push({ type: "jollyUsed", playerId });
     }
     this.submissions.set(playerId, cardIds.slice());
     events.push({ type: "played", playerId, cardIds: cardIds.slice() });
@@ -246,7 +290,7 @@ export class Game {
     if (this.phase !== "judging") return [];
     return this.revealOrder.map((playerId, index) => ({
       index,
-      cards: this.submissions.get(playerId).map((id) => ({ id, text: this.text(id) })),
+      cards: this.submissions.get(playerId).map((id) => ({ id, text: this.cardTextFor(playerId, id) })),
     }));
   }
 
@@ -289,7 +333,7 @@ export class Game {
     winner.score += 1;
     this.lastWinner = winnerId;
     this.pickedIndex = index;
-    this.lastWinCards = this.submissions.get(winnerId).map((id) => this.text(id));
+    this.lastWinCards = this.submissions.get(winnerId).map((id) => this.cardTextFor(winnerId, id));
     this.phase = "roundEnd";
 
     const events = [{ type: "picked", winnerId, index, blackId: this.currentBlack.id }];
@@ -323,7 +367,10 @@ export class Game {
     if (!this.canReshuffle(playerId)) throw new Error("Non puoi rimescolare la mano adesso");
     const p = this.player(playerId);
     p.reshuffledRound = this.round;
-    this.discard.push(...p.hand.splice(0));
+    // Il jolly resta in mano: non si rimescola.
+    const keep = p.hand.filter((id) => id === JOLLY);
+    this.discard.push(...p.hand.splice(0).filter((id) => id !== JOLLY));
+    p.hand.push(...keep);
     const events = [];
     this.fill(p, events);
     return events;
@@ -344,7 +391,7 @@ export class Game {
   autoPlay(playerId) {
     const p = this.player(playerId);
     const n = this.currentBlack.blanks;
-    const picks = shuffle(p.hand, this.rng).slice(0, n);
+    const picks = shuffle(p.hand.filter((id) => id !== JOLLY), this.rng).slice(0, n);
     return this.play(playerId, picks);
   }
 
@@ -391,7 +438,7 @@ export class Game {
         isBot: p.isBot,
         handSize: p.hand.length,
         hasPlayed: this.submissions.has(p.id),
-        hand: p.id === forPlayerId ? p.hand.map((id) => ({ id, text: this.text(id), cat: this.catById.get(id) })) : undefined,
+        hand: p.id === forPlayerId ? p.hand.map((id) => (id === JOLLY ? { id, text: "", cat: "Jolly", jolly: true } : { id, text: this.text(id), cat: this.catById.get(id) })) : undefined,
       })),
       reveal: this.revealFor(forPlayerId),
       peek: this.phase === "judging" ? this.peek : null,
@@ -400,7 +447,8 @@ export class Game {
       selected: this.phase === "judging" ? this.selected : null,
       winnerCards: this.phase === "roundEnd" ? this.lastWinCards ?? [] : [],
       // La mia risposta, compilata: la vedo sulla carta nera anche mentre il Re sfoglia.
-      mine: forPlayerId && this.submissions.has(forPlayerId) ? this.submissions.get(forPlayerId).map((id) => this.text(id)) : null,
+      mine: forPlayerId && this.submissions.has(forPlayerId) ? this.submissions.get(forPlayerId).map((id) => this.cardTextFor(forPlayerId, id)) : null,
+      jollyHolder: this.jollyHolder,
       winner: this.winner,
     };
   }
