@@ -73,6 +73,7 @@ const BOT_JUDGE_STEP_MS = 2500;      // tempo tra un passo e l'altro del Re bot 
 let jollyDraft = "";                  // testo scritto a mano sul jolly, mentre lo si compone sulla carta nera
 let mem = null;                       // Memory del Re: tessere, carte aperte, round a cui appartiene
 const MEMORY_IMGS = /*MEMORY_IMGS*/[];
+const MEMORY_LOCAL_TEST = true;   // TEMPORANEO: Memory anche nelle partite locali, per la prova
 const JOLLY_IMG = "/*JOLLY_IMG*/";   // carta jolly in mano
 const MEMORY_HUE = [0, 30, -25, 45, -40, 20, -15, 60];   // una tonalità diversa per ogni coppia
 let wordsShown = 0;                  // quante parole sono già comparse sulla carta nera (non si ripetono)
@@ -117,7 +118,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.25";
+const APP_VERSION = "0.2.26";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -949,15 +950,60 @@ function step() {
   if (online) return render();   // online: il server decide tutto, la UI segue lo stato
   if (!game) return;
   if (game.phase === "playing") {
-    const botsPending = game.players.some((p) => p.isBot && p.id !== game.judge.id && !game.submissions.has(p.id));
-    if (botsPending) botTimer = setTimeout(() => { game.playBots(); step(); }, 2000);
+    scheduleLocalBots();
   } else if (game.phase === "judging" && game.judge.isBot) {
     judgeTimer = setTimeout(() => { game.advanceBotJudge(); step(); }, BOT_JUDGE_STEP_MS);   // il Re bot sfoglia e sceglie a passi
   }
   render();
 }
 
+// Quando il Re sei tu, ogni bot risponde in un momento casuale tra 20 e 60 secondi, così hai tempo per il Memory.
+const BOT_PLAY_MIN_MS = 20000;
+const BOT_PLAY_MAX_MS = 60000;
+let botsScheduled = null;   // { round, ids }: bot già programmati per questo turno
+function scheduleLocalBots() {
+  const round = game.round;
+  if (!botsScheduled || botsScheduled.round !== round) botsScheduled = { round, ids: new Set() };
+  for (const p of game.players) {
+    if (!p.isBot || p.id === game.judge.id || game.submissions.has(p.id) || botsScheduled.ids.has(p.id)) continue;
+    botsScheduled.ids.add(p.id);
+    // Lento solo quando il Re sei tu (per il Memory); negli altri turni i bot rispondono come prima.
+    const delay = game.judge.isBot ? 2000 : BOT_PLAY_MIN_MS + Math.random() * (BOT_PLAY_MAX_MS - BOT_PLAY_MIN_MS);
+    setTimeout(() => {
+      if (!game || game.phase !== "playing" || game.round !== round || game.submissions.has(p.id)) return;
+      game.autoPlay(p.id);
+      step();
+    }, delay);
+  }
+}
+
 // Una volta per turno: la mano viene sostituita con 10 carte nuove. Le carte selezionate spariscono con la mano.
+
+// Campo nascosto che apre la tastiera: il testo si vede direttamente sulla carta nera, mentre si scrive.
+let jollyKeys = null;
+function jollyKeyboard() {
+  if (!jollyKeys) {
+    jollyKeys = document.createElement("input");
+    jollyKeys.type = "text";
+    jollyKeys.maxLength = JOLLY_MAX;
+    jollyKeys.autocomplete = "off";
+    jollyKeys.autocapitalize = "sentences";
+    jollyKeys.setAttribute("aria-label", "Testo del jolly");
+    jollyKeys.className = "jolly-keys";
+    jollyKeys.addEventListener("input", () => { jollyDraft = jollyKeys.value; updateJollyPreview(); });
+    jollyKeys.addEventListener("focus", () => app.classList.add("typing"));
+    jollyKeys.addEventListener("blur", () => app.classList.remove("typing"));
+    document.body.append(jollyKeys);
+  }
+  return jollyKeys;
+}
+// Aggiorna la carta nera a ogni tasto: il testo si adatta alla lunghezza.
+function updateJollyPreview() {
+  const span = app.querySelector(".jolly-typed");
+  if (span) { span.textContent = jollyDraft; span.classList.toggle("empty", !jollyDraft); }
+  fitText(app);
+  syncJollyReady();
+}
 
 // Il V del giocatore si accende solo quando il jolly ha un testo.
 function syncJollyReady() {
@@ -1005,9 +1051,17 @@ function expiredFlash() {
 // Il Re ha finito il Memory: il server decide se è in tempo per il jolly.
 function memoryWon() {
   Sound.play("trumpet");   // tromba e vibrazione: il jolly è vinto
+  showJollyWon();
   if (online) { netSend({ type: "memoryDone" }); render(); return; }
   game.awardJolly(viewer);
   step();
+}
+
+// Finestra con la carta jolly vinta: si chiude toccandola.
+function showJollyWon() {
+  const n = el("div", { class: "jolly-won", role: "dialog", "aria-label": "Jolly vinto", onclick: () => n.remove() },
+    el("img", { class: "jolly-reveal", src: JOLLY_IMG, alt: "Carta jolly vinta" }));
+  document.body.append(n);
 }
 
 function memoryBoard(s) {
@@ -1028,7 +1082,6 @@ function memoryBoard(s) {
       el("img", { class: "jolly-reveal", src: JOLLY_IMG, alt: "Carta jolly vinta" }));
   }
   return el("div", { class: "memory", role: "group", "aria-label": "Memory per il jolly" },
-    el("p", { class: "memory-hint" }, "Trova le coppie prima che rispondano: chi finisce vince il jolly."),
     el("div", { class: "memgrid" }, mem.tiles.map(tile)));
 }
 
@@ -1165,11 +1218,7 @@ function blackCard(s, whites, { canPlay, label, slam, jollyAt = -1 } = {}) {
       wi += 1;
       // Il jolly non passa dalla grammatica: quello che scrivi resta com'è.
       if (wi === jollyAt) {
-        return el("span", { class: "word jolly-word" }, el("input", {
-          class: "jolly-in", type: "text", maxlength: String(JOLLY_MAX), placeholder: "scrivi qui", "aria-label": "Testo del jolly",
-          value: jollyDraft, autocomplete: "off", autocapitalize: "sentences",
-          oninput: (e) => { jollyDraft = e.target.value; syncJollyReady(); },
-        }));
+        return el("span", { class: "word jolly-word" }, el("span", { class: "jolly-typed" + (jollyDraft ? "" : " empty") }, jollyDraft));
       }
       const fresh = canPlay && k >= wordsShown; k += 1;
       // Il punto (o la virgola) che segue la risposta resta attaccato all'ultima parola: non va mai a capo da solo.
@@ -1431,7 +1480,8 @@ function render() {
     if (!online && !roundTimer) roundTimer = setTimeout(nextRound, LOCAL_ROUND_PAUSE_MS);
   } else if (isJudge) {
     // Il Memory esiste solo online: in locale il telefono passa di mano, quindi non avrebbe senso.
-    note = (online && (s.jollyHolder === null || (mem && mem.won && mem.round === s.round))) ? memoryBoard(s) : el("p", { class: "hidden-msg" }, "Sei il Re: aspetta che gli altri confermino.");
+    // TEMPORANEO (prova del Memory in locale): MEMORY_LOCAL_TEST = false prima della release.
+    note = ((online || MEMORY_LOCAL_TEST) && s.jollyHolder === null && !(mem && mem.won && mem.round === s.round)) ? memoryBoard(s) : el("p", { class: "hidden-msg" }, "Sei il Re: aspetta che gli altri confermino.");
   } else if (s.phase === "playing" && !me.hasPlayed) {
     note = null;   // niente istruzioni in primo piano: la carta nera stessa dice quando è pronta
   } else if (me.hasPlayed) {
@@ -1442,11 +1492,12 @@ function render() {
   // già compilata con quella scelta; le altre restano in elenco.
   // Chi non è il Re vede la stessa schermata del Re (combinazioni affiancate), senza poter scegliere.
   const comparing = (judging && judgeMode === "compare" && showPrivate) || (s.phase === "judging" && !isJudge);
-  if (!comparing) {
+  const memoryUp = !!(note && note.classList && note.classList.contains("memory"));
+  if (!comparing && !memoryUp) {
     const canPlay = s.phase === "playing" && !isJudge && !me.hasPlayed && showPrivate;
     const slam = slamPending;
     slamPending = false;
-    if (!selected.includes(JOLLY)) jollyDraft = "";
+    if (!selected.includes(JOLLY)) { jollyDraft = ""; if (jollyKeys) { jollyKeys.value = ""; if (document.activeElement === jollyKeys) jollyKeys.blur(); } }
     mainCard = blackCard(s, previewWhites(s), { canPlay, slam, jollyAt: canPlay ? selected.indexOf(JOLLY) : -1 });
     // Risposte complete: sulla carta nera compaiono X (annulla la scelta) e V (conferma), come per il Re.
     if (canPlay && need > 0 && selected.length === need) {
@@ -1462,7 +1513,7 @@ function render() {
   }
 
   // Mano: fila di default quando non stai giudicando e lo schermo è tuo.
-  if (s.phase !== "over" && !judging && me.hand && showPrivate) {
+  if (s.phase !== "over" && !judging && me.hand && showPrivate && !memoryUp) {
     const canSelect = s.phase === "playing" && !isJudge && !me.hasPlayed;
     railLabel = "";
     const deal = dealPending;
@@ -1480,6 +1531,7 @@ function render() {
           "aria-pressed": String(idx >= 0),
           onclick: () => {
             if (held.v) return;
+            if (c.jolly) { if (idx >= 0) jollyKeyboard().blur(); else { const k = jollyKeyboard(); k.value = jollyDraft; k.focus(); } }
             // Scelte in ordine: deselezionando la prima, la seconda diventa la prima.
             if (idx >= 0) selected.splice(idx, 1);
             else if (need === 1) { selected = [c.id]; wordsShown = 0; }   // la parola nuova deve comparire con l'animazione
@@ -1499,7 +1551,7 @@ function render() {
       }));
   }
 
-  const railBlock = rail ? el("div", { class: "col", style: "gap:6px" },
+  const railBlock = rail ? el("div", { class: "col rail-block", style: "gap:6px" },
     railLabel ? el("span", { class: "label" }, railLabel) : null,
     rail) : null;
 
@@ -2237,13 +2289,19 @@ document.head.append(el("style", {}, `
 .black { box-shadow: inset 0 0 0 2px rgba(255,255,255,.92), 0 22px 40px -18px rgba(0,0,0,.6); }
 .black.ready { position: relative; }
 .combo.sel { position: relative; }
-.combo.sel { flex: 0 0 min(94vw, calc((100svh - 230px) * 5 / 7)) !important; }
+/* Stessa dimensione della carta nera in partita: con l'intestazione e la mano sotto deve restare tutta a schermo. */
+.combo.sel { flex: 0 0 min(90vw, calc((100svh - 330px) * 5 / 7)) !important; }
 .stage .combo-row .combo.sel .black { width: 100%; line-height: 1.2; }
 /* Jolly: carta bianca speciale, Memory e corona */
 .card.jolly { background: var(--paper, #f3e9dc); color: #1a130f; }
 .card.jolly { padding: 0; overflow: hidden; }
 .jolly-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.jolly-in { font: inherit; color: inherit; background: transparent; border: 0; border-bottom: 2px dashed var(--accent); width: 9ch; min-width: 6ch; max-width: 100%; padding: 0 2px; outline: none; text-align: inherit; }
+.jolly-typed { color: var(--accent); border-bottom: 3px solid var(--accent); padding: 0 3px; min-width: 6ch; display: inline-block; white-space: pre-wrap; }
+.jolly-typed.empty { min-width: 8ch; }
+.jolly-keys { position: fixed; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; font-size: 16px; }
+.typing .rail-block { display: none; }
+.jolly-won { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.65); cursor: pointer; }
+.jolly-won img { width: min(72vw, calc((100svh - 80px) * 5 / 7)); aspect-ratio: 5 / 7; border-radius: 14px; }
 .jolly-word { display: inline-block; }
 .jolly-crown { display: inline-block; width: 1.1em; height: .7em; margin-right: 4px; vertical-align: .15em; }
 .jolly-crown svg { width: 100%; height: 100%; display: block; }
@@ -2253,16 +2311,17 @@ document.head.append(el("style", {}, `
 .expired { position: fixed; left: 50%; top: 42%; z-index: 60; padding: 12px 18px; border-radius: 10px; background: var(--accent); color: #1a130f; font-weight: 800; text-align: center; pointer-events: none; transform: translate(-50%, -50%); animation: expiredIn 2.4s ease both; }
 @keyframes expiredIn { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.6); } 12% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); } 22% { transform: translate(-50%, -50%) rotate(-4deg); } 32% { transform: translate(-50%, -50%) rotate(4deg); } 42% { transform: translate(-50%, -50%) rotate(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(.95); } }
 .memory-hint { margin: 0; font-size: 13px; color: var(--muted, #888); text-align: center; }
-.memgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; width: min(100%, calc((100svh - 360px) * 5 / 7)); margin: 0 auto; }
+.memgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; width: min(100%, calc((100svh - 210px) * 5 / 7)); margin: 0 auto; }
 .mtile { all: unset; box-sizing: border-box; cursor: pointer; position: relative; aspect-ratio: 5 / 7; perspective: 600px; border-radius: 8px; }
 .mtile .mface { position: absolute; inset: 0; border-radius: 8px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; transition: transform .45s cubic-bezier(.2,.8,.2,1); }
 .mtile .mfront { transform: rotateY(180deg); background: hsl(var(--hue, 0deg) 40% 30%); }
 .mtile .mfront img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.mtile .mback { background: hsl(var(--hue, 0deg) 35% 22%); border: 2px solid hsl(var(--hue, 0deg) 60% 55%); display: flex; align-items: center; justify-content: center; }
+.mtile .mback { background: #0f0b08; border: 2px solid #3a2b22; display: flex; align-items: center; justify-content: center; }
 .mtile.up .mback, .mtile.done .mback { transform: rotateY(180deg); }
 .mtile.up .mfront, .mtile.done .mfront { transform: rotateY(0deg); }
 .mtile.done { visibility: hidden; }
-.mlogo { display: flex; flex-direction: column; align-items: center; font-size: 9px; line-height: 1.05; color: #f3e9dc; }
+.mlogo { display: block; text-align: left; font-weight: 800; line-height: .98; letter-spacing: -.02em; color: #f3e9dc; font-size: clamp(6px, 2vw, 9px); }
+.mlogo b, .mlogo em { display: block; }
 .mlogo em { color: #e8875a; font-style: normal; }
 .combo-ctrl { position: absolute; bottom: 14px; right: 14px; display: flex; gap: 10px; z-index: 5; }
 .combo-ctrl button { all: unset; box-sizing: border-box; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #1a1410; font-size: 22px; font-weight: 800; box-shadow: 0 6px 16px -6px rgba(0,0,0,.6); cursor: pointer; }
