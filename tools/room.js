@@ -252,7 +252,15 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         const { room, player } = requireRoom(conn);
         if (!room.game) throw new Error("La partita non è iniziata");
         if (!Array.isArray(msg.cards)) throw new Error("Carte non valide");
-        room.game.play(player.id, msg.cards.map(String));
+        room.game.play(player.id, msg.cards.map(String), typeof msg.jolly === "string" ? msg.jolly : undefined);
+        afterChange(room);
+        return;
+      }
+      case "memoryDone": {
+        // Il Re ha finito il Memory: se è in tempo, vince il jolly (lo decide il motore).
+        const { room, player } = requireRoom(conn);
+        if (!room.game) throw new Error("La partita non è iniziata");
+        room.game.awardJolly(player.id);
         afterChange(room);
         return;
       }
