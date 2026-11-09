@@ -3461,7 +3461,7 @@
   },
   {
    "id": "b128",
-   "text": "Il mio cane ha portato al parco ____ e lo ha lasciato davanti a ____.",
+   "text": "Il mio cane ha portato al parco ____ e ha lasciato ____ davanti alla porta.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3521,7 +3521,7 @@
   },
   {
    "id": "b138",
-   "text": "Dicono che ____ migliora la vita, purché non lo mischi con ____.",
+   "text": "Dicono che ____ migliora la vita, purché non si mischi con ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3533,7 +3533,7 @@
   },
   {
    "id": "b140",
-   "text": "L'ultima frontiera della tecnologia: ____ collegato a ____.",
+   "text": "L'ultima frontiera della tecnologia: ____ da collegare a ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3545,7 +3545,7 @@
   },
   {
    "id": "b142",
-   "text": "Il sindaco ha annunciato che ____ sarà vietato, mentre ____ diventerà obbligatorio.",
+   "text": "Il sindaco ha annunciato una legge: vietare ____ e rendere obbligatorio ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3557,7 +3557,7 @@
   },
   {
    "id": "b144",
-   "text": "Il segreto del successo? Un po' di ____ e tanta ____.",
+   "text": "Il segreto del successo? Un po' di ____ e un pizzico di ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3626,6 +3626,162 @@
    "text": "Lo sponsor del concerto: ____, ____ e ____ a tutto volume.",
    "cat": "3 risposte",
    "blanks": 3
+  },
+  {
+   "id": "b156",
+   "text": "Nel gioco dei pacchi ho scelto ____, ma il dottore mi ha offerto ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b157",
+   "text": "Alla domanda da un milione di euro ho risposto ____, poi ho chiamato ____ da casa.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b158",
+   "text": "Il conduttore ha annunciato che il premio finale sarà ____ e ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b159",
+   "text": "Indizio numero uno: ____. Indizio numero due: ____. Indovina la parola!",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b160",
+   "text": "Alla Ruota della Fortuna ho comprato la vocale ____ e poi ho scoperto che la soluzione era ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b161",
+   "text": "Passaparola: devi far indovinare ____ senza mai dire ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b162",
+   "text": "Ho sbagliato la risposta facile e ho perso ____ e ____ davanti a tutta l'Italia.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b163",
+   "text": "Reazione a catena: ____, poi ____, infine ____. Qual è la parola che le collega?",
+   "blanks": 3,
+   "cat": "3 risposte"
+  },
+  {
+   "id": "b164",
+   "text": "Le tre domande del quiz erano: ____, ____ e ____.",
+   "blanks": 3,
+   "cat": "3 risposte"
+  },
+  {
+   "id": "b165",
+   "text": "Ho vinto il bonus con ____, il jolly con ____ e il pacco con ____.",
+   "blanks": 3,
+   "cat": "3 risposte"
+  },
+  {
+   "id": "b166",
+   "text": "Allo Zecchino d'Oro vince chi canta ____, balla ____ e promette ____.",
+   "blanks": 3,
+   "cat": "3 risposte"
+  },
+  {
+   "id": "b167",
+   "text": "Il rischiatutto: ____ per 10 punti, ____ per 20 punti, ____ per il jackpot!",
+   "blanks": 3,
+   "cat": "3 risposte"
+  },
+  {
+   "id": "b168",
+   "text": "Il mio psicologo dice che il mio problema è ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b169",
+   "text": "Nel mio nuovo lavoro mi hanno chiesto di inserire ____ nel report trimestrale.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b171",
+   "text": "Quello che mia madre non sa è che ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b172",
+   "text": "Il mio hobby preferito è ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b173",
+   "text": "Alla cena di famiglia ha portato ____ e nessuno ha detto niente.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b174",
+   "text": "Dopo la laurea ho scoperto che il vero lavoro è ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b175",
+   "text": "Per il mio compleanno vorrei soltanto ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b176",
+   "text": "Il sindaco ha giurato in TV che ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b178",
+   "text": "Il mio ex mi ha lasciato per ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b179",
+   "text": "Nel mio nuovo libro racconto ____ e ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b180",
+   "text": "Mia suocera mi ha detto che ____, ma io ho pensato soltanto a ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b181",
+   "text": "Stasera a cena ho preparato ____ e, come dessert, ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b182",
+   "text": "Ingredienti: ____, ____ e una spruzzata di ____.",
+   "blanks": 3,
+   "cat": "3 risposte"
+  },
+  {
+   "id": "b183",
+   "text": "Le tre cose che non devi mai fare in ascensore: ____, ____ e ____.",
+   "blanks": 3,
+   "cat": "3 risposte"
   }
  ]
 }

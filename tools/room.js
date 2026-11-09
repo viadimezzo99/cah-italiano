@@ -8,7 +8,7 @@ const ROOM_MAX_PLAYERS = 10;
 const ROOM_WIN_SCORES = [3, 5, 8];
 const ROOM_CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // niente I, L, O, 0, 1
 const ROOM_PAUSE_MS = 4000;
-const BOT_NAMES = ["Bot Gigi", "Bot Nina", "Bot Remo", "Bot Sara", "Bot Tito", "Bot Ugo", "Bot Vera", "Bot Zeno"];
+const BOT_NAMES = ["Tana", "Tega", "Tino", "Tone", "Jack"];
 const ROOM_BOT_JUDGE_STEP_MS = 2500;   // tempo tra un passo e l'altro del Re bot
 
 function randomHex(bytes) {
@@ -335,7 +335,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         // Il nome lo sceglie l'ospite; se manca, ne viene dato uno di fantasia.
         const chosen = String(msg.name ?? "").replace(/\s+/g, " ").trim().slice(0, 16);
         const used = new Set(room.players.map((p) => p.name));
-        const name = chosen || BOT_NAMES.find((n) => !used.has(n)) || `Bot ${room.players.length + 1}`;
+        const name = chosen || BOT_NAMES.find((n) => !used.has(n)) || `Giocatore ${room.players.length + 1}`;
         room.players.push({ id: `bot-${randomHex(4)}`, name, token: null, conn: null, ready: true, isBot: true });
         broadcast(room);
         return;

@@ -31,7 +31,7 @@ let game = null;
 let cfg = { names: ["Tu"], bots: [], winScore: 5, deck: "full" }; // partita locale: persone e bot, mazzo scelto prima
 
 // Nomi di fantasia suggeriti per i bot: chi aggiunge il bot può cambiarli.
-const BOT_SUGGEST = ["Bot Gigi", "Bot Nina", "Bot Remo", "Bot Sara", "Bot Tito", "Bot Ugo", "Bot Vera", "Bot Zeno"];
+const BOT_SUGGEST = ["Tana", "Tega", "Tino", "Tone", "Jack"];
 function askBotName(n, onOk) {
   const input = el("input", { type: "text", maxlength: "16", value: BOT_SUGGEST[n % BOT_SUGGEST.length], "aria-label": "Nome del bot" });
   const close = () => bg.remove();
