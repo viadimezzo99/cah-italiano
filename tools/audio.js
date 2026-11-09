@@ -96,7 +96,7 @@ const Sound = (() => {
     tap: 6, key: 3, pick: 10, confirm: [10, 40, 14], deal: 8, flip: 12, paper: 10, tick: 4,
     shuffle: [6, 30, 6, 30, 6, 30, 6], slam: 25, error: [30, 60, 30], win: [40, 80, 40, 80, 120],
     trumpet: [50, 60, 50, 60, 50, 60, 220],
-    pair: 18,   // coppia trovata nel Memory: un colpetto solo
+    pair: [40, 50, 40],   // coppia trovata nel Memory: doppio colpo, più netto del flip
   };
   let hapticsOn = true;
   const SFX = {
