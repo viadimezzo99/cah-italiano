@@ -106,14 +106,14 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   width: min(100%, calc(300px * var(--cs))); aspect-ratio: 5 / 7; background: #111; color: #fff;
   border-radius: 16px; padding: 20px 18px; display: flex; flex-direction: column; justify-content: space-between;
   box-shadow: 0 14px 30px -14px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.04);
-  font-family: var(--card-font); font-size: calc(20px * var(--ts) * var(--cs)); line-height: 1.32; font-weight: 500;
+  font-family: var(--card-font); font-size: 20px; line-height: 1.32; font-weight: 500; container-type: inline-size;
   overflow: hidden; position: relative;
 }
 .black::after { /* grana da carta */
   content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .07; border-radius: inherit;
   background-image: radial-gradient(#fff 0.6px, transparent 0.7px); background-size: 4px 4px;
 }
-.black .text { text-wrap: pretty; overflow-wrap: anywhere; position: relative; z-index: 1; }
+.black .text { font-size: 7.5cqi; text-wrap: pretty; overflow-wrap: anywhere; position: relative; z-index: 1; }
 .black .foot { font-size: 11px; font-family: "IBM Plex Sans", sans-serif; letter-spacing: .08em; text-transform: uppercase; opacity: .6; position: relative; z-index: 1; }
 .slot {
   display: inline-block; min-width: 3.6em; border-bottom: 2px dashed color-mix(in srgb, var(--accent) 80%, transparent);
@@ -269,7 +269,7 @@ input, textarea { -webkit-user-select: text; user-select: text; }
   .stage { grid-column: 1; grid-row: 2; }
   .dock { grid-column: 2; grid-row: 2; }
   .dock .rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow-y: auto; overflow-x: hidden; align-content: start; flex-direction: initial; padding: 12px 4px 6px; gap: 10px; }
-  .rail .card { width: 100%; height: auto; aspect-ratio: 5 / 7; font-size: calc(clamp(10px, 2.3dvh, 14px) * var(--ts) * var(--cs)); }
+  .rail .card { width: 100%; height: auto; aspect-ratio: 5 / 7; container-type: inline-size; }
   .rail .card .txt { -webkit-line-clamp: 7; }
   .rail .card .num { width: 20px; height: 20px; font-size: 11px; }
   .stage .black { padding: 14px 12px; }

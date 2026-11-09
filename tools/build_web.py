@@ -1,4 +1,5 @@
 """Assembla la pagina: motore, accordi, audio, mazzo e interfaccia in un solo HTML."""
+import base64
 import json
 from pathlib import Path
 
@@ -15,9 +16,16 @@ engine = (f"const LEX = {lex};\nconst REGGENZE = {reggenze};\nconst INFLECT = {i
 import base64
 # Brano del menu, incorporato nella pagina (nessun file esterno).
 menu_mp3 = "data:audio/mpeg;base64," + base64.b64encode((root / "tools/menu.mp3").read_bytes()).decode()
-audio = read("tools/audio.js").replace("/*MENU_MP3*/", menu_mp3)
+game_mp3 = "data:audio/mpeg;base64," + base64.b64encode((root / "tools/game.mp3").read_bytes()).decode()
+audio = read("tools/audio.js").replace("/*MENU_MP3*/", menu_mp3).replace("/*GAME_MP3*/", game_mp3)
 spell = read("tools/spell.js")
 app = spell + "\n" + read("tools/room.js") + "\n" + read("tools/app.js")
+# Immagini del Memory, incorporate come data URI (nessun file esterno).
+mem_names = ["gatto", "cactus", "patata", "pinguino", "fantasma", "frigorifero", "ombrello", "vasca"]
+mem_uris = ["data:image/jpeg;base64," + base64.b64encode((root / f"tools/memory/{n}.jpg").read_bytes()).decode() for n in mem_names]
+app = app.replace("/*MEMORY_IMGS*/[]", json.dumps(mem_uris))
+jolly_uri = "data:image/jpeg;base64," + base64.b64encode((root / "tools/memory/jolly.jpg").read_bytes()).decode()
+app = app.replace('"/*JOLLY_IMG*/"', json.dumps(jolly_uri))
 cards = json.loads(read("data/cards.json"))
 # Evita che un testo contenga la sequenza di chiusura dello script.
 payload = json.dumps({"white": cards["white"], "black": cards["black"]}, ensure_ascii=False).replace("</", "<\\/")

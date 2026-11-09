@@ -4,6 +4,7 @@
 const Sound = (() => {
   let ctx = null, master = null, sfxBus = null, musicBus = null;
   let musicOn = false, sfxOn = true, timer = null, step = 0, nextTime = 0;
+  let gestureSeen = false, gestureArmed = false;
   let STEP = 60 / 100 / 4; // sedicesimi: cambia con il tema (menu più lento, partita più ritmata)
   let theme = "menu";
   let musicLevel = 1;                 // volume scelto nelle impostazioni (0..1)
@@ -16,6 +17,33 @@ const Sound = (() => {
   function menuTrack() {
     if (!menuAudio) { menuAudio = new Audio(MENU_MP3); menuAudio.loop = true; menuAudio.preload = "auto"; }
     return menuAudio;
+  }
+  // Brano della partita (file incorporato nella pagina), in loop; parte piano e cresce.
+  const GAME_MP3 = "/*GAME_MP3*/";
+  const GAME_VOLUME = 0.35;
+  const RAMP_SEC = 6;                 // quanto dura il crescendo all'inizio
+  let gameAudio = null;
+  function gameTrack() {
+    if (!gameAudio) { gameAudio = new Audio(GAME_MP3); gameAudio.loop = true; gameAudio.preload = "auto"; }
+    return gameAudio;
+  }
+  let rampT0 = 0, rampTimer = null, rampTrack = null;
+  // Volume del brano in corso: sale da quasi zero fino al livello scelto in RAMP_SEC secondi.
+  function trackTarget() {
+    return Math.max(0, Math.min(1, (rampTrack === gameAudio ? GAME_VOLUME : MENU_VOLUME) * musicLevel));
+  }
+  function rampTo(a) {
+    clearInterval(rampTimer);
+    rampTrack = a; rampT0 = Date.now();
+    const tick = () => {
+      const k = Math.min(1, (Date.now() - rampT0) / (RAMP_SEC * 1000));
+      const target = trackTarget();
+      const start = Math.max(0.02, target * 0.2);
+      try { a.volume = start + (target - start) * k; } catch (e) { /* alcuni browser non cambiano il volume */ }
+      if (k >= 1) { clearInterval(rampTimer); rampTimer = null; }
+    };
+    tick();
+    rampTimer = setInterval(tick, 150);
   }
   const TEMPO = { menu: 66, game: 66 };   // notturno lento, uguale in menu e in partita
   // Basso: quattro note per battuta, una ogni quattro sedicesimi (MIDI).
@@ -67,6 +95,8 @@ const Sound = (() => {
     saved: [10, 40, 14], // carta salvata: solo vibrazione, nessun suono
     tap: 6, key: 3, pick: 10, confirm: [10, 40, 14], deal: 8, flip: 12, paper: 10, tick: 4,
     shuffle: [6, 30, 6, 30, 6, 30, 6], slam: 25, error: [30, 60, 30], win: [40, 80, 40, 80, 120],
+    trumpet: [50, 60, 50, 60, 50, 60, 220],
+    pair: 18,   // coppia trovata nel Memory: un colpetto solo
   };
   let hapticsOn = true;
   const SFX = {
@@ -106,6 +136,8 @@ const Sound = (() => {
     win: (t) => blip(784, t, 0.8, "sine", sfxBus, 0.35),
     confirm: (t) => { blip(523, t, 0.12, "sine", sfxBus, 0.35); blip(659, t + 0.05, 0.12, "sine", sfxBus, 0.35); blip(784, t + 0.1, 0.2, "sine", sfxBus, 0.35); },
     turn: (t) => { blip(440, t, 0.07, "sine", sfxBus, 0.3); blip(660, t + 0.11, 0.1, "sine", sfxBus, 0.3); },
+    // Tromba del jolly: quattro note squillanti, l'ultima tenuta.
+    trumpet: (t) => { blip(392, t, 0.16, "sawtooth", sfxBus, 0.16); blip(523, t + 0.18, 0.16, "sawtooth", sfxBus, 0.16); blip(659, t + 0.36, 0.16, "sawtooth", sfxBus, 0.16); blip(784, t + 0.54, 0.7, "sawtooth", sfxBus, 0.18); },
   };
 
   // Rumore bianco riusato, filtrato per ottenere i vari versi.
@@ -227,7 +259,7 @@ const Sound = (() => {
   }
 
   function musicStep(t, s) {
-    if (theme === "game") menuStep(t, s);   // in partita: notturno al piano; nel menu suona il brano
+    // Nessun sintetizzatore: menu e partita suonano i rispettivi brani registrati.
   }
 
   function pump() {
@@ -263,10 +295,16 @@ const Sound = (() => {
       SFX[name]?.(ctx.currentTime + 0.01);
     },
     setHaptics(on) { hapticsOn = !!on; },
-    setTheme(name) { theme = name === "game" ? "game" : "menu"; STEP = 60 / TEMPO[theme] / 4; if (musicOn) { stopAll(); startMusic(); } },
+    setTheme(name) {
+      // La partita richiama questa funzione a ogni schermata: riavvia il brano solo se il tema cambia davvero.
+      const next = name === "game" ? "game" : "menu";
+      const changed = next !== theme;
+      theme = next; STEP = 60 / TEMPO[theme] / 4;
+      if (changed && musicOn) { stopAll(); startMusic(); }
+    },
     setSfx(on) { sfxOn = !!on; },
     setSfxVolume(v) { sfxLevel = Math.max(0, Math.min(1, v)); if (sfxBus) sfxBus.gain.value = sfxLevel; },
-    setVolume(v) { musicLevel = v; if (musicOn) startMusic(); },
+    setVolume(v) { musicLevel = v; if (musicOn && rampTrack && !rampTimer) rampTrack.volume = trackTarget(); },
     setMusic(on) {
       musicOn = !!on;
       if (!musicOn) { stopAll(); return; }
@@ -277,28 +315,35 @@ const Sound = (() => {
   // Ferma sia il brano sia il sintetizzatore.
   function stopAll() {
     clearInterval(timer); timer = null;
+    clearInterval(rampTimer); rampTimer = null;
     if (menuAudio) menuAudio.pause();
+    if (gameAudio) gameAudio.pause();
     if (ctx) musicBus.gain.value = 0;
   }
 
-  // Menu: il brano in loop. Partita: il notturno sintetizzato.
+  // Menu: il brano in loop. Partita: il suo brano in loop. Entrambi con crescendo.
+  // Prima di un tocco il browser non fa partire l'audio: il brano parte al primo gesto, senza errori né doppioni.
+  function armGesture() {
+    if (gestureArmed || typeof document === "undefined") return;
+    gestureArmed = true;
+    const first = () => {
+      gestureSeen = true;
+      document.removeEventListener("pointerdown", first, true);
+      document.removeEventListener("keydown", first, true);
+      if (musicOn && !pausedByApp) startMusic();
+    };
+    document.addEventListener("pointerdown", first, true);
+    document.addEventListener("keydown", first, true);
+  }
   function startMusic() {
-    if (pausedByApp) return;
-    if (theme === "menu") {
-      if (ctx) musicBus.gain.value = 0;
-      if (timer) { clearInterval(timer); timer = null; }
-      const a = menuTrack();
-      a.volume = Math.max(0, Math.min(1, MENU_VOLUME * musicLevel));
-      a.play().catch(() => { /* il browser chiede prima un tocco */ });
-      return;
-    }
-    if (menuAudio) menuAudio.pause();
-    if (!ensure()) return;
-    musicBus.gain.value = 0.18 * musicLevel;
-    if (!timer) {
-      nextTime = ctx.currentTime + 0.05;
-      step = 0;
-      timer = setInterval(pump, 60);
-    }
+    if (pausedByApp || !musicOn) return;
+    if (!gestureSeen) { armGesture(); return; }
+    if (ctx) musicBus.gain.value = 0;
+    if (timer) { clearInterval(timer); timer = null; }
+    const a = theme === "game" ? gameTrack() : menuTrack();
+    const other = theme === "game" ? menuAudio : gameAudio;
+    if (other) other.pause();
+    rampTo(a);
+    a.play().catch(() => { /* il browser chiede prima un tocco */ });
   }
 })();
