@@ -568,6 +568,12 @@ function cardsScreen() {
   const isMine = v.tab === "mine-w" || v.tab === "mine-b";
   let list = isMine ? mine.filter((c) => c.color === (v.tab === "mine-b" ? "b" : "w")) : all.filter((c) => c.color === color);
   if (!isMine && v.cat !== "Tutte") list = list.filter((c) => c.cat === v.cat);
+  // Barra di ricerca: filtra per testo, senza distinguere maiuscole e minuscole.
+  const q = (v.q ?? "").trim().toLowerCase();
+  if (q) list = list.filter((c) => c.text.toLowerCase().includes(q));
+  const search = el("input", { type: "search", class: "card-search", placeholder: "Cerca una carta…", "aria-label": "Cerca tra le carte",
+    oninput: (e) => { v.q = e.target.value; v.focusSearch = e.target.selectionStart ?? e.target.value.length; cardsScreen(); } });
+  search.value = v.q ?? "";
 
   const count = (c) => all.filter((x) => x.color === c).length;
   const tabBtn = (id, label) => el("button", { type: "button", "aria-pressed": String(v.tab === id),
@@ -630,6 +636,7 @@ function cardsScreen() {
       stat(count("w"), "Bianche"), stat(count("b"), "Nere"), stat(mine.length, "Mie")),
     el("div", { class: "tabs", role: "group", "aria-label": "Tipo di carta" },
       tabBtn("white", "Bianche"), tabBtn("black", "Nere"), tabBtn("mine-w", "Mie bianche"), tabBtn("mine-b", "Mie nere")),
+    search,
     balance(v.tab === "black" || v.tab === "mine-b" ? "b" : "w", all),
     isMine ? null : el("div", { class: "chips", role: "group", "aria-label": "Categorie" },
       ["Tutte", ...catsOf(color)].map(catBtn)),
@@ -652,6 +659,13 @@ function cardsScreen() {
     el("p", { class: "hidden-msg" }, "Incolla le frasi, una per riga: con ____ diventa una nera, senza diventa una bianca. Poi premi Aggiungi."),
     pasteIn,
     el("button", { type: "button", class: "primary", onclick: () => importPack(pasteIn.value) }, "Aggiungi le carte")));
+  // Dopo ogni tasto la schermata si ridisegna: rimetto il cursore nella barra di ricerca.
+  if (v.focusSearch !== undefined) {
+    const pos = v.focusSearch;
+    v.focusSearch = undefined;
+    const input = app.querySelector(".card-search");
+    if (input) { input.focus(); try { input.setSelectionRange(pos, pos); } catch { /* il browser non supporta la posizione */ } }
+  }
 }
 
 function showCardDetail(c, refresh, list = [c]) {
@@ -2147,6 +2161,8 @@ document.head.append(el("style", {}, `
 .balance { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; }
 .bal-row { display: grid; grid-template-columns: 96px 1fr 36px; gap: 10px; align-items: center; font-size: 13px; }
 .bal-name { font-weight: 600; color: var(--fg); }
+.card-search { width: 100%; box-sizing: border-box; padding: 10px 14px; font: inherit; font-size: 15px; color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; }
+.card-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .bal-bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
 .bal-fill { display: block; height: 100%; background: var(--cat); border-radius: 999px; }
 .bal-n { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
