@@ -28,7 +28,7 @@ function saveSettings() {
 let settings = loadSettings();
 let unlocked = false;   // l'audio parte solo dopo un gesto dell'utente
 let game = null;
-let cfg = { names: ["Tu"], bots: [], winScore: 5, deck: "full" }; // partita locale: persone e bot, mazzo scelto prima
+let cfg = { names: ["Tu"], bots: [], winScore: 5 }; // partita locale: persone e bot, mazzo scelto prima
 
 // Nomi di fantasia suggeriti per i bot: chi aggiunge il bot può cambiarli.
 const BOT_SUGGEST = ["Tana", "Tega", "Tino", "Tone", "Jack"];
@@ -118,7 +118,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.26";
+const APP_VERSION = "0.2.28";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -327,14 +327,13 @@ function showOnline() {
 function localPanel() {
   const hint = el("p", { class: "hidden-msg" });
   const startBtn = el("button", { class: "primary", type: "button", onclick: start }, "Inizia la partita");
-  const nCards = (() => { const a = activeCustom(); return a.white.length + a.black.length; })();
 
   const refresh = () => {
     const total = cfg.names.length + cfg.bots.length;
     const ok = total >= 3;
     startBtn.disabled = !ok;
     hint.textContent = ok
-      ? `${total} giocatori${cfg.bots.length ? ` (${cfg.bots.length} bot)` : ""} · vittoria a ${cfg.winScore} punti · ${cfg.deck === "base" ? "solo carte ufficiali" : `carte ufficiali + ${nCards} mie`}`
+      ? `${total} giocatori${cfg.bots.length ? ` (${cfg.bots.length} bot)` : ""} · vittoria a ${cfg.winScore} punti · ${decksInGame()} mazzi nelle partite`
       : "Servono almeno 3 giocatori: aggiungi dei bot se siete meno.";
   };
 
@@ -353,10 +352,7 @@ function localPanel() {
     type: "button", "aria-pressed": String(cfg.winScore === n),
     onclick: () => { cfg.winScore = n; setup(); },
   }, `${n} punti`));
-  const deckBtns = [["base", "Solo ufficiali"], ["full", "Ufficiali + mie"]].map(([v, label]) => el("button", {
-    type: "button", "aria-pressed": String(cfg.deck === v),
-    onclick: () => { cfg.deck = v; setup(); },
-  }, label));
+  const deckBtns = deckToggleList();
 
   refresh();
   return el("div", { class: "panel" },
@@ -368,7 +364,7 @@ function localPanel() {
     cfg.names.length + cfg.bots.length < 10 ? el("button", { type: "button", class: "ghost", onclick: () => askBotName(cfg.bots.length, (name) => { cfg.bots.push(name); setup(); }) }, "+ Aggiungi bot") : null,
     el("span", { class: "label" }, "Vittoria · decidetela prima di iniziare"),
     el("div", { class: "seg" }, winBtns),
-    el("span", { class: "label" }, "Carte · quale mazzo"),
+    el("span", { class: "label" }, "Carte · quali mazzi entrano"),
     el("div", { class: "seg" }, deckBtns),
     hint,
     startBtn);
@@ -406,7 +402,8 @@ const KIND = { "Soggetti": "Soggetto", "Luoghi": "Luogo", "Oggetti": "Oggetto", 
 // Una carta nera sta nella categoria del suo numero di spazi: non si sceglie a mano.
 const blackCatFor = (text) => BLACK_CATS[Math.min(3, Math.max(1, String(text).split("____").length - 1)) - 1];
 const ORIG_COLOR = "#9a9186";
-let cardsView = { tab: "white", cat: "Tutte" };
+let cardsView = { tab: "white", cat: "Tutte", deck: null, q: "" };
+const BASE_ID = "base";
 
 const catsOf = (color) => (color === "b" ? BLACK_CATS : WHITE_CATS);
 const validCat = (name, color) => catsOf(color).includes(name);
@@ -416,9 +413,19 @@ function loadCustom() {
   let d = null;
   try { d = JSON.parse(localStorage.getItem(CUSTOM_KEY) || "null"); } catch { d = null; }
   d = d && typeof d === "object" ? d : {};
+  // Mazzi personali. "senza" è il contenitore delle carte che non hanno ancora un mazzo.
+  const decks = (Array.isArray(d.decks) ? d.decks : [])
+    .filter((x) => x && typeof x.id === "string" && x.id !== BASE_ID && x.id.length <= 40)
+    .map((x) => ({ id: x.id, name: String(x.name || "Mazzo").replace(/\s+/g, " ").trim().slice(0, 30) || "Mazzo", use: x.use !== false }));
+  if (!decks.some((x) => x.id === "senza")) decks.unshift({ id: "senza", name: "Senza mazzo", use: true });
+  const ids = new Set(decks.map((x) => x.id));
   const fix = (list, color) => (Array.isArray(list) ? list : [])
     .filter((c) => c && typeof c.text === "string" && c.text.trim())
-    .map((c) => ({ text: c.text, cat: color === "b" ? blackCatFor(c.text) : (validCat(c.cat, color) ? c.cat : defaultCat(color)) }));
+    .map((c) => ({
+      text: c.text,
+      cat: color === "b" ? blackCatFor(c.text) : (validCat(c.cat, color) ? c.cat : defaultCat(color)),
+      deck: ids.has(c.deck) ? c.deck : "senza",
+    }));
   const catOverride = {};
   if (d.catOverride && typeof d.catOverride === "object") {
     for (const [id, cat] of Object.entries(d.catOverride)) if (!id.startsWith("b") && validCat(cat, "w")) catOverride[id] = cat;
@@ -434,8 +441,8 @@ function loadCustom() {
     textOverride,
     white: fix(d.white, "w"),
     black: fix(d.black, "b"),
-    useWhite: d.useWhite !== false,   // le mie bianche entrano nelle partite
-    useBlack: d.useBlack !== false,   // le mie nere entrano nelle partite
+    decks,
+    baseUse: d.baseUse !== false,   // il mazzo base (carte ufficiali) entra nelle partite
     catOverride,
   };
 }
@@ -458,10 +465,11 @@ const handForRail = (hand) => {
   return [...picked, ...handSorted(hand).filter((c) => !selected.includes(c.id))];
 };
 
-// Le mie carte attive per le partite (se l'interruttore è acceso).
+// Le carte personali dei mazzi attivi (quelli con l'interruttore acceso).
 const activeCustom = () => {
   const d = loadCustom();
-  return { white: d.useWhite ? d.white : [], black: d.useBlack ? d.black : [] };
+  const on = new Set(d.decks.filter((x) => x.use).map((x) => x.id));
+  return { white: d.white.filter((c) => on.has(c.deck)), black: d.black.filter((c) => on.has(c.deck)) };
 };
 // Categorie scelte dall'utente per le carte ufficiali.
 const withOverrides = (cards) => {
@@ -473,7 +481,11 @@ const withOverrides = (cards) => {
   const keep = (c) => !hidden[c.id];
   return { white: cards.white.filter(keep).map(tag("w")), black: cards.black.filter(keep).map(tag("b")) };
 };
-const deckFor = () => mergeCustom(withOverrides(CARDS), cfg.deck === "base" ? { white: [], black: [] } : activeCustom());
+const deckFor = () => {
+  const d = loadCustom();
+  const base = d.baseUse ? withOverrides(CARDS) : { white: [], black: [] };
+  return mergeCustom(base, activeCustom());
+};
 
 // Solo testi e categorie: il server li ripulisce di nuovo prima di usarli.
 // Il messaggio di avvio sta in un frame da 64 KB: se le carte sono troppe, se ne tengono meno.
@@ -504,8 +516,8 @@ function allCards() {
     ...CARDS.black.filter(shown).map((c) => ({ id: c.id, text: txt(c), color: "b", cat: blackCatFor(txt(c)), mine: false })),
   ];
   const mine = [
-    ...d.white.map((c, i) => ({ id: `m${i}`, idx: i, text: c.text, color: "w", cat: c.cat, mine: true })),
-    ...d.black.map((c, i) => ({ id: `mb${i}`, idx: i, text: c.text, color: "b", cat: c.cat, mine: true })),
+    ...d.white.map((c, i) => ({ id: `m${i}`, idx: i, text: c.text, color: "w", cat: c.cat, deck: c.deck, mine: true })),
+    ...d.black.map((c, i) => ({ id: `mb${i}`, idx: i, text: c.text, color: "b", cat: c.cat, deck: c.deck, mine: true })),
   ];
   return { orig, mine, d };
 }
@@ -555,21 +567,156 @@ function gridNode(children) {
   return node;
 }
 
+// Elenco dei mazzi: il mazzo base (carte ufficiali) e quelli personali.
+function decksList() {
+  const d = loadCustom();
+  return [{ id: BASE_ID, name: "Base", official: true, use: d.baseUse }, ...d.decks.map((x) => ({ ...x, official: false }))];
+}
+const decksInGame = () => decksList().filter((x) => x.use).length;
+
+// Interruttore di un mazzo: entra o no nelle partite.
+function toggleDeck(id, refresh) {
+  const x = loadCustom();
+  if (id === BASE_ID) x.baseUse = !x.baseUse;
+  else { const k = x.decks.find((y) => y.id === id); if (k) k.use = !k.use; }
+  saveCustom(x);
+  refresh();
+}
+
+// Pulsanti dei mazzi nella schermata di partita locale.
+function deckToggleList() {
+  return decksList().map((dk) => el("button", { type: "button", class: "chip", "aria-pressed": String(dk.use),
+    onclick: () => toggleDeck(dk.id, () => setup()) }, dk.name));
+}
+
+// Nuovo mazzo o rinomina: piccolo foglio con il nome.
+function openDeckForm(current, done) {
+  const input = el("input", { type: "text", maxlength: "30", placeholder: "Nome del mazzo, es. Politica", "aria-label": "Nome del mazzo" });
+  input.value = current ? current.name : "";
+  const save = () => {
+    const name = input.value.replace(/\s+/g, " ").trim().slice(0, 30);
+    if (!name) { toast("Scrivi un nome"); return; }
+    const x = loadCustom();
+    let id = current ? current.id : null;
+    if (current) { const k = x.decks.find((y) => y.id === current.id); if (k) k.name = name; }
+    else { id = `m${Date.now().toString(36)}`; x.decks.push({ id, name, use: true }); }
+    saveCustom(x);
+    bg.remove();
+    done(id);
+  };
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) bg.remove(); } },
+    el("div", { class: "sheet card-form" },
+      el("p", { class: "label" }, current ? "Rinomina il mazzo" : "Nuovo mazzo"),
+      input,
+      el("div", { class: "actions" },
+        el("button", { type: "button", class: "ghost", onclick: () => bg.remove() }, "Annulla"),
+        el("button", { type: "button", class: "primary", onclick: save }, "Salva"))));
+  document.body.append(bg);
+  input.focus();
+}
+
+// Il coperchio si alza, poi si apre il mazzo. Senza animazioni (riduzione movimento) si apre subito.
+function openDeckBox(box, go) {
+  if (document.body.classList.contains("no-motion") || !box.animate) { go(); return; }
+  box.classList.add("opening");
+  Sound.play("flip");
+  setTimeout(go, 1250);
+}
+
+// Tinta stabile per ogni mazzo, dal nome.
+function deckHue(name) {
+  let h = 0;
+  for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  return h;
+}
+
+// Elimina un mazzo personale: le sue carte passano in "Senza mazzo".
+function deleteDeck(dk) {
+  askConfirm(`Eliminare il mazzo "${dk.name}"? Le sue carte passano in Senza mazzo.`, () => {
+    const x = loadCustom();
+    x.decks = x.decks.filter((y) => y.id !== dk.id);
+    for (const c of [...x.white, ...x.black]) if (c.deck === dk.id) c.deck = "senza";
+    saveCustom(x);
+    cardsView.deck = null;
+    cardsScreen();
+  });
+}
+
+// Conferma dentro la pagina: confirm() del browser non funziona nelle anteprime.
+function askConfirm(text, yes) {
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) bg.remove(); } },
+    el("div", { class: "sheet card-form" },
+      el("p", { class: "label" }, text),
+      el("div", { class: "actions" },
+        el("button", { type: "button", class: "ghost", onclick: () => bg.remove() }, "Annulla"),
+        el("button", { type: "button", class: "primary", onclick: () => { bg.remove(); yes(); } }, "Elimina"))));
+  document.body.append(bg);
+}
+
 function cardsScreen() {
   game = null;
   still("cards");
   document.body.classList.remove("in-game");
   clearTimeout(botTimer); clearTimeout(judgeTimer); clearTimeout(roundTimer); roundTimer = null;
   window.scrollTo(0, 0);
-  const { orig, mine, d } = allCards();
-  const all = [...orig, ...mine];
   const v = cardsView;
-  const color = v.tab === "black" ? "b" : "w";
-  const isMine = v.tab === "mine-w" || v.tab === "mine-b";
-  let list = isMine ? mine.filter((c) => c.color === (v.tab === "mine-b" ? "b" : "w")) : all.filter((c) => c.color === color);
-  if (!isMine && v.cat !== "Tutte") list = list.filter((c) => c.cat === v.cat);
+  if (!v.deck || !decksList().some((x) => x.id === v.deck)) { v.deck = null; renderDecks(); return; }
+  renderDeck(v.deck);
+}
 
-  const count = (c) => all.filter((x) => x.color === c).length;
+// Schermata dei mazzi: una anteprima per mazzo, con il conteggio e due carte di esempio.
+function renderDecks() {
+  const v = cardsView;
+  const { orig, mine } = allCards();
+  const tile = (dk) => {
+    const cards = dk.official ? orig : mine.filter((c) => c.deck === dk.id);
+    const nW = cards.filter((c) => c.color === "w").length;
+    const nB = cards.filter((c) => c.color === "b").length;
+    // Scatola del mazzo: si chiude sul tavolo e il coperchio si alza al tocco, poi si apre il mazzo.
+    const hue = dk.official ? 40 : dk.id === "senza" ? 210 : deckHue(dk.name);
+    const go = () => { v.deck = dk.id; v.tab = "white"; v.cat = "Tutte"; v.q = ""; cardsScreen(); };
+    return el("div", { class: "deck-slot", style: `--hue:${hue}` },
+      el("button", { type: "button", class: `deck-box${dk.use ? "" : " off"}`, "aria-label": `Apri il mazzo ${dk.name}`,
+        onclick: (e) => openDeckBox(e.currentTarget, go) },
+        el("span", { class: "box-inside" }, el("span", { class: "box-cards" })),
+        el("span", { class: "box-lid" }, el("span", { class: "box-badge" }, dk.official ? "Espansione base" : "Mazzo")),
+        el("span", { class: "box-body" },
+          el("span", { class: "box-plate" }, el("strong", { class: "display" }, dk.name)),
+          el("span", { class: "box-count" }, `${nW} bianche · ${nB} nere`))),
+      el("div", { class: "deck-row" },
+        el("button", { type: "button", class: "switch", "aria-pressed": String(dk.use),
+          onclick: (e) => { e.stopPropagation(); toggleDeck(dk.id, () => cardsScreen()); } },
+        dk.use ? "Nelle partite: sì" : "Nelle partite: no"),
+        dk.official || dk.id === "senza" ? null : el("button", { type: "button", class: "ghost", "aria-label": `Elimina il mazzo ${dk.name}`,
+          onclick: (e) => { e.stopPropagation(); deleteDeck(dk); } }, "Elimina")));
+  };
+  app.replaceChildren(el("section", { class: "cards-screen" },
+    el("div", { class: "subhead" },
+      el("button", { type: "button", class: "ghost back", onclick: () => { homeTab = "home"; setup(); } }, "← Home"),
+      el("div", { class: "head-row" },
+        el("h2", { class: "display" }, "Mazzi"),
+        el("button", { type: "button", class: "add", onclick: () => openDeckForm(null, (id) => { cardsView.deck = id; cardsScreen(); }) }, "+ Nuovo mazzo"))),
+    el("p", { class: "hidden-msg" }, "Apri un mazzo per vedere e modificare le sue carte. Il pulsante sotto ogni mazzo decide se entra nelle partite."),
+    el("div", { class: "deck-list" }, decksList().map(tile))));
+}
+
+// Dentro un mazzo: la vista con tab, ricerca, equilibrio e categorie.
+function renderDeck(deckId) {
+  const v = cardsView;
+  const dk = decksList().find((x) => x.id === deckId);
+  const { orig, mine, d } = allCards();
+  const pool = dk.official ? orig : mine.filter((c) => c.deck === deckId);
+  const color = v.tab === "black" ? "b" : "w";
+  let list = pool.filter((c) => c.color === color);
+  if (v.cat !== "Tutte") list = list.filter((c) => c.cat === v.cat);
+  const q = (v.q ?? "").trim().toLowerCase();
+  if (q) list = list.filter((c) => c.text.toLowerCase().includes(q));
+  const removable = !dk.official && dk.id !== "senza";
+
+  const search = el("input", { type: "search", class: "card-search", placeholder: "Cerca una carta…", "aria-label": "Cerca tra le carte",
+    oninput: (e) => { v.q = e.target.value; v.focusSearch = e.target.selectionStart ?? e.target.value.length; cardsScreen(); } });
+  search.value = v.q ?? "";
+  const count = (c) => pool.filter((x) => x.color === c).length;
   const tabBtn = (id, label) => el("button", { type: "button", "aria-pressed": String(v.tab === id),
     onclick: () => { v.tab = id; v.cat = "Tutte"; cardsScreen(); } }, label);
   const catBtn = (name) => el("button", { type: "button", class: "chip", "aria-pressed": String(v.cat === name),
@@ -584,11 +731,8 @@ function cardsScreen() {
     attachHold(node, () => { held.v = true; Sound.play("flip"); cardActions(c, () => cardsScreen()); }, held);
     return node;
   };
-  const toggle = (key, label) => el("button", { type: "button", class: "switch", "aria-pressed": String(d[key]),
-    onclick: () => { const x = loadCustom(); x[key] = !x[key]; saveCustom(x); cardsScreen(); } },
-    `${label}: ${d[key] ? "sì" : "no"}`);
-  // Equilibrio: quante carte per categoria, per aiutare a bilanciare quelle nuove.
-  const balance = (c, pool) => {
+  // Equilibrio: quante carte per categoria in questo mazzo.
+  const balance = (c) => {
     const counts = catsOf(c).map((n) => ({ n, k: pool.filter((x) => x.color === c && x.cat === n).length }));
     const max = Math.max(1, ...counts.map((x) => x.k));
     const min = Math.min(...counts.map((x) => x.k));
@@ -601,14 +745,13 @@ function cardsScreen() {
   };
   const stat = (n, label) => el("div", { class: "stat" }, el("strong", {}, String(n)), el("span", { class: "label" }, label));
 
-  // Pacchetti: esporta le proprie carte, importa quelle ricevute.
-  const packData = () => ({ formato: "cah-pacchetto", versione: 2, white: d.white, black: d.black });
-  const download = () => {
-    const url = URL.createObjectURL(new Blob([JSON.stringify(packData(), null, 2)], { type: "application/json" }));
-    const a = el("a", { href: url, download: "cah-pacchetto.json" });
-    document.body.append(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
+  // Condivisione e ricezione: solo per i mazzi personali.
+  const packData = () => ({ formato: "cah-pacchetto", versione: 2, nome: dk.name,
+    white: d.white.filter((c) => c.deck === deckId).map(({ text, cat }) => ({ text, cat })),
+    black: d.black.filter((c) => c.deck === deckId).map(({ text, cat }) => ({ text, cat })) });
+  const exportBox = el("textarea", { rows: "4", readonly: "", "aria-label": "Il mazzo in testo", onfocus: (e) => e.target.select() });
+  exportBox.value = dk.official ? "" : JSON.stringify(packData());
+  const selectAll = () => { exportBox.focus(); exportBox.select(); exportBox.setSelectionRange(0, exportBox.value.length); };
   const copy = () => {
     selectAll();
     let ok = false;
@@ -616,42 +759,47 @@ function cardsScreen() {
     toast(ok ? "Testo copiato" : "Premi Seleziona tutto, poi copia");
   };
   const pasteIn = el("textarea", { rows: "6", placeholder: "Una frase per riga\nFrase bianca\nFrase con ____ nera", "aria-label": "Frasi da importare" });
-  const exportBox = el("textarea", { rows: "4", readonly: "", "aria-label": "Le tue carte in testo", onfocus: (e) => e.target.select() });
-  exportBox.value = JSON.stringify(packData());
-  const selectAll = () => { exportBox.focus(); exportBox.select(); exportBox.setSelectionRange(0, exportBox.value.length); };
 
   app.replaceChildren(el("section", { class: "cards-screen" },
     el("div", { class: "subhead" },
-      el("button", { type: "button", class: "ghost back", onclick: () => { homeTab = "home"; setup(); } }, "← Home"),
+      el("button", { type: "button", class: "ghost back", onclick: () => { v.deck = null; cardsScreen(); } }, "← Mazzi"),
       el("div", { class: "head-row" },
-        el("h2", { class: "display" }, "Le carte"),
-        el("button", { type: "button", class: "add", onclick: () => openCardForm((c) => { v.tab = c === "b" ? "mine-b" : "mine-w"; cardsScreen(); }) }, "+ Aggiungi"))),
-    el("div", { class: "cstats" },
-      stat(count("w"), "Bianche"), stat(count("b"), "Nere"), stat(mine.length, "Mie")),
-    el("div", { class: "tabs", role: "group", "aria-label": "Tipo di carta" },
-      tabBtn("white", "Bianche"), tabBtn("black", "Nere"), tabBtn("mine-w", "Mie bianche"), tabBtn("mine-b", "Mie nere")),
-    balance(v.tab === "black" || v.tab === "mine-b" ? "b" : "w", all),
-    isMine ? null : el("div", { class: "chips", role: "group", "aria-label": "Categorie" },
-      ["Tutte", ...catsOf(color)].map(catBtn)),
+        el("h2", { class: "display" }, dk.name),
+        dk.official ? null : el("button", { type: "button", class: "add", onclick: () => openCardForm((c) => { v.tab = c === "b" ? "black" : "white"; cardsScreen(); }, deckId) }, "+ Aggiungi"))),
+    el("p", { class: "label" }, dk.official ? "Espansione base · carte ufficiali" : "Mazzo personale"),
+    el("div", { class: "cstats" }, stat(count("w"), "Bianche"), stat(count("b"), "Nere")),
+    el("div", { class: "tabs", role: "group", "aria-label": "Tipo di carta" }, tabBtn("white", "Bianche"), tabBtn("black", "Nere")),
+    search,
+    balance(color),
+    el("div", { class: "chips", role: "group", "aria-label": "Categorie" }, ["Tutte", ...catsOf(color)].map(catBtn)),
     list.length
       ? gridNode(list.map(tile))
-      : el("p", { class: "hidden-msg" }, isMine ? `Non hai ancora carte ${v.tab === "mine-b" ? "nere" : "bianche"} tue: tocca + per aggiungerne.` : "Nessuna carta con questo filtro."),
-    Object.keys(d.hidden).length
+      : el("p", { class: "hidden-msg" }, pool.length ? "Nessuna carta con questo filtro." : "Il mazzo è vuoto: tocca + Aggiungi per inserire una carta."),
+    dk.official && Object.keys(d.hidden).length
       ? el("button", { type: "button", class: "ghost", onclick: () => { const x = loadCustom(); x.hidden = {}; saveCustom(x); cardsScreen(); } },
         `Ripristina ${Object.keys(d.hidden).length} carte eliminate`)
       : null,
-    el("span", { class: "label", style: "margin-top:10px" }, "Nelle partite"),
-    el("div", { class: "switches" }, toggle("useWhite", "Mie bianche"), toggle("useBlack", "Mie nere")),
-    el("span", { class: "label", style: "margin-top:10px" }, "Condividi le tue carte"),
-    el("p", { class: "hidden-msg" }, "Qui sotto c'è il testo con le tue carte. Premi \"Seleziona tutto\", copia e mandalo a chi vuoi."),
-    exportBox,
-    el("div", { class: "pack-row" },
+    removable
+      ? el("div", { class: "deck-actions" },
+        el("button", { type: "button", class: "ghost", onclick: () => openDeckForm(dk, () => cardsScreen()) }, "Rinomina mazzo"),
+        el("button", { type: "button", class: "ghost", onclick: () => deleteDeck(dk) }, "Elimina mazzo"))
+      : null,
+    dk.official ? null : el("span", { class: "label", style: "margin-top:10px" }, "Condividi questo mazzo"),
+    dk.official ? null : exportBox,
+    dk.official ? null : el("div", { class: "pack-row" },
       el("button", { type: "button", onclick: selectAll }, "Seleziona tutto"),
       el("button", { type: "button", onclick: copy }, "Copia")),
-    el("span", { class: "label", style: "margin-top:10px" }, "Ricevi carte"),
-    el("p", { class: "hidden-msg" }, "Incolla le frasi, una per riga: con ____ diventa una nera, senza diventa una bianca. Poi premi Aggiungi."),
-    pasteIn,
-    el("button", { type: "button", class: "primary", onclick: () => importPack(pasteIn.value) }, "Aggiungi le carte")));
+    dk.official ? null : el("span", { class: "label", style: "margin-top:10px" }, "Ricevi carte in questo mazzo"),
+    dk.official ? null : el("p", { class: "hidden-msg" }, "Incolla le frasi, una per riga: con ____ diventa una nera, senza diventa una bianca. Poi premi Aggiungi."),
+    dk.official ? null : pasteIn,
+    dk.official ? null : el("button", { type: "button", class: "primary", onclick: () => importPack(pasteIn.value, deckId) }, "Aggiungi le carte")));
+  // Dopo ogni tasto la schermata si ridisegna: rimetto il cursore nella barra di ricerca.
+  if (v.focusSearch !== undefined) {
+    const pos = v.focusSearch;
+    v.focusSearch = undefined;
+    const input = app.querySelector(".card-search");
+    if (input) { input.focus(); try { input.setSelectionRange(pos, pos); } catch { /* il browser non supporta la posizione */ } }
+  }
 }
 
 function showCardDetail(c, refresh, list = [c]) {
@@ -783,7 +931,9 @@ function applyCat(c, name) {
 }
 
 function deleteCard(c, refresh) {
-  if (!confirm("Eliminare questa carta?")) return;
+  askConfirm("Eliminare questa carta?", () => deleteCardNow(c, refresh));
+}
+function deleteCardNow(c, refresh) {
   const d = loadCustom();
   (c.color === "w" ? d.white : d.black).splice(c.idx, 1);
   saveCustom(d);
@@ -797,7 +947,7 @@ function shareText(c) {
 }
 
 // Nuova carta: bianca o nera, con una delle categorie fisse di quel tipo.
-function openCardForm(done) {
+function openCardForm(done, deckId = "senza") {
   let color = "w";
   const txt = el("textarea", { maxlength: "200", rows: "4", placeholder: "Scrivi la carta…", "aria-label": "Testo della carta" });
   // Categoria: pulsantini in riga invece del menu a tendina del telefono.
@@ -860,7 +1010,7 @@ function openCardForm(done) {
       if (!text.includes("____")) text += " ____";
       if (text.split("____").length - 1 > 3) { toast("Una carta nera può avere al massimo 3 spazi"); return; }
     }
-    (color === "w" ? d.white : d.black).push({ text, cat: color === "w" ? catVal : blackCatFor(text) });
+    (color === "w" ? d.white : d.black).push({ text, cat: color === "w" ? catVal : blackCatFor(text), deck: deckId });
     saveCustom(d);
     bg.remove();
     Sound.play("saved");
@@ -881,7 +1031,7 @@ function openCardForm(done) {
 }
 
 // Testo semplice: una frase per riga. Con ____ è nera, senza è bianca.
-function importLines(text) {
+function importLines(text, deckId = "senza") {
   const d = loadCustom();
   const seen = new Set([...d.white, ...d.black].map((c) => c.text.toLowerCase()));
   let added = 0;
@@ -893,21 +1043,20 @@ function importLines(text) {
     seen.add(t.toLowerCase());
     if (t.includes("____")) {
       if (t.split("____").length - 1 > 3) continue;
-      d.black.push({ text: t, cat: blackCatFor(t) });
+      d.black.push({ text: t, cat: blackCatFor(t), deck: deckId });
     } else {
-      d.white.push({ text: t, cat: defaultCat("w") });
+      d.white.push({ text: t, cat: defaultCat("w"), deck: deckId });
     }
     added++;
   }
   saveCustom(d);
   toast(`Importate ${added} carte`);
-  cardsView.tab = "mine-w";
   cardsScreen();
 }
 
-function importPack(text) {
+function importPack(text, deckId = "senza") {
   const trimmed = String(text).trim();
-  if (trimmed && !trimmed.startsWith("{")) { importLines(trimmed); return; }
+  if (trimmed && !trimmed.startsWith("{")) { importLines(trimmed, deckId); return; }
   let data;
   try { data = JSON.parse(text); } catch { toast("Pacchetto non valido"); return; }
   if (!data || data.formato !== "cah-pacchetto") { toast("Non è un pacchetto di CAH"); return; }
@@ -918,15 +1067,14 @@ function importPack(text) {
   const d = loadCustom();
   const same = (list, x) => list.some((y) => y.text === x.text && y.cat === x.cat);
   let added = 0;
-  for (const c of clean(data.white, "w")) if (!same(d.white, c)) { d.white.push(c); added++; }
+  for (const c of clean(data.white, "w")) if (!same(d.white, c)) { d.white.push({ ...c, deck: deckId }); added++; }
   for (const c of clean(data.black, "b")) {
     if (!c.text.includes("____")) c.text += " ____";
     if (c.text.split("____").length - 1 > 3 || same(d.black, c)) continue;
-    d.black.push(c); added++;
+    d.black.push({ ...c, deck: deckId }); added++;
   }
   saveCustom(d);
   toast(`Importate ${added} carte`);
-  cardsView.tab = "mine-w";
   cardsScreen();
 }
 
@@ -1711,6 +1859,7 @@ function initNet() {
     fbDb = firebase.database();
     fbDb.ref(".info/connected").on("value", (s) => {
       netConnected = !!s.val();
+      if (netConnected) restoreNet();
       if (online) { online.offline = !netConnected; render(); }
     });
   } catch { fbDb = null; }
@@ -1815,6 +1964,27 @@ function leaveNet() {
   }
   hostRoom = null; hostSelf = null; hostCode = null; hostConns.clear();
   joinedCode = null;
+}
+
+// Quando la rete torna, Firebase ha già tolto i "onDisconnect": va ripristinato tutto ciò che era legato alla connessione.
+// Ospite: stanza di nuovo registrata e stato rimandato a tutti. Giocatore: presenza di nuovo segnata e riaggancio con il token.
+function restoreNet() {
+  if (!fbDb) return;
+  try {
+    if (hostRoom && hostCode) {
+      const ref = fbDb.ref(`rooms/${hostCode}`);
+      ref.onDisconnect().remove();
+      ref.update({ host: netId() });
+      hostRoom.refresh();
+    }
+    if (joinedCode && !hostRoom) {
+      const me = fbDb.ref(`rooms/${joinedCode}/presence/${netId()}`);
+      me.onDisconnect().remove();
+      me.set(true);
+      const s = loadSession();
+      if (online?.you && s && s.code === joinedCode) netSend({ type: "resume", code: s.code, token: s.token });
+    }
+  } catch { /* la prossima connessione riprova */ }
 }
 
 function resumeSaved() {
@@ -2147,6 +2317,63 @@ document.head.append(el("style", {}, `
 .balance { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; }
 .bal-row { display: grid; grid-template-columns: 96px 1fr 36px; gap: 10px; align-items: center; font-size: 13px; }
 .bal-name { font-weight: 600; color: var(--fg); }
+.card-search { width: 100%; box-sizing: border-box; padding: 10px 14px; font: inherit; font-size: 15px; color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; }
+.card-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Porta mazzi da scala 40: scatolina rettangolare in lacca opaca, con la fila di carte che spunta in cima, il coperchio con la tacca per le dita e la targhetta. */
+.deck-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; align-items: start; }
+@media (min-width: 640px) { .deck-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.deck-slot { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.deck-box { --tilt: -3deg; position: relative; display: block; width: 100%; aspect-ratio: 5 / 7; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: #efe6d2; -webkit-tap-highlight-color: transparent;
+  transform-style: preserve-3d; transform: perspective(900px) rotateY(var(--tilt)); transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+.deck-slot:nth-child(even) .deck-box { --tilt: 3deg; }
+.deck-box:active { transform: perspective(900px) rotateY(var(--tilt)) scale(.98); }
+@media (hover: hover) { .deck-box:hover { transform: perspective(900px) rotateY(calc(var(--tilt) * .5)) translateY(-2px); } }
+/* Ombra morbida sotto la scatolina, appoggiata sul tavolo. */
+.deck-box::before { content: ""; position: absolute; left: 4%; right: 4%; bottom: -4%; height: 10%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, #0009, transparent); }
+/* Le carte in cima: la fila di bordi bianchi che si vede sopra il coperchio. */
+.deck-box .box-inside { display: none; position: absolute; left: 8%; right: 8%; top: 12%; height: 26%; z-index: 2; border-radius: 3px 3px 0 0; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 100%, hsl(var(--hue) 85% 66% / .85), transparent 70%), linear-gradient(180deg, #05040a, hsl(var(--hue) 35% 10%));
+  box-shadow: inset 0 8px 12px #000e; }
+.deck-box .box-cards { display: none; position: absolute; left: 25%; right: 25%; top: 14%; height: 50%; z-index: 3; border-radius: 6px;
+  background: linear-gradient(160deg, #f7f0e0, #e3d5b4); border: 2px solid #c9a25a; box-shadow: 0 8px 16px #000a, inset 0 0 0 3px #c9a25a55; }
+.deck-box .box-cards::after { content: ""; position: absolute; inset: 24%; background: linear-gradient(160deg, #f0d28a, #a57a33); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+/* Corpo in lacca opaca: sottile bordo chiaro, nessuna decorazione applicata. */
+.deck-box .box-body { position: absolute; left: 0; right: 0; top: 11%; bottom: 0; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; z-index: 1;
+  background:
+    linear-gradient(105deg, #ffffff14 0%, #0000 35%),
+    linear-gradient(180deg, hsl(var(--hue) 22% 17%), hsl(var(--hue) 28% 9%));
+  box-shadow: 0 6px 10px rgba(0,0,0,.4), inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #000b; }
+.deck-box .box-body::before { content: ""; position: absolute; inset: 6px; border-radius: 4px; border: 1px solid #ffffff12; pointer-events: none; }
+.deck-box .box-body::after { display: none; }
+/* Targhetta piatta, senza profondità. */
+.deck-box .box-plate { display: block; background: #e2bd74; border: 1px solid #4a3414; border-radius: 3px; padding: 4px 11px; max-width: 84%; box-shadow: none; }
+.deck-box .box-plate strong { display: block; font-size: 16px; font-weight: 800; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #2a1c0c; text-shadow: none; }
+.deck-box .box-count { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: #e9d19c; text-transform: uppercase; }
+/* Coperchio: pannello separato con la tacca per le dita e una linea di giunzione. */
+.deck-box .box-lid { position: absolute; left: 0; right: 0; top: 11%; height: 30%; z-index: 2; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 6px 6px 3px 3px; transform-origin: 50% 0;
+  background: linear-gradient(105deg, #ffffff12 0%, #0000 40%), linear-gradient(180deg, hsl(var(--hue) 24% 20%), hsl(var(--hue) 30% 12%));
+  box-shadow: inset 0 1px 0 #ffffff26, inset 0 0 0 1px #000b, 0 3px 4px rgba(0,0,0,.45);
+  transition: transform .8s cubic-bezier(.45,.05,.25,1), opacity .5s ease .45s; }
+.deck-box .box-lid::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, #0000, #d8b56a88 20%, #d8b56a88 80%, #0000); }
+.deck-box .box-lid::after { content: ""; position: absolute; top: 0; left: 50%; width: 22%; height: 9%; transform: translateX(-50%); border-radius: 0 0 50% 50%; background: #000c; box-shadow: 0 1px 0 #ffffff1c; }
+.deck-box .box-badge { font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #efd29a; }
+.deck-box .box-badge::before { content: "◆  "; color: #b08d57; }
+.deck-box .box-badge::after { content: "  ◆"; color: #b08d57; }
+.deck-box.opening { transform: perspective(900px) rotateY(var(--tilt)) scale(1.02); }
+.deck-box.opening .box-lid { transform: rotateX(-110deg) translateY(-4%); opacity: 0; }
+.deck-box.opening .box-inside { display: block; animation: glowIn .6s ease .25s both; }
+.deck-box.opening .box-cards { display: block; animation: cardRise 1s cubic-bezier(.2,.7,.2,1) .45s both; }
+@keyframes glowIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cardRise { 0% { transform: translateY(45%) scale(.9); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-40%) scale(1.2); opacity: 1; } }
+.deck-box.off .box-body, .deck-box.off .box-lid { filter: grayscale(.85); opacity: .6; }
+.deck-row { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.deck-row .switch { font-size: 13px; padding: 8px 10px; }
+.deck-row .ghost { font-size: 13px; padding: 8px 10px; }
+.deck-count { font-size: 13px; color: var(--fg); opacity: 0.7; }
+.deck-sample { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.deck-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.sheet-bg.kb-top { align-items: flex-start; padding-top: 6vh; }
 .bal-bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
 .bal-fill { display: block; height: 100%; background: var(--cat); border-radius: 999px; }
 .bal-n { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
@@ -2332,3 +2559,13 @@ document.head.append(el("style", {}, `
 `));
 document.head.append(el("style", {}, `.switches { display: flex; gap: 8px; flex-wrap: wrap; }
 .switches .switch { flex: 1 1 140px; }`));
+
+// Quando si tocca un campo di testo, la pagina (o il foglio) si sposta in alto: la tastiera si apre sotto.
+document.addEventListener("focusin", (e) => {
+  const t = e.target;
+  if (!(t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement)) return;
+  const sheet = t.closest(".sheet-bg");
+  if (sheet) sheet.classList.add("kb-top");
+  setTimeout(() => t.scrollIntoView({ block: "start", behavior: "smooth" }), 350);
+});
+// Il foglio resta in alto finché esiste: se tornasse giù al primo tocco fuori dal campo, il pulsante Salva cambierebbe posto.

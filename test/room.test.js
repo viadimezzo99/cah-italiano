@@ -8,7 +8,7 @@ import vm from "node:vm";
 if (!globalThis.crypto) globalThis.crypto = webcrypto;
 const root = new URL("../", import.meta.url);
 const code = ["src/agreement.js", "src/game.js", "tools/room.js"]
-  .map((f) => readFileSync(new URL(f, root), "utf8").replace(/^export /gm, ""))
+  .map((f) => readFileSync(new URL(f, root), "utf8").replace(/^export /gm, "").replace(/^import .*$/gm, ""))
   .join("\n");
 const cards = JSON.parse(readFileSync(new URL("data/cards.json", root), "utf8"));
 vm.runInThisContext(code + "\nglobalThis.__createRoomHost = createRoomHost;");
