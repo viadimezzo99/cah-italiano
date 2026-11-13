@@ -2885,7 +2885,7 @@
  "black": [
   {
    "id": "b001",
-   "text": "La nuova norma sulla sicurezza ora proibisce ____ sugli aerei.",
+   "text": "Da oggi, sugli aerei, ____ è vietato.",
    "blanks": 1,
    "cat": "1 risposta"
   },
@@ -2897,13 +2897,13 @@
   },
   {
    "id": "b103",
-   "text": "Fra 1.000 anni, quando le banconote saranno soltanto un ricordo lontano, il nostro denaro sarà ____.",
+   "text": "Fra 1.000 anni, quando le banconote saranno un ricordo, ____ sarà l'unica moneta accettata.",
    "cat": "1 risposta",
    "blanks": 1
   },
   {
    "id": "b104",
-   "text": "La Serie A ha vietato ____ perché dà un vantaggio ingiusto ai giocatori.",
+   "text": "____ dà un vantaggio ingiusto ai giocatori, per questo la Serie A lo ha vietato.",
    "cat": "1 risposta",
    "blanks": 1
   },
@@ -2921,7 +2921,7 @@
   },
   {
    "id": "b092",
-   "text": "Sì, ho ucciso ____. Ti domandi come? ____",
+   "text": "Sì, è colpa mia: ____. Ti domandi come? ____.",
    "cat": "1 risposta",
    "blanks": 2
   },
@@ -2939,7 +2939,7 @@
   },
   {
    "id": "b010",
-   "text": "Per il mio prossimo numero tirerò fuori ____ da ____",
+   "text": "Per il mio prossimo numero, ____ farà ridere e ____ farà piangere.",
    "blanks": 2,
    "cat": "2 risposte"
   },
@@ -2969,7 +2969,7 @@
   },
   {
    "id": "b110",
-   "text": "Ti offro ____. Scommetto che non ne desideri soltanto uno!",
+   "text": "Ecco la mia offerta: ____. Scommetto che non ne desideri soltanto uno!",
    "cat": "1 risposta",
    "blanks": 1
   },
@@ -3029,7 +3029,7 @@
   },
   {
    "id": "b106",
-   "text": "Mentre ero sotto gli effetti degli acidi, ho visto ____ trasformarsi in ____",
+   "text": "Mentre ero sotto gli effetti degli acidi, ____ si è trasformato in ____.",
    "cat": "1 risposta",
    "blanks": 2
   },
@@ -3041,13 +3041,13 @@
   },
   {
    "id": "b027",
-   "text": "Dopo il terremoto Sean Penn portò ____ alle persone di Haiti.",
+   "text": "Dopo il terremoto di Haiti, Sean Penn ha portato alle persone: ____.",
    "blanks": 1,
    "cat": "1 risposta"
   },
   {
    "id": "b028",
-   "text": "Invece del carbone la Befana ora porta ai bambini cattivi ____",
+   "text": "Invece del carbone, la Befana porta ai bambini cattivi: ____.",
    "blanks": 1,
    "cat": "1 risposta"
   },
@@ -3083,7 +3083,7 @@
   },
   {
    "id": "b112",
-   "text": "Il mio medico mi ha sconsigliato ____.",
+   "text": "Secondo il mio medico, ____ è sconsigliato.",
    "cat": "1 risposta",
    "blanks": 1
   },
@@ -3131,7 +3131,7 @@
   },
   {
    "id": "b042",
-   "text": "Quando sarò il capo del governo creerò il Ministero del ____",
+   "text": "Quando sarò al governo, il nuovo Ministero si occuperà di ____.",
    "blanks": 1,
    "cat": "1 risposta"
   },
@@ -3155,7 +3155,7 @@
   },
   {
    "id": "b046",
-   "text": "Inventa un haiku. ____",
+   "text": "Inventa un haiku: ____.",
    "blanks": 1,
    "cat": "1 risposta"
   },
@@ -3179,7 +3179,7 @@
   },
   {
    "id": "b115",
-   "text": "Ho un sacco di problemi, ma non ho mai avuto ____.",
+   "text": "Ho un sacco di problemi, ma ____ non è mai stato tra questi.",
    "cat": "1 risposta",
    "blanks": 1
   },
@@ -3209,7 +3209,7 @@
   },
   {
    "id": "b055",
-   "text": "Non avevo veramente compreso ____ finché non incontrai ____",
+   "text": "Non avevo veramente capito: ____ è ____.",
    "blanks": 2,
    "cat": "2 risposte"
   },
@@ -3233,7 +3233,7 @@
   },
   {
    "id": "b117",
-   "text": "Voglio morire facendo ____. Così è come voglio morire!",
+   "text": "____ è il modo in cui voglio morire!",
    "cat": "1 risposta",
    "blanks": 1
   },
@@ -3257,7 +3257,7 @@
   },
   {
    "id": "b063",
-   "text": "Non so con che armi sarà combattuta la terza guerra mondiale. Ma nella quarta si useranno ____",
+   "text": "Non so con che armi sarà combattuta la terza guerra mondiale. Ma nella quarta, ____ sarà l'arma.",
    "blanks": 1,
    "cat": "1 risposta"
   },
@@ -3275,13 +3275,13 @@
   },
   {
    "id": "b066",
-   "text": "LA7D presenta ____ la storia di ____",
+   "text": "LA7D presenta: ____, con la storia di ____.",
    "blanks": 2,
    "cat": "2 risposte"
   },
   {
    "id": "b118",
-   "text": "Ho provato ____: testato dai bambini, approvato dalle madri.",
+   "text": "Ho provato: ____. Testato dai bambini, approvato dalle madri.",
    "cat": "1 risposta",
    "blanks": 1
   },
@@ -3317,13 +3317,13 @@
   },
   {
    "id": "b073",
-   "text": "Gli antropologi hanno recentemente scoperto un'antica tribù che venera ____",
+   "text": "Gli antropologi hanno scoperto un'antica tribù: ____ è il loro dio.",
    "blanks": 1,
    "cat": "1 risposta"
   },
   {
    "id": "b100",
-   "text": "Ma prima che la uccida, signor Bond, le voglio mostrare ____",
+   "text": "Ma prima che la uccida, signor Bond, la mia unica richiesta è ____.",
    "cat": "1 risposta",
    "blanks": 1
   },
@@ -3347,7 +3347,7 @@
   },
   {
    "id": "b078",
-   "text": "Quando sarò milionario erigerò una statua di 30 metri per commemorare ____",
+   "text": "Quando sarò milionario, ____ verrà scolpito in una statua di 30 metri.",
    "blanks": 1,
    "cat": "1 risposta"
   },
@@ -3413,7 +3413,7 @@
   },
   {
    "id": "b089",
-   "text": "Bevo per dimenticare ____",
+   "text": "Bevo per dimenticare: ____ mi perseguita.",
    "blanks": 1,
    "cat": "1 risposta"
   },
@@ -3431,7 +3431,7 @@
   },
   {
    "id": "b123",
-   "text": "Il vigile mi ha fermato per ____ e mi ha chiesto ____.",
+   "text": "Il vigile mi ha fermato: ____. Poi mi ha chiesto ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3449,7 +3449,7 @@
   },
   {
    "id": "b126",
-   "text": "Il guardiano del faro ha raccontato di aver visto ____ con ____.",
+   "text": "Il guardiano del faro ha raccontato: ____, e poi ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3461,25 +3461,25 @@
   },
   {
    "id": "b128",
-   "text": "Il mio cane ha portato al parco ____ e ha lasciato ____ davanti alla porta.",
+   "text": "Il mio cane, al parco, ha portato ____; ____ l'ha lasciato davanti alla porta.",
    "cat": "2 risposte",
    "blanks": 2
   },
   {
    "id": "b129",
-   "text": "La commissione d'esame ha chiesto di ritirare ____ e ____ dal programma.",
+   "text": "La commissione d'esame ha chiesto: ____ e ____ vanno ritirati dal programma.",
    "cat": "2 risposte",
    "blanks": 2
   },
   {
    "id": "b130",
-   "text": "La nuova moda di primavera: ____ abbinato a ____.",
+   "text": "La nuova moda di primavera: ____, abbinato a ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
   {
    "id": "b131",
-   "text": "Il mio terapeuta mi ha consigliato di smettere con ____ e provare ____.",
+   "text": "Il mio terapeuta mi ha consigliato: ____ e ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3509,31 +3509,25 @@
   },
   {
    "id": "b136",
-   "text": "Il regalo perfetto per la suocera: ____ con ____ incluso.",
+   "text": "Il regalo perfetto per la suocera: ____, con ____ incluso.",
    "cat": "2 risposte",
    "blanks": 2
   },
   {
    "id": "b137",
-   "text": "Il mio ex mi ha lasciato per ____, e si è portato via ____.",
-   "cat": "2 risposte",
-   "blanks": 2
-  },
-  {
-   "id": "b138",
-   "text": "Dicono che ____ migliora la vita, purché non si mischi con ____.",
+   "text": "Il mio ex mi ha lasciato: ____. E si è portato via ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
   {
    "id": "b139",
-   "text": "Nel testamento ho lasciato ____ a mio fratello e ____ al gatto.",
+   "text": "Nel testamento ho scritto: ____ va a mio fratello e ____ va al gatto.",
    "cat": "2 risposte",
    "blanks": 2
   },
   {
    "id": "b140",
-   "text": "L'ultima frontiera della tecnologia: ____ da collegare a ____.",
+   "text": "L'ultima frontiera della tecnologia: ____ collegato a ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3545,7 +3539,7 @@
   },
   {
    "id": "b142",
-   "text": "Il sindaco ha annunciato una legge: vietare ____ e rendere obbligatorio ____.",
+   "text": "Il sindaco ha annunciato una legge: ____ sarà vietato, ____ obbligatorio.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3562,20 +3556,14 @@
    "blanks": 2
   },
   {
-   "id": "b145",
-   "text": "Oggi a scuola ho imparato che ____ è più utile di ____.",
-   "cat": "2 risposte",
-   "blanks": 2
-  },
-  {
    "id": "b146",
-   "text": "Il mio oroscopo di oggi dice: attenzione a ____, ____ e ____.",
+   "text": "Il mio oroscopo di oggi dice: ____, ____ e ____ ti porteranno guai.",
    "cat": "3 risposte",
    "blanks": 3
   },
   {
    "id": "b147",
-   "text": "Nel curriculum ho scritto come competenze: ____, ____ e ____.",
+   "text": "Nel curriculum ho scritto: ____, ____ e ____.",
    "cat": "3 risposte",
    "blanks": 3
   },
@@ -3587,37 +3575,37 @@
   },
   {
    "id": "b149",
-   "text": "Il video virale del momento mostra ____, ____ e ____.",
+   "text": "Il video virale del momento: ____, ____ e ____.",
    "cat": "3 risposte",
    "blanks": 3
   },
   {
    "id": "b150",
-   "text": "Il bollettino prevede ____ sulla costa, ____ in collina e ____ sul lungomare.",
+   "text": "Il bollettino: ____ sulla costa, ____ in collina e ____ sul lungomare.",
    "cat": "3 risposte",
    "blanks": 3
   },
   {
    "id": "b151",
-   "text": "Le tre regole del condominio: niente ____, niente ____ e soprattutto niente ____.",
+   "text": "Le tre regole del condominio: ____, ____ e soprattutto ____ sono vietati.",
    "cat": "3 risposte",
    "blanks": 3
   },
   {
    "id": "b152",
-   "text": "La tua scheda personaggio: forza ____, intelligenza ____, carisma ____.",
+   "text": "Tra i tuoi poteri speciali: ____, ____ e ____.",
    "cat": "3 risposte",
    "blanks": 3
   },
   {
    "id": "b153",
-   "text": "Alla fiera del paese vendevano ____, ____ e ____ a un euro.",
+   "text": "Alla fiera del paese: ____, ____ e ____ a un euro.",
    "cat": "3 risposte",
    "blanks": 3
   },
   {
    "id": "b154",
-   "text": "Il maestro di kung fu insegna a usare ____, ____ e ____.",
+   "text": "Il maestro di kung fu ha tre armi segrete: ____, ____ e ____.",
    "cat": "3 risposte",
    "blanks": 3
   },
@@ -3629,19 +3617,19 @@
   },
   {
    "id": "b156",
-   "text": "Nel gioco dei pacchi ho scelto ____, ma il dottore mi ha offerto ____.",
+   "text": "Nel gioco dei pacchi: ____ mi sembrava meglio di ____.",
    "blanks": 2,
    "cat": "2 risposte"
   },
   {
    "id": "b157",
-   "text": "Alla domanda da un milione di euro ho risposto ____, poi ho chiamato ____ da casa.",
+   "text": "Alla domanda da un milione: ____. Poi ho chiamato ____ da casa.",
    "blanks": 2,
    "cat": "2 risposte"
   },
   {
    "id": "b158",
-   "text": "Il conduttore ha annunciato che il premio finale sarà ____ e ____.",
+   "text": "Il conduttore ha annunciato: il premio finale sarà ____ e ____.",
    "blanks": 2,
    "cat": "2 risposte"
   },
@@ -3653,31 +3641,31 @@
   },
   {
    "id": "b160",
-   "text": "Alla Ruota della Fortuna ho comprato la vocale ____ e poi ho scoperto che la soluzione era ____.",
+   "text": "Alla Ruota della Fortuna: ____ mi ha portato alla rovina, la soluzione era ____.",
    "blanks": 2,
    "cat": "2 risposte"
   },
   {
    "id": "b161",
-   "text": "Passaparola: devi far indovinare ____ senza mai dire ____.",
+   "text": "Passaparola: far indovinare ____ è facile, dire ____ è vietato.",
    "blanks": 2,
    "cat": "2 risposte"
   },
   {
    "id": "b162",
-   "text": "Ho sbagliato la risposta facile e ho perso ____ e ____ davanti a tutta l'Italia.",
+   "text": "Ho sbagliato la risposta facile: ____ e ____ sono andati persi davanti a tutta l'Italia.",
    "blanks": 2,
    "cat": "2 risposte"
   },
   {
    "id": "b163",
-   "text": "Reazione a catena: ____, poi ____, infine ____. Qual è la parola che le collega?",
+   "text": "Reazione a catena: prima ____, poi ____, infine ____.",
    "blanks": 3,
    "cat": "3 risposte"
   },
   {
    "id": "b164",
-   "text": "Le tre domande del quiz erano: ____, ____ e ____.",
+   "text": "Il quiz chiede: ____, ____ e ____.",
    "blanks": 3,
    "cat": "3 risposte"
   },
@@ -3689,13 +3677,13 @@
   },
   {
    "id": "b166",
-   "text": "Allo Zecchino d'Oro vince chi canta ____, balla ____ e promette ____.",
+   "text": "Allo Zecchino d'Oro: ____, ____ e ____ sono i segreti della vittoria.",
    "blanks": 3,
    "cat": "3 risposte"
   },
   {
    "id": "b167",
-   "text": "Il rischiatutto: ____ per 10 punti, ____ per 20 punti, ____ per il jackpot!",
+   "text": "Il rischiatutto: ____ vale 10 punti, ____ vale 20 e ____ vale il jackpot!",
    "blanks": 3,
    "cat": "3 risposte"
   },
@@ -3707,13 +3695,7 @@
   },
   {
    "id": "b169",
-   "text": "Nel mio nuovo lavoro mi hanno chiesto di inserire ____ nel report trimestrale.",
-   "blanks": 1,
-   "cat": "1 risposta"
-  },
-  {
-   "id": "b171",
-   "text": "Quello che mia madre non sa è che ____.",
+   "text": "Nel mio nuovo lavoro: ____ va inserito nel report trimestrale.",
    "blanks": 1,
    "cat": "1 risposta"
   },
@@ -3725,7 +3707,7 @@
   },
   {
    "id": "b173",
-   "text": "Alla cena di famiglia ha portato ____ e nessuno ha detto niente.",
+   "text": "Alla cena di famiglia, ____ è stato accolto con silenzio.",
    "blanks": 1,
    "cat": "1 risposta"
   },
@@ -3737,13 +3719,7 @@
   },
   {
    "id": "b175",
-   "text": "Per il mio compleanno vorrei soltanto ____.",
-   "blanks": 1,
-   "cat": "1 risposta"
-  },
-  {
-   "id": "b176",
-   "text": "Il sindaco ha giurato in TV che ____.",
+   "text": "Per il mio compleanno: ____, soltanto questo.",
    "blanks": 1,
    "cat": "1 risposta"
   },
@@ -3755,19 +3731,13 @@
   },
   {
    "id": "b179",
-   "text": "Nel mio nuovo libro racconto ____ e ____.",
-   "blanks": 2,
-   "cat": "2 risposte"
-  },
-  {
-   "id": "b180",
-   "text": "Mia suocera mi ha detto che ____, ma io ho pensato soltanto a ____.",
+   "text": "Nel mio nuovo libro: ____ e ____.",
    "blanks": 2,
    "cat": "2 risposte"
   },
   {
    "id": "b181",
-   "text": "Stasera a cena ho preparato ____ e, come dessert, ____.",
+   "text": "Stasera a cena: ____ e, come dessert, ____.",
    "blanks": 2,
    "cat": "2 risposte"
   },
@@ -3779,9 +3749,177 @@
   },
   {
    "id": "b183",
-   "text": "Le tre cose che non devi mai fare in ascensore: ____, ____ e ____.",
+   "text": "Le tre cose che non si portano mai in ascensore: ____, ____ e ____.",
    "blanks": 3,
    "cat": "3 risposte"
+  },
+  {
+   "id": "b184",
+   "text": "Al posto del caffè ho bevuto ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b185",
+   "text": "Per la mia nonna, ____ è semplice come respirare.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b186",
+   "text": "Nel mio prossimo film il protagonista è ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b187",
+   "text": "Il regalo perfetto per il mio capo è ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b188",
+   "text": "Come rimedio contro il mal di testa: ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b189",
+   "text": "Alla riunione di condominio hanno votato ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b190",
+   "text": "Per la festa di laurea: ____ è stato il regalo del mio amico.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b191",
+   "text": "Il mio nuovo profumo sa di ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b192",
+   "text": "Il vigile mi ha fermato per ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b193",
+   "text": "Per dimagrire, il medico dice: ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b194",
+   "text": "Il tema della prossima maturità è ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b195",
+   "text": "Ho svegliato il vicino con ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b196",
+   "text": "L'ultimo romanzo che ho letto parla di ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b197",
+   "text": "Il nuovo sindaco ha promesso ____ in ogni quartiere.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b198",
+   "text": "Il nome della mia band: ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b199",
+   "text": "Per il pranzo di Natale: ____ è il piatto che ho cucinato.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b200",
+   "text": "La mia password è ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b201",
+   "text": "Sul curriculum, alla voce hobby: ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b202",
+   "text": "Il sogno proibito di mia zia è ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b203",
+   "text": "Il colpevole ha confessato: ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b204",
+   "text": "Al primo appuntamento: ____ è il regalo che ho portato.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b205",
+   "text": "Lo youtuber più seguito d'Italia è famoso per ____.",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b206",
+   "text": "Al supermercato: ____ e, per sbaglio, ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b207",
+   "text": "Il menù del ristorante prevede ____ con ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b208",
+   "text": "La mia guida turistica consiglia: ____ e ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b209",
+   "text": "Mio figlio chiede in regalo: ____ e ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b210",
+   "text": "Per il mio compleanno: ____ e ____.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b211",
+   "text": "Nel finale della serie: ____ e ____ compaiono insieme.",
+   "blanks": 2,
+   "cat": "2 risposte"
   }
  ]
 }

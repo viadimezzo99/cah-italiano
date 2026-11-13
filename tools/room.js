@@ -362,6 +362,10 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
     rooms,
     handle,
     leave,
+    // Rimanda lo stato a tutti i telefoni collegati (dopo che la rete dell'ospite è tornata).
+    refresh() {
+      for (const room of rooms.values()) broadcast(room);
+    },
     // Connessione per un telefono. send riceve la stringa JSON da inviargli.
     connection(id, sendRaw) {
       return { id, send: sendRaw, room: null, playerId: null, onClose: null };

@@ -1,3 +1,4 @@
+import { blankAccepts } from "./agreement.js";
 // Motore delle regole di Cards Against Humanity (versione italiana).
 // Nessuna dipendenza esterna: gira identico nel server Node e nel client.
 // Ogni mutazione restituisce una lista di eventi, utile per animare la UI.
@@ -215,11 +216,37 @@ export class Game {
     if (this.currentBlack) this.blackDiscard.push(this.currentBlack.id);
     this.currentBlack = this.blackById.get(this.drawBlack());
     this.round += 1;
+    this.ensureFit();
     this.submissions = new Map();
     this.jollyTexts = new Map();
     this.revealOrder = [];
     this.phase = "playing";
     events.push({ type: "round", round: this.round, judgeId: this.judge.id, blackId: this.currentBlack.id });
+  }
+
+  // Ogni giocatore che deve rispondere ha in mano almeno due carte che entrano in ogni spazio della nera:
+  // se non le ha, ne prende dal mazzo al posto di quelle che non entrano. Così le frasi reggono più spesso.
+  ensureFit() {
+    const black = this.currentBlack;
+    if (!black || !black.blanks) return;
+    const accepts = blankAccepts(black.text);
+    const fitsSlot = (acc) => (id) => { const w = this.whiteById.get(id); return !!w && acc.includes(w.family); };
+    for (const p of this.players) {
+      if (this.judge && p.id === this.judge.id) continue;
+      for (const acc of accepts) {
+        const fits = fitsSlot(acc);
+        while (p.hand.filter(fits).length < 2) {
+          const idx = this.deck.findIndex(fits);
+          if (idx < 0) break;
+          const victim = p.hand.findIndex((id) => id !== JOLLY && !fits(id));
+          if (victim < 0) break;
+          const [incoming] = this.deck.splice(idx, 1);
+          const [out] = p.hand.splice(victim, 1, incoming);
+          this.deck.push(out);
+          this.pool.white.add(incoming);
+        }
+      }
+    }
   }
 
   /**

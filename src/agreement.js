@@ -550,3 +550,30 @@ export function fillSentence(blackText, whites) {
 export function sentencePlain(blackText, whites) {
   return fillSentence(blackText, whites).map((s) => (s.t === "slot" ? "____" : s.v)).join("");
 }
+
+// Spazi e carte bianche: quale tipo di risposta entra in ogni spazio della carta nera.
+// Dopo "che" entrano solo frasi; in inizio frase, dopo due punti o nelle liste entrano nomi, infiniti e frasi;
+// dopo una preposizione, un verbo o una congiunzione entrano quasi tutti; dopo un nome solo nomi.
+export const ALL_FAMILIES = ["NOME_NUDO", "NOME_DETERMINATO", "INFINITO", "FRASE"];
+export const NOUN_FAMILIES = ["NOME_NUDO", "NOME_DETERMINATO"];
+const SLOT_PREP = new Set("a da di in con su per tra fra nel nella nei sul sulla dopo prima senza contro verso sotto sopra".split(" "));
+const SLOT_VERB = new Set("è sono ho ha hanno vorrei cerco regalo prevede consiglia chiede compaiono promesso votato bevuto usare sa parla dice".split(" "));
+const SLOT_LIST = new Set(["e", "o", "ma", "oppure"]);
+
+/** Famiglie di carta bianca accettate dallo spazio che segue il testo `before`. */
+export function acceptsAt(before) {
+  const raw = before.replace(/\s+$/, "");
+  if (raw === "" || /[:.,;!?"]$/.test(raw)) return ALL_FAMILIES;
+  if (/\bche$/i.test(raw)) return ["FRASE"];
+  const last = (raw.toLowerCase().match(/[a-zàèéìòù']+$/) || [""])[0];
+  if (SLOT_PREP.has(last) || SLOT_VERB.has(last) || SLOT_LIST.has(last)) return ALL_FAMILIES;
+  return NOUN_FAMILIES;
+}
+
+/** Per ogni spazio della carta nera, le famiglie di carta bianca che ci possono stare. */
+export function blankAccepts(blackText) {
+  const parts = blackText.split("____");
+  const out = [];
+  for (let i = 0; i < parts.length - 1; i++) out.push(acceptsAt(parts[i]));
+  return out;
+}

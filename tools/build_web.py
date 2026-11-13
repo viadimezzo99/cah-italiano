@@ -1,6 +1,7 @@
 """Assembla la pagina: motore, accordi, audio, mazzo e interfaccia in un solo HTML."""
 import base64
 import json
+import re
 from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent
@@ -12,7 +13,7 @@ reggenze = read("data/reggenze.json").replace("</", "<\\/")
 inflect = read("data/lexicon_it/inflect.json").replace("</", "<\\/")
 verbs3 = read("data/lexicon_it/verbs3.json").replace("</", "<\\/")
 engine = (f"const LEX = {lex};\nconst REGGENZE = {reggenze};\nconst INFLECT = {inflect};\nconst VERBS3 = {verbs3};\n"
-          + read("src/game.js") + "\n" + read("src/agreement.js"))
+          + re.sub(r"^import .*\n", "", read("src/game.js"), flags=re.M) + "\n" + read("src/agreement.js"))
 import base64
 # Brano del menu, incorporato nella pagina (nessun file esterno).
 menu_mp3 = "data:audio/mpeg;base64," + base64.b64encode((root / "tools/menu.mp3").read_bytes()).decode()
