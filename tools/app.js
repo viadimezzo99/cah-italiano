@@ -118,7 +118,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.26";
+const APP_VERSION = "0.2.28";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
