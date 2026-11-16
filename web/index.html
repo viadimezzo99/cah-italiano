@@ -2762,7 +2762,7 @@ function askBotName(n, onOk) {
     close();
     onOk(name);
   };
-  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) close(); } },
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg && downTarget === bg) close(); } },
     el("div", { class: "sheet card-form" },
       el("p", { class: "label" }, "Nome del bot"),
       el("div", { class: "nrow" }, input),
@@ -2925,7 +2925,7 @@ function openSettings() {
   ];
 
   const sheet = el("div", { class: "sheet", role: "dialog", "aria-label": "Impostazioni" }, buildSheetContent());
-  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) close(); } }, sheet);
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg && downTarget === bg) close(); } }, sheet);
   document.body.append(bg);
 }
 
@@ -3342,7 +3342,7 @@ function openDeckBox(box, go) {
   if (document.body.classList.contains("no-motion") || !box.animate) { go(); return; }
   box.classList.add("opening");
   Sound.play("flip");
-  setTimeout(go, 1250);
+  setTimeout(go, 1500);
 }
 
 // Tinta stabile per ogni mazzo, dal nome.
@@ -3387,6 +3387,12 @@ function cardsScreen() {
 }
 
 // Schermata dei mazzi: una anteprima per mazzo, con il conteggio e due carte di esempio.
+// Una carta bianca vera del mazzo, mostrata mentre esce dalla scatola.
+function sampleCard(cards) {
+  const whites = cards.filter((c) => c.color === "w");
+  return whites.length ? whites[Math.floor(Math.random() * whites.length)].text : "";
+}
+
 function renderDecks() {
   const v = cardsView;
   const { orig, mine } = allCards();
@@ -3400,7 +3406,8 @@ function renderDecks() {
     return el("div", { class: "deck-slot", style: `--hue:${hue}` },
       el("button", { type: "button", class: `deck-box${dk.use ? "" : " off"}`, "aria-label": `Apri il mazzo ${dk.name}`,
         onclick: (e) => openDeckBox(e.currentTarget, go) },
-        el("span", { class: "box-inside" }, el("span", { class: "box-cards" })),
+        el("span", { class: "box-inside" }),
+        el("span", { class: "box-cards" }, el("span", { class: "box-card pcard w", style: "--k:.5" }, el("span", { class: "txt" }, sampleCard(cards)))),
         el("span", { class: "box-lid" }, el("span", { class: "box-badge" }, dk.official ? "Espansione base" : "Mazzo")),
         el("span", { class: "box-body" },
           el("span", { class: "box-plate" }, el("strong", { class: "display" }, dk.name)),
@@ -3551,7 +3558,7 @@ function showCardDetail(c, refresh, list = [c]) {
     const dx = e.clientX - x0; x0 = null;
     if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
   });
-  const bg = el("div", { class: "zoom-bg", onclick: (e) => { if (e.target === bg) close(); } },
+  const bg = el("div", { class: "zoom-bg", onclick: (e) => { if (e.target === bg && downTarget === bg) close(); } },
     el("div", { class: "detail" },
       el("div", { class: "sheet-nav" },
         el("button", { type: "button", class: "ghost icon", "aria-label": "Carta precedente", onclick: () => step(-1) }, "‹"),
@@ -3570,7 +3577,7 @@ function showCardDetail(c, refresh, list = [c]) {
 // Pressione lunga: categoria, copia, elimina.
 function cardActions(c, refresh) {
   const close = () => bg.remove();
-  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) close(); } },
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg && downTarget === bg) close(); } },
     el("div", { class: "sheet card-form" },
       el("p", { class: "label" }, c.cat),
       el("p", { class: "action-text" }, c.text),
@@ -3632,7 +3639,7 @@ function openCardEditor(c, refresh) {
     close();
     refresh();
   };
-  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) close(); } },
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg && downTarget === bg) close(); } },
     el("div", { class: "sheet card-form" },
       el("p", { class: "label" }, c.mine ? "Modifica la tua carta" : "Modifica la carta ufficiale"),
       txt,
@@ -4835,7 +4842,7 @@ function attachHold(node, fn, flag = null, release = null) {
     clearTimeout(t);
     document.addEventListener("pointerup", end, true);
     document.addEventListener("pointercancel", end, true);
-    t = setTimeout(() => { open = true; fn(); }, 380);
+    t = setTimeout(() => { open = true; fn(); }, 650);
   });
   node.addEventListener("pointermove", (e) => {
     if (!open && Math.hypot(e.clientX - sx, e.clientY - sy) > 10) clearTimeout(t);
@@ -5045,7 +5052,7 @@ document.head.append(el("style", {}, `
 .deck-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; align-items: start; }
 @media (min-width: 640px) { .deck-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .deck-slot { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.deck-box { --tilt: -3deg; position: relative; display: block; width: 100%; aspect-ratio: 5 / 7; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: #efe6d2; -webkit-tap-highlight-color: transparent;
+.deck-box { --tilt: -3deg; position: relative; display: block; width: 100%; aspect-ratio: 5 / 7.6; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: #efe6d2; -webkit-tap-highlight-color: transparent;
   transform-style: preserve-3d; transform: perspective(900px) rotateY(var(--tilt)); transition: transform .45s cubic-bezier(.2,.7,.2,1); }
 .deck-slot:nth-child(even) .deck-box { --tilt: 3deg; }
 .deck-box:active { transform: perspective(900px) rotateY(var(--tilt)) scale(.98); }
@@ -5057,9 +5064,10 @@ document.head.append(el("style", {}, `
 .deck-box .box-inside { display: none; position: absolute; left: 8%; right: 8%; top: 12%; height: 26%; z-index: 2; border-radius: 3px 3px 0 0; overflow: hidden;
   background: radial-gradient(ellipse at 50% 100%, hsl(var(--hue) 85% 66% / .85), transparent 70%), linear-gradient(180deg, #05040a, hsl(var(--hue) 35% 10%));
   box-shadow: inset 0 8px 12px #000e; }
-.deck-box .box-cards { display: none; position: absolute; left: 25%; right: 25%; top: 14%; height: 50%; z-index: 3; border-radius: 6px;
-  background: linear-gradient(160deg, #f7f0e0, #e3d5b4); border: 2px solid #c9a25a; box-shadow: 0 8px 16px #000a, inset 0 0 0 3px #c9a25a55; }
-.deck-box .box-cards::after { content: ""; position: absolute; inset: 24%; background: linear-gradient(160deg, #f0d28a, #a57a33); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.deck-box .box-cards { display: none; position: absolute; left: 0; right: 0; top: -100%; height: 140%; z-index: 3; overflow: hidden; pointer-events: none; }
+/* La carta sta nella scatola sotto il bordo d'uscita (il fondo del vano): sale e si vede solo quando esce. */
+.deck-box .box-card { position: absolute; left: 11%; width: 78%; top: 100%; background: #fff; color: #111; border: 1px solid #c9a25a; border-radius: 6px; box-shadow: 0 6px 14px #0009; transform-origin: 50% 100%; backface-visibility: hidden; }
+.deck-box .box-card .txt { font-size: 9px; line-height: 1.2; font-weight: 700; padding: 6px; }
 /* Corpo in lacca opaca: sottile bordo chiaro, nessuna decorazione applicata. */
 .deck-box .box-body { position: absolute; left: 0; right: 0; top: 11%; bottom: 0; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; z-index: 1;
   background:
@@ -5085,9 +5093,14 @@ document.head.append(el("style", {}, `
 .deck-box.opening { transform: perspective(900px) rotateY(var(--tilt)) scale(1.02); }
 .deck-box.opening .box-lid { transform: rotateX(-110deg) translateY(-4%); opacity: 0; }
 .deck-box.opening .box-inside { display: block; animation: glowIn .6s ease .25s both; }
-.deck-box.opening .box-cards { display: block; animation: cardRise 1s cubic-bezier(.2,.7,.2,1) .45s both; }
+.deck-box.opening .box-cards { display: block; }
+.deck-box.opening .box-card { animation: cardOut 1.15s cubic-bezier(.4,.1,.25,1) .3s both; }
 @keyframes glowIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes cardRise { 0% { transform: translateY(45%) scale(.9); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-40%) scale(1.2); opacity: 1; } }
+@keyframes cardOut {
+  0% { transform: translateY(0) rotateX(22deg); }
+  55% { transform: translateY(-28%) rotateX(7deg); }
+  100% { transform: translateY(-55%) rotateX(0deg); }
+}
 .deck-box.off .box-body, .deck-box.off .box-lid { filter: grayscale(.85); opacity: .6; }
 .deck-row { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
 .deck-row .switch { font-size: 13px; padding: 8px 10px; }
@@ -5283,6 +5296,10 @@ document.head.append(el("style", {}, `.switches { display: flex; gap: 8px; flex-
 .switches .switch { flex: 1 1 140px; }`));
 
 // Quando si tocca un campo di testo, la pagina (o il foglio) si sposta in alto: la tastiera si apre sotto.
+// Chiudo un foglio solo se il tocco è cominciato e finito sullo sfondo: se il campo di testo si sposta
+// sotto il dito quando si apre la tastiera, il rilascio non deve chiudere la schermata.
+let downTarget = null;
+document.addEventListener("pointerdown", (e) => { downTarget = e.target; }, true);
 document.addEventListener("focusin", (e) => {
   const t = e.target;
   if (!(t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement)) return;
