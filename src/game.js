@@ -11,6 +11,7 @@ export const JOLLY_MAX = 80;
 export const DEFAULTS = {
   handSize: 10,
   winScore: 8, // le regole non fissano una fine: è un'opzione della stanza
+  jolly: true, // la regola del jolly (il Re vince il jolly con il Memory): si sceglie a inizio partita
 };
 
 // Generatore pseudo-casuale deterministico (mulberry32) per test ripetibili.
@@ -254,7 +255,7 @@ export class Game {
    * Se qualcuno lo tiene già, o il turno non è più in corso, non succede nulla.
    */
   awardJolly(playerId) {
-    if (this.phase !== "playing" || this.jollyHolder !== null) return [];
+    if (!this.opts.jolly || this.phase !== "playing" || this.jollyHolder !== null) return [];
     if (!this.judge || this.judge.id !== playerId) return [];
     if (this.submissions.size >= this.players.length - 1) return [];
     const p = this.player(playerId);
@@ -453,6 +454,7 @@ export class Game {
   /** Stato pubblico: nessuna carta coperta visibile a nessun altro giocatore. */
   publicState(forPlayerId) {
     return {
+      jolly: this.opts.jolly !== false,
       phase: this.phase,
       round: this.round,
       canReshuffle: forPlayerId ? this.canReshuffle(forPlayerId) : false,

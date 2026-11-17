@@ -128,16 +128,17 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
   }
 
   // Avvia una partita: la stessa per il primo giro (host) e per i giri successivi (tutti pronti).
-  function startGame(room, winScore, custom) {
+  function startGame(room, winScore, custom, jolly = true) {
     room.winScore = winScore;
     room.custom = custom;
+    room.jolly = jolly;
     for (const p of room.players) p.ready = false;
     // Il registro delle carte uscite resta alla stanza: le partite successive non ripetono carte.
     room.pool ??= { white: new Set(), black: new Set() };
     room.game = new Game(
       room.players.map((p) => ({ id: p.id, name: p.name, isBot: !!p.isBot })),
       mergeCustom(cards, custom),
-      { winScore, pool: room.pool },
+      { winScore, pool: room.pool, jolly },
     );
     room.game.start();
     afterChange(room);
@@ -147,7 +148,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
   function maybeAutoStart(room) {
     if (room.game || !room.winScore) return;
     const seated = room.players.filter((p) => p.conn || p.isBot);
-    if (seated.length >= ROOM_MIN_PLAYERS && seated.every((p) => p.isBot || p.ready)) startGame(room, room.winScore, room.custom);
+    if (seated.length >= ROOM_MIN_PLAYERS && seated.every((p) => p.isBot || p.ready)) startGame(room, room.winScore, room.custom, room.jolly);
   }
 
   function addPlayer(room, conn, name) {
@@ -254,7 +255,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         if (room.game) throw new Error("La partita è già iniziata");
         if (room.players.length < ROOM_MIN_PLAYERS) throw new Error(`Servono almeno ${ROOM_MIN_PLAYERS} giocatori`);
         const winScore = ROOM_WIN_SCORES.includes(msg.winScore) ? msg.winScore : 5;
-        startGame(room, winScore, msg.custom);
+        startGame(room, winScore, msg.custom, msg.jolly !== false);
         return;
       }
       case "play": {

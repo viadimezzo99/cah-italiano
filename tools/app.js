@@ -28,7 +28,7 @@ function saveSettings() {
 let settings = loadSettings();
 let unlocked = false;   // l'audio parte solo dopo un gesto dell'utente
 let game = null;
-let cfg = { names: ["Tu"], bots: [], winScore: 5 }; // partita locale: persone e bot, mazzo scelto prima
+let cfg = { names: ["Tu"], bots: [], winScore: 5, jolly: true }; // partita locale: persone e bot, mazzo scelto prima
 
 // Nomi di fantasia suggeriti per i bot: chi aggiunge il bot può cambiarli.
 const BOT_SUGGEST = ["Tana", "Tega", "Tino", "Tone", "Jack"];
@@ -118,7 +118,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.31";
+const APP_VERSION = "0.2.32";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -353,6 +353,10 @@ function localPanel() {
     type: "button", "aria-pressed": String(cfg.winScore === n),
     onclick: () => { cfg.winScore = n; setup(); },
   }, `${n} punti`));
+  const jollyBtns = [["Sì", true], ["No", false]].map(([label, v]) => el("button", {
+    type: "button", "aria-pressed": String(cfg.jolly === v),
+    onclick: () => { cfg.jolly = v; setup(); },
+  }, label));
   const deckBtns = deckToggleList();
 
   refresh();
@@ -365,6 +369,8 @@ function localPanel() {
     cfg.names.length + cfg.bots.length < 10 ? el("button", { type: "button", class: "ghost", onclick: () => askBotName(cfg.bots.length, (name) => { cfg.bots.push(name); setup(); }) }, "+ Aggiungi bot") : null,
     el("span", { class: "label" }, "Vittoria · decidetela prima di iniziare"),
     el("div", { class: "seg" }, winBtns),
+    el("span", { class: "label" }, "Jolly · il Re lo vince con il Memory"),
+    el("div", { class: "seg" }, jollyBtns),
     el("span", { class: "label" }, "Carte · quali mazzi entrano"),
     el("div", { class: "seg" }, deckBtns),
     hint,
@@ -379,7 +385,7 @@ function start() {
   const players = [...names.map((name, i) => ({ id: `h${i}`, name })), ...bots];
   localGameSeq++;
   botsScheduled = null;
-  game = new Game(players, deckFor(), { winScore: cfg.winScore, pool: localPool });
+  game = new Game(players, deckFor(), { winScore: cfg.winScore, pool: localPool, jolly: cfg.jolly });
   selected = [];
   judgeSel = null;
   viewer = null;
@@ -1641,7 +1647,7 @@ function render() {
   } else if (isJudge) {
     // Il Memory esiste solo online: in locale il telefono passa di mano, quindi non avrebbe senso.
     // TEMPORANEO (prova del Memory in locale): MEMORY_LOCAL_TEST = false prima della release.
-    note = ((online || MEMORY_LOCAL_TEST) && s.jollyHolder === null && !(mem && mem.won && mem.round === s.round)) ? memoryBoard(s) : el("p", { class: "hidden-msg" }, "Sei il Re: aspetta che gli altri confermino.");
+    note = ((online || MEMORY_LOCAL_TEST) && s.jolly !== false && s.jollyHolder === null && !(mem && mem.won && mem.round === s.round)) ? memoryBoard(s) : el("p", { class: "hidden-msg" }, "Sei il Re: aspetta che gli altri confermino.");
   } else if (s.phase === "playing" && !me.hasPlayed) {
     note = null;   // niente istruzioni in primo piano: la carta nera stessa dice quando è pronta
   } else if (me.hasPlayed) {
@@ -1833,6 +1839,7 @@ let hostSelf = null;       // connessione del padrone di casa verso la propria s
 const hostConns = new Map();
 let joinedCode = null;     // stanza a cui sono collegato come giocatore
 let onlineWin = 5;
+let onlineJolly = true;   // regola del jolly scelta dall'ospite per la stanza
 let homeTab = "home";   // "local" | "online" nella schermata iniziale
 let onlineName = "";
 let onlineError = "";
@@ -2059,7 +2066,7 @@ function makeAdapter(m) {
     currentBlack: s.black,
     winner: s.winner,
     lastWinner: s.lastWinner,
-    opts: { winScore: s.winScore },
+    opts: { winScore: s.winScore, jolly: s.jolly !== false },
     publicState: () => s,
     player: (id) => s.players.find((p) => p.id === id),
     text: (id) => [...handOf(), ...(s.reveal || []).flatMap((r) => r.cards)].find((c) => c.id === id)?.text ?? "",
@@ -2187,6 +2194,10 @@ function renderLobby() {
     type: "button", "aria-pressed": String(onlineWin === n),
     onclick: () => { onlineWin = n; render(); },
   }, `${n} punti`));
+  const jollySeg = [["Sì", true], ["No", false]].map(([label, v]) => el("button", {
+    type: "button", "aria-pressed": String(onlineJolly === v),
+    onclick: () => { onlineJolly = v; render(); },
+  }, label));
   app.replaceChildren(
     el("section", { class: "setup" },
       lobbyHead(),
@@ -2203,11 +2214,13 @@ function renderLobby() {
           `${p.name}${p.id === st.hostId ? " · host" : ""}${p.id === online.you ? " (tu)" : ""}${p.ready ? " · pronto" : ""}`))),
         isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Vittoria") : null,
         isHost ? el("div", { class: "seg" }, seg) : null,
+        isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Jolly · il Re lo vince con il Memory") : null,
+        isHost ? el("div", { class: "seg" }, jollySeg) : null,
         // Dopo una partita la stanza resta aperta: ognuno si dichiara pronto, e quando lo sono tutti si ricomincia.
         me ? el("button", { type: "button", class: me.ready ? "ghost" : "primary", onclick: () => netSend({ type: "ready" }) },
           me.ready ? "Pronto: aspetto gli altri" : "Sono pronto") : null,
         isHost
-          ? el("button", { type: "button", class: "primary", disabled: !ok, onclick: () => netSend({ type: "start", winScore: onlineWin, custom: customPayload() }) }, "Avvia partita")
+          ? el("button", { type: "button", class: "primary", disabled: !ok, onclick: () => netSend({ type: "start", winScore: onlineWin, jolly: onlineJolly, custom: customPayload() }) }, "Avvia partita")
           : el("p", { class: "hidden-msg" }, ok ? "In attesa che l'host avvii la partita." : "Servono almeno 3 giocatori per iniziare."),
         isHost && !ok ? el("p", { class: "hidden-msg" }, "Servono almeno 3 giocatori: aggiungi dei bot se siete meno.") : null,
         // Con pochi amici: l'ospite aggiunge dei bot (con il nome che sceglie), che giocano sul suo telefono.
