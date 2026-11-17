@@ -118,7 +118,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.30";
+const APP_VERSION = "0.2.31";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -1721,8 +1721,10 @@ function render() {
   const reveal = () => { curtain = false; Sound.play("deal"); render(); };
   const who = curtain ? el("div", { class: "curtain", role: "dialog", "aria-label": "È il turno di", onclick: reveal },
     el("div", { class: "iw" },
-      el("span", {}, "È il turno di"),
-      el("span", { class: "cur-slot" }, el("span", { class: "cur-gap" }), el("span", { class: "cur-name" }, me.name)),
+      me.name === "Tu"
+        ? el("span", {}, "È il tuo turno")
+        : [el("span", {}, "È il turno di"),
+           el("span", { class: "cur-slot" }, el("span", { class: "cur-gap" }), el("span", { class: "cur-name" }, me.name))],
       el("span", { class: "cur-sub" }, "Le tue carte sono nascoste finché non tocchi."))) : null;
 
   // Al primo render di pausa la carta resta visibile: sarà shrinkWinner a farla rimpicciolire.
