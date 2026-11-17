@@ -47,6 +47,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
       you: player.id,
       hostId: room.hostId,
       turnSeconds,
+      jolly: room.jollyChoice !== false,   // scelta dell'ospite per la prossima partita: la vedono tutti
       players: room.players.map((p) => ({ id: p.id, name: p.name, isBot: !!p.isBot, connected: !!p.conn || !!p.isBot, ready: !!p.isBot || !!p.ready })),
       game: g ? { ...g.publicState(player.id), winScore: g.opts.winScore, lastWinner: g.lastWinner } : null,
     };
@@ -221,7 +222,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         const proposed = String(msg.code ?? "").toUpperCase();
         let code = /^[A-Z2-9]{4}$/.test(proposed) ? proposed : randomCode();
         if (rooms.has(code)) throw new Error("Codice già usato, riprova");
-        const room = { code, hostId: null, players: [], game: null, timer: null, botTimer: null, cleanup: null };
+        const room = { code, hostId: null, players: [], game: null, timer: null, botTimer: null, cleanup: null, jollyChoice: true };
         rooms.set(code, room);
         addPlayer(room, conn, name);
         broadcast(room);
@@ -255,7 +256,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         if (room.game) throw new Error("La partita è già iniziata");
         if (room.players.length < ROOM_MIN_PLAYERS) throw new Error(`Servono almeno ${ROOM_MIN_PLAYERS} giocatori`);
         const winScore = ROOM_WIN_SCORES.includes(msg.winScore) ? msg.winScore : 5;
-        startGame(room, winScore, msg.custom, msg.jolly !== false);
+        startGame(room, winScore, msg.custom, typeof msg.jolly === "boolean" ? msg.jolly : room.jollyChoice !== false);
         return;
       }
       case "play": {
@@ -334,6 +335,15 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         room.game = null;
         for (const p of room.players) p.ready = false;
         afterChange(room);
+        return;
+      }
+      case "setJolly": {
+        // Nella lobby l'ospite sceglie se la prossima partita avrà la regola del jolly: lo vedono tutti.
+        const { room, player } = requireRoom(conn);
+        if (room.hostId !== player.id) throw new Error("Solo chi ha creato la stanza può cambiare il jolly");
+        if (room.game) throw new Error("La partita è già in corso");
+        room.jollyChoice = msg.jolly !== false;
+        broadcast(room);
         return;
       }
       case "addBot": {

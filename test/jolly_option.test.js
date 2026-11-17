@@ -50,3 +50,16 @@ test("stanza online: il jolly spento arriva alla partita", () => {
   assert.equal(room.game.opts.jolly, false);
   assert.equal(room.game.publicState(null).jolly, false);
 });
+
+test("lobby: la scelta del jolly la fa l'ospite e la vedono tutti", () => {
+  const host = __createRoomHost2({ cards, turnSeconds: 0 });
+  const mk = () => { const inbox = []; return { conn: host.connection("y", (r) => inbox.push(JSON.parse(r))), last: (t) => [...inbox].reverse().find((m) => m.type === t) }; };
+  const a = mk(), b = mk();
+  host.handle(a.conn, { type: "create", name: "A", code: "LOBJ" });
+  host.handle(b.conn, { type: "join", code: "LOBJ", name: "B" });
+  host.handle(a.conn, { type: "setJolly", jolly: false });
+  assert.equal(b.last("state").jolly, false, "il giocatore vede la scelta");
+  host.handle(b.conn, { type: "setJolly", jolly: true });
+  assert.match(b.last("error").message, /Solo chi ha creato/);
+  assert.equal(b.last("state").jolly, false, "la scelta resta dell'ospite");
+});
