@@ -2945,7 +2945,7 @@
   },
   {
    "id": "b011",
-   "text": "____ + ____ = ____",
+   "text": "Il risultato di ____ e ____ è ____.",
    "blanks": 3,
    "cat": "3 risposte"
   },
@@ -3419,7 +3419,7 @@
   },
   {
    "id": "b121",
-   "text": "Ti va di provare ____? Dammi un cinque, fratello!",
+   "text": "Ti va di ____? Dammi un cinque, fratello!",
    "cat": "1 risposta",
    "blanks": 1
   },
@@ -3431,7 +3431,7 @@
   },
   {
    "id": "b123",
-   "text": "Il vigile mi ha fermato: ____. Poi mi ha chiesto ____.",
+   "text": "Il vigile mi ha fermato: ____. Poi mi ha chiesto di ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3449,7 +3449,7 @@
   },
   {
    "id": "b126",
-   "text": "Il guardiano del faro ha raccontato: ____, e poi ____.",
+   "text": "Il guardiano del faro ha raccontato: ____, e ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3461,7 +3461,7 @@
   },
   {
    "id": "b128",
-   "text": "Il mio cane, al parco, ha portato ____; ____ l'ha lasciato davanti alla porta.",
+   "text": "Il mio cane, al parco, ha portato: ____; e ____ davanti alla porta.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3485,7 +3485,7 @@
   },
   {
    "id": "b132",
-   "text": "Il colpo di scena finale: ____, ma in realtà era ____.",
+   "text": "Il colpo di scena finale: è ____, ma in realtà è ____.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3515,7 +3515,7 @@
   },
   {
    "id": "b137",
-   "text": "Il mio ex mi ha lasciato: ____. E si è portato via ____.",
+   "text": "Il mio ex mi ha lasciato per colpa di ____, e ____ se l'è portato via.",
    "cat": "2 risposte",
    "blanks": 2
   },
@@ -3587,7 +3587,7 @@
   },
   {
    "id": "b151",
-   "text": "Le tre regole del condominio: ____, ____ e soprattutto ____ sono vietati.",
+   "text": "Nel regolamento del condominio è scritto: ____, ____ e ____ sono vietati.",
    "cat": "3 risposte",
    "blanks": 3
   },
@@ -3623,13 +3623,13 @@
   },
   {
    "id": "b157",
-   "text": "Alla domanda da un milione: ____. Poi ho chiamato ____ da casa.",
+   "text": "Alla domanda da un milione ho risposto: ____. Poi ho telefonato a ____ da casa.",
    "blanks": 2,
    "cat": "2 risposte"
   },
   {
    "id": "b158",
-   "text": "Il conduttore ha annunciato: il premio finale sarà ____ e ____.",
+   "text": "Il conduttore ha annunciato: il premio finale è ____ o ____.",
    "blanks": 2,
    "cat": "2 risposte"
   },
@@ -3641,13 +3641,13 @@
   },
   {
    "id": "b160",
-   "text": "Alla Ruota della Fortuna: ____ mi ha portato alla rovina, la soluzione era ____.",
+   "text": "Alla Ruota della Fortuna: ____ mi ha portato alla rovina, la soluzione è ____.",
    "blanks": 2,
    "cat": "2 risposte"
   },
   {
    "id": "b161",
-   "text": "Passaparola: far indovinare ____ è facile, dire ____ è vietato.",
+   "text": "Passaparola: ____ è facile da far indovinare, ma è vietato parlare di ____.",
    "blanks": 2,
    "cat": "2 risposte"
   },
@@ -3659,7 +3659,7 @@
   },
   {
    "id": "b163",
-   "text": "Reazione a catena: prima ____, poi ____, infine ____.",
+   "text": "Reazione a catena: ____, ____ e ____.",
    "blanks": 3,
    "cat": "3 risposte"
   },
