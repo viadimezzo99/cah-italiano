@@ -73,7 +73,7 @@ const BOT_JUDGE_STEP_MS = 2500;      // tempo tra un passo e l'altro del Re bot 
 let jollyDraft = "";                  // testo scritto a mano sul jolly, mentre lo si compone sulla carta nera
 let mem = null;                       // Memory del Re: tessere, carte aperte, round a cui appartiene
 const MEMORY_IMGS = /*MEMORY_IMGS*/[];
-const MEMORY_LOCAL_TEST = true;   // TEMPORANEO: Memory anche nelle partite locali, per la prova
+const MEMORY_LOCAL = true;   // Memory anche nelle partite locali: la regola del jolly vale in entrambe le modalità
 const JOLLY_IMG = "/*JOLLY_IMG*/";   // carta jolly in mano
 const MEMORY_HUE = [0, 30, -25, 45, -40, 20, -15, 60];   // una tonalità diversa per ogni coppia
 let wordsShown = 0;                  // quante parole sono già comparse sulla carta nera (non si ripetono)
@@ -118,7 +118,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.32";
+const APP_VERSION = "0.2.33";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -334,7 +334,7 @@ function localPanel() {
     const ok = total >= 3;
     startBtn.disabled = !ok;
     hint.textContent = ok
-      ? `${total} giocatori${cfg.bots.length ? ` (${cfg.bots.length} bot)` : ""} · vittoria a ${cfg.winScore} punti · ${decksInGame()} mazzi nelle partite`
+      ? `${total} giocatori${cfg.bots.length ? ` (${cfg.bots.length} bot)` : ""} · vittoria a ${cfg.winScore} punti · jolly ${cfg.jolly ? "sì" : "no"} · ${decksInGame()} mazzi nelle partite`
       : "Servono almeno 3 giocatori: aggiungi dei bot se siete meno.";
   };
 
@@ -1646,8 +1646,7 @@ function render() {
     if (!online && !roundTimer) roundTimer = setTimeout(nextRound, LOCAL_ROUND_PAUSE_MS);
   } else if (isJudge) {
     // Il Memory esiste solo online: in locale il telefono passa di mano, quindi non avrebbe senso.
-    // TEMPORANEO (prova del Memory in locale): MEMORY_LOCAL_TEST = false prima della release.
-    note = ((online || MEMORY_LOCAL_TEST) && s.jolly !== false && s.jollyHolder === null && !(mem && mem.won && mem.round === s.round)) ? memoryBoard(s) : el("p", { class: "hidden-msg" }, "Sei il Re: aspetta che gli altri confermino.");
+    note = ((online || MEMORY_LOCAL) && s.jolly !== false && s.jollyHolder === null && !(mem && mem.won && mem.round === s.round)) ? memoryBoard(s) : el("p", { class: "hidden-msg" }, "Sei il Re: aspetta che gli altri confermino.");
   } else if (s.phase === "playing" && !me.hasPlayed) {
     note = null;   // niente istruzioni in primo piano: la carta nera stessa dice quando è pronta
   } else if (me.hasPlayed) {
@@ -1839,7 +1838,6 @@ let hostSelf = null;       // connessione del padrone di casa verso la propria s
 const hostConns = new Map();
 let joinedCode = null;     // stanza a cui sono collegato come giocatore
 let onlineWin = 5;
-let onlineJolly = true;   // regola del jolly scelta dall'ospite per la stanza
 let homeTab = "home";   // "local" | "online" nella schermata iniziale
 let onlineName = "";
 let onlineError = "";
@@ -2194,9 +2192,10 @@ function renderLobby() {
     type: "button", "aria-pressed": String(onlineWin === n),
     onclick: () => { onlineWin = n; render(); },
   }, `${n} punti`));
+  const jollyNow = st.jolly !== false;   // scelta dell'ospite: la vedono tutti
   const jollySeg = [["Sì", true], ["No", false]].map(([label, v]) => el("button", {
-    type: "button", "aria-pressed": String(onlineJolly === v),
-    onclick: () => { onlineJolly = v; render(); },
+    type: "button", "aria-pressed": String(jollyNow === v),
+    onclick: () => netSend({ type: "setJolly", jolly: v }),
   }, label));
   app.replaceChildren(
     el("section", { class: "setup" },
@@ -2215,12 +2214,12 @@ function renderLobby() {
         isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Vittoria") : null,
         isHost ? el("div", { class: "seg" }, seg) : null,
         isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Jolly · il Re lo vince con il Memory") : null,
-        isHost ? el("div", { class: "seg" }, jollySeg) : null,
+        isHost ? el("div", { class: "seg" }, jollySeg) : el("p", { class: "hidden-msg" }, `Jolly: ${jollyNow ? "sì" : "no"}`),
         // Dopo una partita la stanza resta aperta: ognuno si dichiara pronto, e quando lo sono tutti si ricomincia.
         me ? el("button", { type: "button", class: me.ready ? "ghost" : "primary", onclick: () => netSend({ type: "ready" }) },
           me.ready ? "Pronto: aspetto gli altri" : "Sono pronto") : null,
         isHost
-          ? el("button", { type: "button", class: "primary", disabled: !ok, onclick: () => netSend({ type: "start", winScore: onlineWin, jolly: onlineJolly, custom: customPayload() }) }, "Avvia partita")
+          ? el("button", { type: "button", class: "primary", disabled: !ok, onclick: () => netSend({ type: "start", winScore: onlineWin, custom: customPayload() }) }, "Avvia partita")
           : el("p", { class: "hidden-msg" }, ok ? "In attesa che l'host avvii la partita." : "Servono almeno 3 giocatori per iniziare."),
         isHost && !ok ? el("p", { class: "hidden-msg" }, "Servono almeno 3 giocatori: aggiungi dei bot se siete meno.") : null,
         // Con pochi amici: l'ospite aggiunge dei bot (con il nome che sceglie), che giocano sul suo telefono.
