@@ -56,22 +56,31 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
     for (const p of room.players) if (p.conn) send(p.conn, stateFor(room, p));
   }
 
+  // Il tempo del turno è fissato all'inizio della fase (stessa partita, stesso round, stessa fase).
+  // Ogni azione, riconnessione o passo dei bot richiama questa funzione: se il turno è lo stesso, il conto alla rovescia non riparte.
   function scheduleTurn(room) {
+    const g = room.game;
+    const f = room.timerFor;
+    if (g && room.timer && f && f.game === g && f.phase === g.phase && f.round === g.round) return;
     clearTimeout(room.timer);
     room.timer = null;
-    const g = room.game;
+    room.timerFor = null;
     if (!g || !turnSeconds) return;
     const ms = { playing: turnSeconds * 1000, judging: turnSeconds * 1000, roundEnd: ROOM_PAUSE_MS }[g.phase];
     if (!ms) return;
     const { phase, round } = g;
+    room.timerFor = { game: g, phase, round };
     room.timer = setTimeout(() => {
       room.timer = null;
-      if (g.phase !== phase || g.round !== round) return;
+      room.timerFor = null;
+      if (room.game !== g || g.phase !== phase || g.round !== round) return;
       try {
         // Tempo scaduto: l'ospite gioca per chi non ha risposto, o sceglie per il Re.
         if (phase === "playing") {
+          // Un giocatore senza carte sufficienti non blocca gli altri.
           for (const p of g.players) {
-            if (p.id !== g.judge.id && !g.submissions.has(p.id)) g.autoPlay(p.id);
+            if (p.id === g.judge.id || g.submissions.has(p.id)) continue;
+            try { g.autoPlay(p.id); } catch { /* questo giocatore resta in attesa */ }
           }
         } else if (phase === "judging") {
           g.autoPick();
@@ -79,8 +88,8 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
           g.nextRound();
         }
       } catch { /* stato già cambiato */ }
-      scheduleTurn(room);
-      broadcast(room);
+      // Come dopo ogni azione: nuovo turno, stato a tutti e bot che devono muoversi.
+      afterChange(room);
     }, ms);
   }
 
@@ -319,12 +328,11 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         // Dalla schermata di vittoria si torna alla stanza: la partita finisce, tutti devono confermare di nuovo.
         const { room } = requireRoom(conn);
         if (!room.game || room.game.phase !== "over") throw new Error("La partita non è finita");
-        clearTimeout(room.timer);
         clearTimeout(room.botTimer);
-        room.timer = null;
+        room.botTimer = null;
         room.game = null;
         for (const p of room.players) p.ready = false;
-        broadcast(room);
+        afterChange(room);
         return;
       }
       case "addBot": {

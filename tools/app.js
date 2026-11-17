@@ -34,7 +34,7 @@ let cfg = { names: ["Tu"], bots: [], winScore: 5 }; // partita locale: persone e
 const BOT_SUGGEST = ["Tana", "Tega", "Tino", "Tone", "Jack"];
 function askBotName(n, onOk) {
   const input = el("input", { type: "text", maxlength: "16", value: BOT_SUGGEST[n % BOT_SUGGEST.length], "aria-label": "Nome del bot" });
-  const close = () => bg.remove();
+  const close = () => closeSheet(bg);
   const ok = () => {
     const name = input.value.replace(/\s+/g, " ").trim().slice(0, 16) || BOT_SUGGEST[n % BOT_SUGGEST.length];
     close();
@@ -118,7 +118,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.29";
+const APP_VERSION = "0.2.30";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -164,7 +164,7 @@ function updateBox() {
 }
 
 function openSettings() {
-  const close = () => { bg.remove(); };
+  const close = () => { closeSheet(bg); };
   const set = (key, value) => { settings[key] = value; saveSettings(); applySettings(); rebuild(); };
   const seg = (key, options) => el("div", { class: "seg" }, options.map(([v, label]) =>
     el("button", { type: "button", "aria-pressed": String(settings[key] === v), onclick: () => set(key, v) }, label)));
@@ -233,6 +233,7 @@ function still(key) {
 
 function setup() {
   game = null;
+  localGameSeq++;
   still("setup:" + homeTab);
   Sound.setTheme("menu");
   document.body.classList.remove("in-game");
@@ -376,6 +377,8 @@ function start() {
   const names = cfg.names.map((n, i) => (n || "").trim().slice(0, 16) || `Giocatore ${i + 1}`);
   const bots = cfg.bots.map((n, i) => ({ id: `b${i}`, name: n.trim() || BOT_SUGGEST[i % BOT_SUGGEST.length], isBot: true }));
   const players = [...names.map((name, i) => ({ id: `h${i}`, name })), ...bots];
+  localGameSeq++;
+  botsScheduled = null;
   game = new Game(players, deckFor(), { winScore: cfg.winScore, pool: localPool });
   selected = [];
   judgeSel = null;
@@ -601,15 +604,15 @@ function openDeckForm(current, done) {
     if (current) { const k = x.decks.find((y) => y.id === current.id); if (k) k.name = name; }
     else { id = `m${Date.now().toString(36)}`; x.decks.push({ id, name, use: true }); }
     saveCustom(x);
-    bg.remove();
+    closeSheet(bg);
     done(id);
   };
-  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) bg.remove(); } },
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg && downTarget === bg) closeSheet(bg); } },
     el("div", { class: "sheet card-form" },
       el("p", { class: "label" }, current ? "Rinomina il mazzo" : "Nuovo mazzo"),
       input,
       el("div", { class: "actions" },
-        el("button", { type: "button", class: "ghost", onclick: () => bg.remove() }, "Annulla"),
+        el("button", { type: "button", class: "ghost", onclick: () => closeSheet(bg) }, "Annulla"),
         el("button", { type: "button", class: "primary", onclick: save }, "Salva"))));
   document.body.append(bg);
   input.focus();
@@ -644,12 +647,12 @@ function deleteDeck(dk) {
 
 // Conferma dentro la pagina: confirm() del browser non funziona nelle anteprime.
 function askConfirm(text, yes) {
-  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) bg.remove(); } },
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg && downTarget === bg) closeSheet(bg); } },
     el("div", { class: "sheet card-form" },
       el("p", { class: "label" }, text),
       el("div", { class: "actions" },
-        el("button", { type: "button", class: "ghost", onclick: () => bg.remove() }, "Annulla"),
-        el("button", { type: "button", class: "primary", onclick: () => { bg.remove(); yes(); } }, "Elimina"))));
+        el("button", { type: "button", class: "ghost", onclick: () => closeSheet(bg) }, "Annulla"),
+        el("button", { type: "button", class: "primary", onclick: () => { closeSheet(bg); yes(); } }, "Elimina"))));
   document.body.append(bg);
 }
 
@@ -815,7 +818,7 @@ function showCardDetail(c, refresh, list = [c]) {
   const card = el("div", { class: "zoom" });
   const counter = el("p", { class: "hidden-msg" });
   const catRow = el("div", { class: "chips", role: "group", "aria-label": "Categoria" });
-  const close = () => bg.remove();
+  const close = () => closeSheet(bg);
   const paint = () => {
     cur = list[idx] ?? cur;
     card.className = `zoom ${cur.color === "w" ? "w" : "b"}`;
@@ -854,7 +857,7 @@ function showCardDetail(c, refresh, list = [c]) {
 
 // Pressione lunga: categoria, copia, elimina.
 function cardActions(c, refresh) {
-  const close = () => bg.remove();
+  const close = () => closeSheet(bg);
   const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg && downTarget === bg) close(); } },
     el("div", { class: "sheet card-form" },
       el("p", { class: "label" }, c.cat),
@@ -896,7 +899,7 @@ function openCardEditor(c, refresh) {
     onclick: () => { cat = name; paint(); },
   }, name)));
   paint();
-  const close = () => bg.remove();
+  const close = () => closeSheet(bg);
   const save = () => {
     let text = txt.value.replace(/\s+/g, " ").trim();
     if (!text) { toast("Scrivi il testo della carta"); return; }
@@ -1019,11 +1022,11 @@ function openCardForm(done, deckId = "senza") {
     }
     (color === "w" ? d.white : d.black).push({ text, cat: color === "w" ? catVal : blackCatFor(text), deck: deckId });
     saveCustom(d);
-    bg.remove();
+    closeSheet(bg);
     Sound.play("saved");
     done(color);
   };
-  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg) bg.remove(); } },
+  const bg = el("div", { class: "sheet-bg", onclick: (e) => { if (e.target === bg && downTarget === bg) closeSheet(bg); } },
     el("div", { class: "sheet card-form" },
       el("div", { class: "seg" }, wBtn, bBtn),
       txt,
@@ -1032,7 +1035,7 @@ function openCardForm(done, deckId = "senza") {
       el("p", { class: "hidden-msg" }, "Bianca: una frase o un oggetto. Nera: scrivi ____ dove va la risposta."),
       catRow,
       el("div", { class: "actions" },
-        el("button", { type: "button", class: "ghost", onclick: () => bg.remove() }, "Annulla"),
+        el("button", { type: "button", class: "ghost", onclick: () => closeSheet(bg) }, "Annulla"),
         el("button", { type: "button", class: "primary", onclick: save }, "Salva carta"))));
   document.body.append(bg);
 }
@@ -1116,8 +1119,10 @@ function step() {
 const BOT_PLAY_MIN_MS = 20000;
 const BOT_PLAY_MAX_MS = 60000;
 let botsScheduled = null;   // { round, ids }: bot già programmati per questo turno
+let localGameSeq = 0;       // cambia a ogni nuova partita: i timer dei bot della partita precedente non devono più agire
 function scheduleLocalBots() {
   const round = game.round;
+  const seq = localGameSeq;
   if (!botsScheduled || botsScheduled.round !== round) botsScheduled = { round, ids: new Set() };
   for (const p of game.players) {
     if (!p.isBot || p.id === game.judge.id || game.submissions.has(p.id) || botsScheduled.ids.has(p.id)) continue;
@@ -1125,7 +1130,7 @@ function scheduleLocalBots() {
     // Lento solo quando il Re sei tu (per il Memory); negli altri turni i bot rispondono come prima.
     const delay = game.judge.isBot ? 2000 : BOT_PLAY_MIN_MS + Math.random() * (BOT_PLAY_MAX_MS - BOT_PLAY_MIN_MS);
     setTimeout(() => {
-      if (!game || game.phase !== "playing" || game.round !== round || game.submissions.has(p.id)) return;
+      if (seq !== localGameSeq || !game || game.phase !== "playing" || game.round !== round || game.submissions.has(p.id)) return;
       game.autoPlay(p.id);
       step();
     }, delay);
@@ -2578,6 +2583,16 @@ document.head.append(el("style", {}, `.switches { display: flex; gap: 8px; flex-
 // sotto il dito quando si apre la tastiera, il rilascio non deve chiudere la schermata.
 let downTarget = null;
 document.addEventListener("pointerdown", (e) => { downTarget = e.target; }, true);
+// Chiusura dei fogli: scendono e sfumano, poi vengono tolti. Un solo passaggio per foglio.
+function closeSheet(bg) {
+  if (!bg || bg.dataset.closing) return;
+  bg.dataset.closing = "1";
+  bg.style.pointerEvents = "none";
+  const sheet = bg.querySelector(".sheet");
+  bg.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170, easing: "ease-in", fill: "forwards" });
+  if (sheet) sheet.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(40px)", opacity: 0 }], { duration: 170, easing: "ease-in", fill: "forwards" });
+  setTimeout(() => bg.remove(), 180);
+}
 document.addEventListener("focusin", (e) => {
   const t = e.target;
   if (!(t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement)) return;
