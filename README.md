@@ -16,8 +16,21 @@ Il client grafico e il server online verranno aggiunti dopo.
 ```
 python3 tools/build_cards.py <sorgente.tex> data/cards.json
 npm test
+npm run typecheck
 npm run play
 ```
+
+## Controllo dei tipi
+
+Il codice resta JavaScript: nessuna compilazione, l'app non cambia. TypeScript legge i file e i commenti JSDoc
+e segnala gli errori prima che arrivino nell'app (nomi sbagliati, argomenti mancanti, valori che possono essere null).
+
+- `tsconfig.json` — motore (`src/`) e server: controllo anche dei valori null.
+- `tsconfig.web.json` — script della pagina (`tools/app.js`, `room.js`, `audio.js`, `spell.js`), che nel file finale
+  condividono lo stesso spazio di nomi.
+- `types/` — forme condivise (carte, partita, lessico) e nomi globali della pagina.
+
+Il controllo gira anche su GitHub prima di compilare l'APK.
 
 ## Decisioni aperte
 

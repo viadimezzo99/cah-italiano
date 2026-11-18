@@ -14,6 +14,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Prima dell'APK: controllo dei tipi e test. Se falliscono, l'APK non si compila.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Controllo dei tipi e test
+        run: |
+          npm install --no-audit --no-fund
+          npm run typecheck
+          npm test
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

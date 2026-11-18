@@ -237,7 +237,7 @@ export function createApp({ cards, pageHtml, turnSeconds = 60, reconnectMs = 10 
   }
 
   const server = createServer((req, res) => {
-    const { pathname } = new URL(req.url, "http://localhost");
+    const { pathname } = new URL(req.url ?? "/", "http://localhost");
     if (pathname === "/" || pathname === "/index.html") {
       res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
       res.end(pageHtml);
@@ -248,7 +248,7 @@ export function createApp({ cards, pageHtml, turnSeconds = 60, reconnectMs = 10 
   });
 
   server.on("upgrade", (req, socket, head) => {
-    if (new URL(req.url, "http://localhost").pathname !== "/ws") {
+    if (new URL(req.url ?? "/", "http://localhost").pathname !== "/ws") {
       socket.destroy();
       return;
     }

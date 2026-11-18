@@ -106,7 +106,7 @@ const el = (tag, attrs = {}, ...kids) => {
 
 function applySettings() {
   const root = document.documentElement;
-  root.style.setProperty("--ts", 1);   // il testo non si regola a mano: segue la grandezza della carta
+  root.style.setProperty("--ts", "1");   // il testo non si regola a mano: segue la grandezza della carta
   root.style.setProperty("--cs", settings.cardScale);
   root.style.setProperty("--card-font", FONTS[settings.font].css);
   if (settings.theme === "system") root.removeAttribute("data-theme");
@@ -123,7 +123,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.41";
+const APP_VERSION = "0.2.42";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -471,7 +471,7 @@ function localPanel() {
     type: "button", "aria-pressed": String(cfg.winScore === n),
     onclick: () => { cfg.winScore = n; setup(); },
   }, `${n} punti`));
-  const jollyBtns = [["Sì", true], ["No", false]].map(([label, v]) => el("button", {
+  const jollyBtns = /** @type {[string, boolean][]} */ ([["Sì", true], ["No", false]]).map(([label, v]) => el("button", {
     type: "button", "aria-pressed": String(cfg.jolly === v),
     onclick: () => { cfg.jolly = v; setup(); },
   }, label));
@@ -501,9 +501,18 @@ function start() {
   const names = cfg.names.map((n, i) => (n || "").trim().slice(0, 16) || `Giocatore ${i + 1}`);
   const bots = cfg.bots.map((n, i) => ({ id: `b${i}`, name: n.trim() || BOT_SUGGEST[i % BOT_SUGGEST.length], isBot: true }));
   const players = [...names.map((name, i) => ({ id: `h${i}`, name })), ...bots];
+  // Mazzo base spento e mazzi personali senza carte nere (o bianche): la partita non può partire.
+  const deck = deckFor();
+  if (!deck.black.length || !deck.white.length) {
+    Sound.play("error");
+    toast(!deck.black.length
+      ? "I mazzi scelti non hanno carte nere: attiva il mazzo base o aggiungi una carta nera."
+      : "I mazzi scelti non hanno carte bianche: attiva il mazzo base o aggiungi delle carte bianche.");
+    return;
+  }
   localGameSeq++;
   botsScheduled = null;
-  game = new Game(players, deckFor(), { winScore: cfg.winScore, pool: localPool, jolly: cfg.jolly });
+  game = new Game(players, deck, { winScore: cfg.winScore, pool: localPool, jolly: cfg.jolly });
   selected = [];
   judgeSel = null;
   viewer = null;
@@ -651,45 +660,10 @@ function allCards() {
 
 // Un'unica schermata: carte, categorie, interruttori per le proprie carte, pacchetti.
 // Griglia delle carte: 2, 4 o 6 colonne. Due dita che si avvicinano aumentano le colonne, che si allontanano le riducono.
-const GRID_STEPS = [2, 4, 6];
-let gridCols = (() => { try { const v = Number(localStorage.getItem("cah-grid-cols")); return GRID_STEPS.includes(v) ? v : 2; } catch (e) { return 2; } })();
-function setGridCols(n) {
-  gridCols = n;
-  try { localStorage.setItem("cah-grid-cols", String(n)); } catch (e) { /* memoria del browser non disponibile */ }
-}
-// Cambio di colonne animato: ogni carta parte dalla vecchia posizione e scorre nella nuova.
-function regrid(node, next) {
-  const tiles = [...node.children];
-  const before = tiles.map((t) => t.getBoundingClientRect());
-  setGridCols(next);
-  node.style.setProperty("--cols", String(next));
-  node.style.setProperty("--k", String(2 / next));
-  fitText(node);
-  if (document.body.classList.contains("no-motion") || !node.animate) return;
-  tiles.forEach((t, i) => {
-    const a = before[i], b = t.getBoundingClientRect();
-    if (!a.width || !b.width || !b.height) return;
-    t.animate([
-      { transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width}, ${a.height / b.height})`, transformOrigin: "0 0" },
-      { transform: "none", transformOrigin: "0 0" },
-    ], { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)" });
-  });
-}
+// Griglia delle carte: sempre due colonne. Niente zoom né cambio di colonne con le dita.
+const GRID_COLS = 2;
 function gridNode(children) {
-  const node = el("div", { class: "cgrid", style: `--cols:${gridCols};--k:${2 / gridCols}` }, children);
-  const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-  let d0 = 0;
-  node.addEventListener("touchstart", (e) => { if (e.touches.length === 2) d0 = dist(e.touches); }, { passive: true });
-  node.addEventListener("touchmove", (e) => {
-    if (e.touches.length !== 2 || !d0) return;
-    const d = dist(e.touches);
-    const i = GRID_STEPS.indexOf(gridCols);
-    let next = null;
-    if (d < d0 * 0.8 && i < GRID_STEPS.length - 1) next = GRID_STEPS[i + 1];      // si avvicinano: più carte
-    else if (d > d0 * 1.25 && i > 0) next = GRID_STEPS[i - 1];                   // si allontanano: carte più grandi
-    if (next !== null) { regrid(node, next); d0 = d; }
-  }, { passive: true });
-  node.addEventListener("touchend", (e) => { if (e.touches.length < 2) d0 = 0; }, { passive: true });
+  const node = el("div", { class: "cgrid", style: `--cols:${GRID_COLS};--k:${2 / GRID_COLS}` }, children);
   requestAnimationFrame(() => fitText(node)); // il testo si adatta alla densità scelta
   return node;
 }
@@ -941,7 +915,7 @@ function renderDeck(deckId, partial = false) {
   const fab = dk.official ? null : el("button", { type: "button", class: "fab", "aria-label": "Nuova carta",
     onclick: () => openCardForm({ deckId, done: (c) => { v.tab = c === "b" ? "black" : "white"; v.cat = "Tutte"; v.q = ""; cardsScreen(); } }) }, "+");
 
-  const current = app.querySelector(".deck-shell");
+  const current = /** @type {HTMLElement|null} */ (app.querySelector(".deck-shell"));
   if (partial && current && current.dataset.deck === deckId) {
     app.querySelector(".deck-body").replaceWith(body);
   } else {
@@ -997,6 +971,7 @@ function deleteCardNow(c, refresh) {
 
 // Una scheda sola per carta: nuova (bianca o nera) o modifica. Nera: la categoria segue gli spazi ____.
 // Bianca: si sceglie la categoria.
+/** @param {{card?: any, deckId?: string, done?: (color?: string) => void}} [opts] */
 function openCardForm({ card = null, deckId = "senza", done = () => {} } = {}) {
   let color = card ? card.color : "w";
   let catVal = card ? card.cat : catsOf("w")[0];
@@ -1210,7 +1185,7 @@ function updateJollyPreview() {
 
 // Il V del giocatore si accende solo quando il jolly ha un testo.
 function syncJollyReady() {
-  const v = app.querySelector(".cc-v");
+  const v = /** @type {HTMLButtonElement|null} */ (app.querySelector(".cc-v"));
   if (v && selected.includes(JOLLY)) v.disabled = !jollyDraft.trim();
 }
 
@@ -1411,6 +1386,11 @@ function previewWhites(s) {
   return out;
 }
 
+/**
+ * @param {any} s stato pubblico della partita
+ * @param {string[]} whites testi da inserire negli spazi
+ * @param {{canPlay?: boolean, label?: string, slam?: boolean, jollyAt?: number}} [opts]
+ */
 function blackCard(s, whites, { canPlay, label, slam, jollyAt = -1 } = {}) {
   const segs = fillSentence(s.black.text, whites);
   // Solo le parole appena inserite si animano; le altre restano ferme quando si tocca altro.
@@ -1428,7 +1408,7 @@ function blackCard(s, whites, { canPlay, label, slam, jollyAt = -1 } = {}) {
       // Il punto (o la virgola) che segue la risposta resta attaccato all'ultima parola: non va mai a capo da solo.
       const next = segs[idx + 1];
       const punct = next && next.t === "text" ? (next.v.match(/^[.,;:!?]+/) || [""])[0] : "";
-      if (punct) { next.v = next.v.slice(punct.length); }
+      if (punct && next.t === "text") { next.v = next.v.slice(punct.length); }
       const m = x.v.match(/^(.*?)(\S+)$/s);
       const body = m ? m[1] : "";
       const last = (m ? m[2] : x.v) + punct;
@@ -1447,6 +1427,13 @@ function blackCard(s, whites, { canPlay, label, slam, jollyAt = -1 } = {}) {
 const CROWN_SVG = '<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M4 34 L8 9 L22 22 L32 3 L42 22 L56 9 L60 34 Z" fill="#ff7a3d"/><rect x="4" y="31" width="56" height="7" rx="2" fill="#ff7a3d"/></svg>';
 
 // Schermata di vittoria per tutti: stesso stile del passaggio di turno, con la corona e un segnaposto per punto.
+// Chi gioca con il nome "Tu" vince in seconda persona: "Hai vinto tu, grazie alla tua…", non "Ha vinto Tu… alla sua".
+const isYou = (name) => name === "Tu";
+const wonLabel = (name) => (isYou(name) ? "Hai vinto" : "Ha vinto");
+function toSecondPerson(line) {
+  const map = { suo: "tuo", sua: "tua", suoi: "tuoi", sue: "tue" };
+  return line.replace(/\b(suo|sua|suoi|sue)\b/g, (w) => map[w]).replace(/\bnon sa\b/g, "non sai");
+}
 const WINNER_LINES = [
   "Grazie al suo talento nel parlare con i piccioni.",
   "Grazie alla sua collezione di pantofole che parlano.",
@@ -1562,11 +1549,12 @@ function renderWinner() {
   crown.innerHTML = CROWN_SVG;
   // Come l'apertura: corona e "Ha vinto", una casella per il nome, "grazie" in bianco,
   // poi una casella sotto per la frase. Le caselle si riempiono dall'alto in basso.
-  const rest = winnerLine.replace(/^Grazie\s+/i, "");
-  app.replaceChildren(el("div", { class: "crown-screen" + (again ? " done" : ""), role: "dialog", "aria-label": `Ha vinto ${w.name}` },
+  const rest0 = winnerLine.replace(/^Grazie\s+/i, "");
+  const rest = isYou(w.name) ? toSecondPerson(rest0) : rest0;
+  app.replaceChildren(el("div", { class: "crown-screen" + (again ? " done" : ""), role: "dialog", "aria-label": `${wonLabel(w.name)} ${w.name}` },
     el("div", { class: "iw" },
       crown,
-      el("span", { class: "cr-line" }, "Ha vinto"),
+      el("span", { class: "cr-line" }, wonLabel(w.name)),
       el("span", { class: "cr-slot" }, el("span", { class: "cr-gap" }), el("span", { class: "cr-name" }, w.name)),
       el("span", { class: "cr-line" }, "grazie"),
       el("span", { class: "cr-pslot" }, el("span", { class: "cr-pgap" }), el("span", { class: "cr-phrase" }, rest))),
@@ -1657,7 +1645,7 @@ function render() {
   if (s.phase === "over") {
     const w = game.player(game.winner);
     note = el("div", { class: "banner win" },
-      el("h2", {}, `Ha vinto ${w.name}`),
+      el("h2", {}, `${wonLabel(w.name)} ${w.name}`),
       el("p", { class: "hidden-msg" }, `Punteggio finale: ${w.score} punti.`),
       el("button", { class: "primary", type: "button", onclick: exitGame }, "Nuova partita"));
   } else if (judging && showPrivate) {
@@ -1674,7 +1662,6 @@ function render() {
     } else {
       // Solo le carte: un tocco seleziona, poi sulla carta compaiono la X (torna) e la V (conferma).
       note = null;
-      const enter = enterPending;
       enterPending = false;
       mainCard = comboRow(s, judgeSel, true);
     }
@@ -1739,14 +1726,12 @@ function render() {
         const idx = selected.indexOf(c.id);
         // Con una sola risposta da dare, toccarne un'altra sostituisce la scelta; con più risposte si deseleziona prima.
         const full = need > 1 && selected.length >= need && idx < 0;
-        const held = { v: false };
         const node = el("button", {
           class: "card" + (idx >= 0 ? " sel" : "") + (deal ? " deal" : ""),
           type: "button",
           disabled: !canSelect || full,
           "aria-pressed": String(idx >= 0),
           onclick: () => {
-            if (held.v) return;
             if (c.jolly) { if (idx >= 0) jollyKeyboard().blur(); else { const k = jollyKeyboard(); k.value = jollyDraft; k.focus(); } }
             // Scelte in ordine: deselezionando la prima, la seconda diventa la prima.
             if (idx >= 0) selected.splice(idx, 1);
@@ -1762,7 +1747,6 @@ function render() {
         if (c.jolly) node.classList.add("jolly");
         else node.append(el("span", { class: "kind" }, KIND[c.cat] ?? c.cat));
         if (c.jolly) return node;
-        attachHold(node, () => { held.v = true; Sound.play("paper"); showZoom(c.text); }, held, hideZoom);
         return node;
       }));
   }
@@ -1805,7 +1789,7 @@ function render() {
   if (row && comboScroll !== null) row.scrollLeft = comboScroll;
   comboScroll = null;
   // Si scorre alla combinazione scelta solo quando cambia, non a ogni aggiornamento.
-  const selNode = app.querySelector(".combo.sel");
+  const selNode = /** @type {HTMLElement|null} */ (app.querySelector(".combo.sel"));
   const selKey = selNode ? selNode.dataset.idx : null;
   if (selKey !== scrolledSel) { scrolledSel = selKey; selNode?.scrollIntoView({ inline: "center", block: "nearest" }); }
   if (shrinkNow) {
@@ -1822,10 +1806,11 @@ function render() {
 // Animazione della carta vincente: una copia fissa sopra tutto scende fino al segnaposto sotto il vincitore.
 // La copia sta fuori dalla scena (che taglia ciò che esce), così passa sopra le informazioni e non sparisce.
 function shrinkWinner(total, from = null) {
-  const card = app.querySelector(".stage .black");
-  const mini = app.querySelector(".seat.won .mini-black.fresh");
+  const card = /** @type {HTMLElement|null} */ (app.querySelector(".stage .black"));
+  const mini = /** @type {HTMLElement|null} */ (app.querySelector(".seat.won .mini-black.fresh"));
   const src = from ? from.node : card;
   if (!src || !mini) return;
+  if (!motionOn()) { mini.classList.remove("fresh"); return; }
   const wait = 150, run = 900; // il volo dura poco; il segnaposto resta dopo
   const a = from ? from.rect : card.getBoundingClientRect(), t = mini.getBoundingClientRect();
   const k = Math.min(t.width / a.width, 0.2);
@@ -1850,7 +1835,7 @@ function shrinkWinner(total, from = null) {
 
 // Ogni pulsante suona e vibra un poco (i pulsanti disattivati no).
 document.addEventListener("click", (e) => {
-  const b = e.target.closest?.("button");
+  const b = /** @type {HTMLButtonElement|null} */ (/** @type {Element} */ (e.target).closest?.("button"));
   if (b && !b.disabled && !b.classList.contains("chip")) Sound.play("tap");
   else if (b && b.classList.contains("chip")) Sound.play("pick");
 }, true);
@@ -2215,19 +2200,6 @@ function attachHold(node, fn, flag = null, release = null) {
   node.addEventListener("contextmenu", (e) => e.preventDefault());
 }
 
-// Un solo ingrandimento alla volta: la carta resta grande finché tieni premuto.
-let zoomNode = null;
-function hideZoom() {
-  zoomNode?.remove();
-  zoomNode = null;
-}
-function showZoom(text) {
-  hideZoom();
-  const card = el("div", { class: "zoom", role: "dialog", "aria-label": "Carta ingrandita" }, el("div", { class: "txt" }, text));
-  zoomNode = el("div", { class: "zoom-bg", "aria-hidden": "true" }, card);
-  document.body.append(zoomNode);
-}
-
 // Scatto a ogni carta che scorre nelle file orizzontali (mano, tavolo, elenchi).
 const railStep = new WeakMap();
 document.addEventListener("scroll", (e) => {
@@ -2393,10 +2365,10 @@ document.head.append(el("style", {}, `
 .add { all: unset; box-sizing: border-box; min-height: 40px; display: inline-flex; align-items: center; cursor: pointer; font-weight: 700; color: var(--accent); font-size: 15px; }
 .cards-screen .hidden-msg { font-size: 13px; }
 /* Bordo per categoria, parole mai spezzate */
-.card, .pcard, .zoom { border-width: 3px; border-style: solid; border-color: var(--cat, #d6d0c2); }
-.card, .pcard, .zoom, .black, .black .text, .zoom .txt, .rail .card .txt { hyphens: none; -webkit-hyphens: none; }
+.card, .pcard { border-width: 3px; border-style: solid; border-color: var(--cat, #d6d0c2); }
+.card, .pcard, .black, .black .text, .rail .card .txt { hyphens: none; -webkit-hyphens: none; }
 html, body, p, button, input, textarea, h1, h2 { hyphens: none !important; -webkit-hyphens: none !important; }
-.card .txt, .pcard .txt, .zoom .txt { overflow-wrap: break-word; word-break: normal; } /* a capo solo se una parola non entra proprio */
+.card .txt, .pcard .txt { overflow-wrap: break-word; word-break: normal; } /* a capo solo se una parola non entra proprio */
 .legend { display: flex; gap: 12px; flex-wrap: wrap; }
 .lg { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--fg); }
 .lg::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--cat); }
@@ -2436,7 +2408,7 @@ document.head.append(el("style", {}, `
 .card-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 /* Mazzi: righe-carta piatte, stessa famiglia della home. Il base in nero, i personali in crema. */
 .deck-list { display: flex; flex-direction: column; gap: 12px; }
-.dk { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px; background: var(--paper); color: var(--fg); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 10px 20px -16px #000a; transition: opacity .2s; }
+.dk { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px; background: var(--paper); color: var(--fg); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 10px 20px -16px #000a; transition: opacity var(--t-base); }
 .dk.base { background: #111; color: #fbf8f0; border-color: #111; }
 .dk.off { opacity: .55; }
 .dk-main { flex: 1 1 auto; min-width: 0; min-height: 56px; display: flex; align-items: center; gap: 14px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
@@ -2483,7 +2455,6 @@ document.head.append(el("style", {}, `
 .card-form textarea { font: inherit; color: inherit; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; resize: vertical; width: 100%; }
 .card-form input { width: 100%; }
 .detail { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.zoom.b { background: #111; color: #fff; }
 .danger { color: var(--accent); }
 `));
 
@@ -2492,10 +2463,10 @@ boot();
 
 document.head.append(el("style", {}, `
 /* Transizioni e feedback: brevi, con il rispetto dell'impostazione "Movimento". */
-.enter { animation: screenIn .36s cubic-bezier(.2,.7,.2,1) both; }
+.enter { animation: screenIn var(--t-slow) var(--ease-out) both; }
 @keyframes screenIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 .no-motion .enter, .no-motion .splash .logo { animation: none; }
-button { transition: transform .12s ease, background-color .18s ease, opacity .18s ease, color .18s ease; }
+button { transition: transform var(--t-fast) ease, background-color var(--t-base) ease, opacity var(--t-base) ease, color var(--t-base) ease; }
 button:active:not(:disabled) { transform: scale(.96); }
 .splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: #000; transition: opacity .55s ease, visibility .55s; }
 .splash.out { opacity: 0; visibility: hidden; }
@@ -2505,13 +2476,14 @@ button:active:not(:disabled) { transform: scale(.96); }
 @media (orientation: portrait) {
   .dock .rail { padding: 22px 6px 30px; align-items: flex-end; }
 .rv-wrap { display: flex; flex-direction: column; gap: 6px; }
-.rv-strip { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: none; }
-.rv-card { flex: 0 0 150px; min-height: 92px; border-radius: 14px; background: var(--paper); color: var(--fg); border: 1px solid var(--line); padding: 10px; font-size: 14px; line-height: 1.2; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; transition: opacity .25s; }
+/* Spazio attorno alle carte: la carta scelta ingrandisce (scala fino a 1,08 e contorno) senza essere tagliata dal contenitore. */
+.rv-strip { display: flex; gap: 10px; overflow-x: auto; padding: 16px 18px 20px; scrollbar-width: none; }
+.rv-card { flex: 0 0 150px; min-height: 92px; border-radius: 14px; background: var(--paper); color: var(--fg); border: 1px solid var(--line); padding: 10px; font-size: 14px; line-height: 1.2; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; transition: opacity var(--t-base); }
 .rv-card.hidden { opacity: .35; }
 .rv-card.picked { outline: 3px solid var(--accent); animation: rv-pop .5s ease-out; }
 .rv-card.rv-new { animation: rv-in .45s ease-out both; }
-.combo-row { width: 100%; min-width: 0; align-self: stretch; box-sizing: border-box; display: flex; align-items: center; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 14px 10px 18px; scrollbar-width: none; }
-.combo-row > .combo { flex: 0 0 86%; scroll-snap-align: center; opacity: .72; transition: opacity .2s, transform .2s; cursor: pointer; }
+.combo-row { width: 100%; min-width: 0; align-self: stretch; box-sizing: border-box; display: flex; align-items: center; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 20px 16px 24px; scrollbar-width: none; }
+.combo-row > .combo { flex: 0 0 86%; scroll-snap-align: center; opacity: .72; transition: opacity var(--t-base), transform var(--t-base), flex-basis var(--t-base); cursor: pointer; }
 .combo-row > .combo.sel { opacity: 1; transform: scale(1.03); }
 /* Le combinazioni hanno la stessa grandezza della carta nera, anche se la riga è in uno spazio con contenitore a misura. */
 .stage .combo-row > .combo { container-type: normal; width: auto; min-height: 0; flex: 0 0 min(72%, calc(44vh * 5 / 7)); }
@@ -2525,7 +2497,7 @@ button:active:not(:disabled) { transform: scale(.96); }
 .combo-row > .combo.rv-new .black .text { animation: rv-focus .6s cubic-bezier(.2,.8,.2,1) backwards; }
 @keyframes rv-focus { from { opacity: 0; transform: scale(.85); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes rv-in { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
-@keyframes rv-pop { 0% { transform: scale(1); } 45% { transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes rv-pop { 0% { transform: scale(1); } 45% { transform: scale(1.06); } 100% { transform: scale(1); } }
 .rv-card .foot { font-size: 11px; color: var(--muted); }
   .rail .card { width: calc(var(--ch) * 0.82 * 5 / 7); height: calc(var(--ch) * 0.82); container-type: inline-size; }
   .rail .card .txt { overflow-wrap: normal; word-break: normal; hyphens: none; font-size: 12.6cqi; }
@@ -2539,7 +2511,6 @@ document.head.append(el("style", {}, `
 /* Scheda carta: pannello con sfondo, carta proporzionata, categorie e azioni sotto. */
 .detail { display: flex; flex-direction: column; align-items: center; gap: 12px; width: min(92vw, 420px); max-height: 94dvh; overflow-y: auto;
   padding: 14px; border-radius: 22px; background: var(--bg); box-shadow: 0 30px 60px -20px rgba(0,0,0,.6); }
-.detail .zoom { height: min(56dvh, calc((min(92vw, 420px) - 60px) * 7 / 5)); aspect-ratio: 5 / 7; animation: none; }
 .detail .chips { justify-content: center; flex-wrap: wrap; }
 .detail .actions { width: 100%; justify-content: space-between; }
 .detail .sheet-nav { justify-content: space-between; }
@@ -2561,21 +2532,22 @@ body.in-game::before { content: ""; position: fixed; inset: 0; z-index: -1; poin
 }
 
 // Nessuna parola spezzata: se una parola è più larga della carta, il testo si rimpicciolisce.
+/** @param {ParentNode} [root] */
 function fitText(root = document) {
-  root.querySelectorAll(".black .text, .rail .card .txt, .zoom .txt, .pcard .txt").forEach((node) => {
+  /** @type {NodeListOf<HTMLElement>} */ (root.querySelectorAll(".black .text, .rail .card .txt, .pcard .txt")).forEach((node) => {
     // Le combinazioni affiancate hanno una grandezza unica (CSS): non si ridimensionano a ogni aggiornamento.
     if (node.closest(".combo-row")) return;
-    const tileEl = node.closest(".pcard");
+    const tileEl = /** @type {HTMLElement|null} */ (node.closest(".pcard"));
     if (tileEl && node.closest(".cgrid")) tileEl.style.setProperty("--fit", "1");
     node.style.fontSize = "";
     let size = parseFloat(getComputedStyle(node).fontSize);
     let guard = 0;
     // Il testo deve stare nella carta in larghezza e in altezza, senza invadere l'etichetta in alto.
     // Carta nera: conta il riquadro intero (testo più etichetta), così il testo non esce né si sovrappone.
-    const box = node.closest(".black") || node;
+    const box = /** @type {HTMLElement} */ (node.closest(".black") || node);
     const fits = () => box.scrollWidth <= box.clientWidth + 1 && box.scrollHeight <= box.clientHeight + 1
       && node.scrollWidth <= node.clientWidth + 1 && node.scrollHeight <= node.clientHeight + 1;
-    const floor = node.closest(".cgrid") ? 2 : (box !== node ? 9 : 8); // nella griglia a 6 colonne il testo scende in proporzione alla carta
+    const floor = node.closest(".cgrid") ? 2 : (box !== node ? 9 : 8); // nella griglia il testo scende in proporzione alla carta
     while (!fits() && size > floor && guard++ < 120) {
       size -= 0.5;
       node.style.fontSize = `${size}px`;
@@ -2591,7 +2563,7 @@ function fitText(root = document) {
 document.head.append(el("style", {}, `
 /* Testi: niente trattini né parole spezzate, ovunque. */
 *, *::before, *::after { hyphens: none !important; -webkit-hyphens: none !important; }
-.black .text, .card .txt, .pcard .txt, .zoom .txt { overflow-wrap: normal !important; word-break: normal !important; }
+.black .text, .card .txt, .pcard .txt { overflow-wrap: normal !important; word-break: normal !important; }
 .nw { white-space: nowrap; }
 /* Mano: bordo del colore della categoria, etichetta piccola in alto a sinistra. */
 .rail .card { border-width: 3px; border-style: solid; border-color: var(--cat, #9a9186); }
@@ -2657,10 +2629,11 @@ function closeSheet(bg) {
   if (!bg || bg.dataset.closing) return;
   bg.dataset.closing = "1";
   bg.style.pointerEvents = "none";
+  if (!motionOn() || !bg.animate) { bg.remove(); return; }
   const sheet = bg.querySelector(".sheet");
-  bg.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170, easing: "ease-in", fill: "forwards" });
-  if (sheet) sheet.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(40px)", opacity: 0 }], { duration: 170, easing: "ease-in", fill: "forwards" });
-  setTimeout(() => bg.remove(), 180);
+  bg.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: "ease-in", fill: "forwards" });
+  if (sheet) sheet.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(40px)", opacity: 0 }], { duration: 200, easing: "ease-in", fill: "forwards" });
+  setTimeout(() => bg.remove(), 210);
 }
 // Tastiera: il foglio resta in basso e si accorcia dell'altezza della tastiera (--kb), senza saltare in alto.
 function trackKeyboard() {
