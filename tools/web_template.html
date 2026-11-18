@@ -180,7 +180,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* Impostazioni */
-.sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; animation: fade .2s both; }
+.sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; padding-bottom: var(--kb, 0px); transition: padding-bottom .2s ease; animation: fade .2s both; }
 .spell-hints { display: flex; flex-wrap: wrap; gap: 6px; min-height: 0; }
 .spell-hints:empty { display: none; }
 .card-cats { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -189,7 +189,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .card-preview { margin: 8px 0; padding: 12px 14px; border-radius: 12px; background: #111; color: #fff; font-size: 17px; line-height: 1.35; min-height: 3em; }
 .card-preview[hidden] { display: none; }
 .sheet {
-  width: 100%; max-width: 640px; max-height: 88vh; overflow: auto; background: var(--bg); color: var(--fg);
+  width: 100%; max-width: 640px; max-height: min(88vh, calc(100dvh - var(--kb, 0px) - 16px)); overflow: auto; background: var(--bg); color: var(--fg);
   border-radius: 22px 22px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 16px;
   animation: slide .35s cubic-bezier(.2,.9,.3,1.1) both; box-shadow: 0 -20px 40px -20px rgba(0,0,0,.5);
 }

@@ -180,7 +180,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* Impostazioni */
-.sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; animation: fade .2s both; }
+.sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; padding-bottom: var(--kb, 0px); transition: padding-bottom .2s ease; animation: fade .2s both; }
 .spell-hints { display: flex; flex-wrap: wrap; gap: 6px; min-height: 0; }
 .spell-hints:empty { display: none; }
 .card-cats { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -189,7 +189,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .card-preview { margin: 8px 0; padding: 12px 14px; border-radius: 12px; background: #111; color: #fff; font-size: 17px; line-height: 1.35; min-height: 3em; }
 .card-preview[hidden] { display: none; }
 .sheet {
-  width: 100%; max-width: 640px; max-height: 88vh; overflow: auto; background: var(--bg); color: var(--fg);
+  width: 100%; max-width: 640px; max-height: min(88vh, calc(100dvh - var(--kb, 0px) - 16px)); overflow: auto; background: var(--bg); color: var(--fg);
   border-radius: 22px 22px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 16px;
   animation: slide .35s cubic-bezier(.2,.9,.3,1.1) both; box-shadow: 0 -20px 40px -20px rgba(0,0,0,.5);
 }
@@ -2848,7 +2848,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.36";
+const APP_VERSION = "0.2.37";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -4981,7 +4981,7 @@ body:has(.home) { overflow: hidden; }
 .hc-big .hc-title { font-size: 44px; }
 .hcard .hc-sub { font-size: 14px; line-height: 1.3; font-weight: 500; opacity: .85; }
 .hc-arr { position: absolute; top: 14px; right: 16px; font-size: 22px; font-weight: 700; }
-.hc-black { background: #111; color: #fbf8f0; border-color: #111; }
+.hc-black { background: #111; color: #fbf8f0; border-color: #111; outline: 2px solid #fbf8f0; outline-offset: 4px; }
 .hc-white { background: #fbf8f0; color: #111; }
 .hc-accent { background: var(--accent); color: #fff; border-color: #111; }
 .hc-accent .hc-sub { color: #fff; }
@@ -5088,7 +5088,6 @@ document.head.append(el("style", {}, `
 .action-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .action-list button { width: 100%; justify-content: flex-start; text-align: left; font: inherit; font-size: 16px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--paper); color: var(--fg); cursor: pointer; }
 .action-list button.danger { color: var(--accent); }
-.sheet-bg.kb-top { align-items: flex-start; padding-top: 6vh; }
 .cgrid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 10px; touch-action: pan-y; background: var(--bg); } /* niente puntini del fondo tra le carte */
 .pcard { position: relative; aspect-ratio: 5 / 7; border-radius: calc(11px * var(--k, 1)); padding: calc(9px * var(--k, 1)) calc(9px * var(--k, 1)) calc(10px * var(--k, 1)); text-align: left; display: flex; flex-direction: column; justify-content: flex-end;
   font-family: var(--card-font); font-weight: 600; font-size: calc(12px * var(--k, 1)); line-height: 1.28; hyphens: auto; -webkit-hyphens: auto; overflow: hidden; border: 1px solid #d6d0c2; box-shadow: 0 8px 16px -12px rgba(0,0,0,.5); }
@@ -5282,15 +5281,27 @@ function closeSheet(bg) {
   if (sheet) sheet.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(40px)", opacity: 0 }], { duration: 170, easing: "ease-in", fill: "forwards" });
   setTimeout(() => bg.remove(), 180);
 }
-// Campi nei fogli: il foglio sale in alto, così la tastiera non copre il testo.
+// Tastiera: il foglio resta in basso e si accorcia dell'altezza della tastiera (--kb), senza saltare in alto.
+function trackKeyboard() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const update = () => {
+    const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+    document.documentElement.style.setProperty("--kb", kb + "px");
+  };
+  vv.addEventListener("resize", update);
+  vv.addEventListener("scroll", update);
+  update();
+}
+trackKeyboard();
+// Campi nei fogli: il campo attivo viene portato al centro del foglio, che scorre da solo.
 // Fuori dai fogli la pagina non si sposta da sola, salvo un campo finito sotto la metà dello schermo.
 document.addEventListener("focusin", (e) => {
   const t = e.target;
   if (!(t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement)) return;
   const sheet = t.closest(".sheet-bg");
   if (sheet) {
-    sheet.classList.add("kb-top");
-    setTimeout(() => t.scrollIntoView({ block: "start", behavior: "smooth" }), 350);
+    setTimeout(() => t.scrollIntoView({ block: "center", behavior: "smooth" }), 350);
     return;
   }
   if (t.closest(".cards-screen")) return;
