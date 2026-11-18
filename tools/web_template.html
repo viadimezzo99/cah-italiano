@@ -13,6 +13,8 @@
 :root {
   --bg: #ece5d6; --fg: #1c1a17; --muted: #6d655a; --line: #d6ccb9;
   --paper: #fbf8f0; --accent: #c4502a; --ok: #2f7a4d;
+  /* Movimento: tre durate e una sola curva, così le animazioni si somigliano. Uscite più rapide delle entrate. */
+  --t-fast: .15s; --t-base: .25s; --t-slow: .4s; --ease-out: cubic-bezier(.2,.7,.2,1);
   --ts: 1; --cs: 1; --card-font: "Bricolage Grotesque", system-ui, sans-serif;
   color-scheme: light;
 }
@@ -191,7 +193,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .sheet {
   width: 100%; max-width: 640px; max-height: min(88vh, calc(100dvh - var(--kb, 0px) - 16px)); overflow: auto; background: var(--bg); color: var(--fg);
   border-radius: 22px 22px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 16px;
-  animation: slide .35s cubic-bezier(.2,.9,.3,1.1) both; box-shadow: 0 -20px 40px -20px rgba(0,0,0,.5);
+  animation: slide var(--t-slow) cubic-bezier(.2,.9,.3,1.1) both; box-shadow: 0 -20px 40px -20px rgba(0,0,0,.5);
 }
 @keyframes slide { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 .sheet .group { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
@@ -204,7 +206,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .logo img.logo-icon { width: 64px; height: 64px; border-radius: 14px; flex: 0 0 auto; }
 .logo.big img.logo-icon { width: 120px; height: 120px; border-radius: 26px; }
 .topbar .logo img.logo-icon { width: 36px; height: 36px; border-radius: 9px; }
-@keyframes fall { to { transform: translate(var(--dx), 110vh) rotate(var(--rot)); opacity: .9; } }
 
 /* Preferenza: movimento ridotto */
 body.no-motion *, body.no-motion *::before, body.no-motion *::after { animation: none !important; transition: none !important; }
@@ -255,12 +256,6 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 .rail .card .num { width: 22px; height: 22px; font-size: 12px; }
 .card .num { position: absolute; top: 6px; right: 6px; }
 
-/* Ingrandimento di una carta tenuta premuta */
-.zoom-bg { position: fixed; inset: 0; z-index: 60; background: rgba(10,8,6,.72); display: flex; align-items: center; justify-content: center; padding: 24px; animation: fade .2s both; }
-.zoom { height: min(74dvh, calc((100vw - 48px) * 7 / 5)); aspect-ratio: 5 / 7; background: #fff; color: #111; border-radius: 18px; padding: 22px 20px;
-  display: flex; align-items: flex-end; box-shadow: 0 30px 60px -20px rgba(0,0,0,.6); animation: pop .35s cubic-bezier(.2,.9,.3,1.3) both; }
-.zoom .txt { font-family: var(--card-font); font-weight: 700; font-size: clamp(20px, 4.4dvh, 34px); line-height: 1.22; overflow-wrap: anywhere; }
-
 /* Orizzontale: tavolo a sinistra, mano a destra in una griglia che scorre da sola */
 @media (orientation: landscape) and (max-height: 640px) {
   .game { grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr) minmax(250px, 40%); column-gap: 14px; --ch: 40dvh; }
@@ -303,8 +298,8 @@ button.primary { padding: 14px 18px; font-size: 16px; }
 .err { color: var(--accent); }
 
 /* Sillabazione e interlinea: parole spezzate in sillabe, righe più respirate */
-html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphens: auto; -webkit-hyphens: auto; }
-.card, .black .text, .zoom .txt { overflow-wrap: break-word; word-break: normal; }
+html, body, .card, .pcard, .black, .black .text, .rail .card .txt { hyphens: auto; -webkit-hyphens: auto; }
+.card, .black .text { overflow-wrap: break-word; word-break: normal; }
 .card { line-height: 1.28; letter-spacing: -.003em; }
 .black { line-height: 1.34; }
 .rail .card .txt { line-height: 1.28; }
@@ -322,7 +317,7 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 .seat .mini-black.fresh { opacity: 0; }
 .turn-line { margin: 0; font-weight: 700; color: var(--accent); }
 .judge-pair { display: flex; flex-direction: column; gap: 12px; }
-.card, .pcard, .zoom, .rail .card { border-color: color-mix(in srgb, var(--muted) 45%, transparent) !important; }
+.card, .pcard, .rail .card { border-color: color-mix(in srgb, var(--muted) 45%, transparent) !important; }
 .rail .card.sel { border-color: var(--accent) !important; }
 /* Mano a scorrimento orizzontale: le carte restano su una riga e si scorrono con il dito. */
 @media (orientation: portrait) {

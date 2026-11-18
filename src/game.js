@@ -36,8 +36,10 @@ export function shuffle(items, rng = Math.random) {
 }
 
 // Divide il testo di una carta nera in segmenti, per disegnare gli spazi.
+/** @param {string} text @returns {import("../types/cah.js").Segment[]} */
 export function segments(text) {
   return text.split("____").flatMap((part, i, arr) => {
+    /** @type {import("../types/cah.js").Segment[]} */
     const out = [{ type: "text", value: part }];
     if (i < arr.length - 1) out.push({ type: "blank", index: i });
     return out;
@@ -46,9 +48,9 @@ export function segments(text) {
 
 export class Game {
   /**
-   * @param {{id:string,name:string,isBot?:boolean}[]} players
-   * @param {{white:{id:string,text:string}[], black:{id:string,text:string,blanks:number}[]}} cards
-   * @param {{handSize?:number, winScore?:number|null, rng?:() => number}} options
+   * @param {import("../types/cah.js").PlayerInput[]} players
+   * @param {import("../types/cah.js").CardSet} cards
+   * @param {import("../types/cah.js").GameOptions} options
    */
   constructor(players, cards, options = {}) {
     if (players.length < 3) throw new Error("Servono almeno 3 giocatori");
@@ -62,6 +64,7 @@ export class Game {
     this.whiteById = new Map(cards.white.map((c) => [c.id, c]));
     this.blackById = new Map(cards.black.map((c) => [c.id, c]));
 
+    /** @type {{id:string, name:string, isBot:boolean, hand:string[], score:number, reshuffledRound:number|null}[]} */
     this.players = players.map((p) => ({
       id: p.id,
       name: p.name,
@@ -71,36 +74,48 @@ export class Game {
       reshuffledRound: null,   // ultimo turno in cui ha rimescolato la mano
     }));
     // Registro delle carte già uscite nella stanza: sopravvive alle partite, si azzera solo quando i mazzi sono finiti.
+    /** @type {import("../types/cah.js").CardPool} */
     this.pool = this.opts.pool ?? { white: new Set(), black: new Set() };
     this.allWhite = cards.white.map((c) => c.id);
     this.allBlack = cards.black.map((c) => c.id);
-    this.discard = [];
-    this.blackDiscard = [];
-    this.deck = [];
-    this.blackDeck = [];
+    /** @type {string[]} */ this.discard = [];
+    /** @type {string[]} */ this.blackDiscard = [];
+    /** @type {string[]} */ this.deck = [];
+    /** @type {string[]} */ this.blackDeck = [];
     this.refillWhite();
     this.refillBlack();
 
     this.phase = "lobby"; // lobby | playing | judging | roundEnd | over
     this.round = 0;
     this.judgeIndex = -1;
+    /** @type {import("../types/cah.js").BlackCard|null} */
     this.currentBlack = null;
+    /** @type {Map<string, string[]>} */
     this.submissions = new Map(); // playerId -> cardIds
+    /** @type {string[]} */
     this.revealOrder = []; // playerIds in ordine mischiato per il giudice
+    /** @type {string|null} */
     this.lastWinner = null;
+    /** @type {string[]|null} */
+    this.lastWinCards = null;
     this.peek = -1;        // quante combinazioni il Re ha già sfogliato: le altre le vedono in fila
     this.compare = false;  // il Re ha premuto "Vedi tutte": tutti vedono le combinazioni affiancate
+    /** @type {number|null} */
     this.selected = null;  // la combinazione che il Re sta guardando, vista da tutti
+    /** @type {number|null} */
     this.pickedIndex = null;
+    /** @type {string|null} */
     this.winner = null;
+    /** @type {string|null} */
     this.jollyHolder = null;   // id del giocatore che tiene il jolly (o null)
+    /** @type {Map<string, string>} */
     this.jollyTexts = new Map(); // playerId -> testo scritto a mano per il jolly giocato in questo turno
   }
 
   /** Testo di una carta per un giocatore: il jolly ha il testo scritto da chi l'ha giocato. */
   cardTextFor(playerId, cardId) {
     if (cardId === JOLLY) return this.jollyTexts.get(playerId) ?? "";
-    return this.text(cardId);
+    return this.text(cardId) ?? "";
   }
 
   // ---------------------------------------------------------------- mazzi
@@ -137,12 +152,33 @@ export class Game {
     this.blackDeck = shuffle(notRecent.length ? notRecent : fresh.length ? fresh : this.allBlack, this.rng);
   }
 
+  /** @param {string} cardId @returns {string|undefined} */
   text(cardId) {
     return this.cardText.get(cardId);
   }
 
   get judge() {
     return this.judgeIndex >= 0 ? this.players[this.judgeIndex] : null;
+  }
+
+  /** Il Re del turno in corso. Errore chiaro se manca (partita non iniziata). */
+  activeJudge() {
+    const j = this.judge;
+    if (!j) throw new Error("Nessun Re in questo turno");
+    return j;
+  }
+
+  /** La carta nera in gioco. Errore chiaro se manca. */
+  activeBlack() {
+    if (!this.currentBlack) throw new Error("Nessuna carta nera in gioco");
+    return this.currentBlack;
+  }
+
+  /** Le carte giocate da un giocatore in questo turno. */
+  submitted(playerId) {
+    const ids = this.submissions.get(playerId);
+    if (!ids) throw new Error(`Nessuna risposta da ${playerId}`);
+    return ids;
   }
 
   player(id) {
@@ -215,14 +251,18 @@ export class Game {
 
   beginRound(events) {
     if (this.currentBlack) this.blackDiscard.push(this.currentBlack.id);
-    this.currentBlack = this.blackById.get(this.drawBlack());
+    const blackId = this.drawBlack();
+    const black = blackId === null ? undefined : this.blackById.get(blackId);
+    // Mazzo senza carte nere (per esempio un mazzo personale di sole bianche): errore chiaro invece di un crash dopo.
+    if (!black) throw new Error("Nessuna carta nera disponibile nei mazzi scelti");
+    this.currentBlack = black;
     this.round += 1;
     this.ensureFit();
     this.submissions = new Map();
     this.jollyTexts = new Map();
     this.revealOrder = [];
     this.phase = "playing";
-    events.push({ type: "round", round: this.round, judgeId: this.judge.id, blackId: this.currentBlack.id });
+    events.push({ type: "round", round: this.round, judgeId: this.activeJudge().id, blackId: black.id });
   }
 
   // Ogni giocatore che deve rispondere ha in mano almeno due carte che entrano in ogni spazio della nera:
@@ -233,7 +273,7 @@ export class Game {
     const accepts = blankAccepts(black.text);
     const fitsSlot = (acc) => (id) => { const w = this.whiteById.get(id); return !!w && acc.includes(w.family); };
     for (const p of this.players) {
-      if (this.judge && p.id === this.judge.id) continue;
+      if (this.judge && p.id === this.activeJudge().id) continue;
       for (const acc of accepts) {
         const fits = fitsSlot(acc);
         while (p.hand.filter(fits).length < 2) {
@@ -256,7 +296,7 @@ export class Game {
    */
   awardJolly(playerId) {
     if (!this.opts.jolly || this.phase !== "playing" || this.jollyHolder !== null) return [];
-    if (!this.judge || this.judge.id !== playerId) return [];
+    if (!this.judge || this.activeJudge().id !== playerId) return [];
     if (this.submissions.size >= this.players.length - 1) return [];
     const p = this.player(playerId);
     this.jollyHolder = playerId;
@@ -268,16 +308,16 @@ export class Game {
   play(playerId, cardIds, jollyText) {
     if (this.phase !== "playing") throw new Error("Non è il momento di giocare");
     const p = this.player(playerId);
-    if (p.id === this.judge.id) throw new Error("Il Re delle Carte non gioca carte bianche");
+    if (p.id === this.activeJudge().id) throw new Error("Il Re delle Carte non gioca carte bianche");
     if (this.submissions.has(playerId)) throw new Error("Hai già giocato");
-    const need = this.currentBlack.blanks;
+    const need = this.activeBlack().blanks;
     if (cardIds.length !== need) throw new Error(`Servono ${need} carte`);
     if (new Set(cardIds).size !== cardIds.length) throw new Error("Carte duplicate");
     for (const id of cardIds) {
       if (!p.hand.includes(id)) throw new Error("Carta non in mano");
     }
     const usesJolly = cardIds.includes(JOLLY);
-    let text = null;
+    let text = "";
     if (usesJolly) {
       if (this.jollyHolder !== playerId) throw new Error("Il jolly non è tuo");
       text = typeof jollyText === "string" ? jollyText.replace(/\s+/g, " ").trim() : "";
@@ -318,7 +358,7 @@ export class Game {
     if (this.phase !== "judging") return [];
     return this.revealOrder.map((playerId, index) => ({
       index,
-      cards: this.submissions.get(playerId).map((id) => ({ id, text: this.cardTextFor(playerId, id) })),
+      cards: this.submitted(playerId).map((id) => ({ id, text: this.cardTextFor(playerId, id) })),
     }));
   }
 
@@ -331,28 +371,28 @@ export class Game {
 
   /** Il Re ha sfogliato fino a questa combinazione: gli altri la vedono comparire. */
   peekTo(judgeId, index) {
-    if (this.phase !== "judging" || judgeId !== this.judge.id) return;
+    if (this.phase !== "judging" || judgeId !== this.activeJudge().id) return;
     if (!Number.isInteger(index) || index < 0 || index >= this.revealOrder.length) return;
     this.peek = Math.max(this.peek, index);
   }
 
   /** Il Re ha premuto "Vedi tutte": tutti vedono le combinazioni affiancate. */
   compareAll(judgeId) {
-    if (this.phase !== "judging" || judgeId !== this.judge.id) return;
+    if (this.phase !== "judging" || judgeId !== this.activeJudge().id) return;
     this.compare = true;
     this.peek = this.revealOrder.length - 1;
   }
 
   /** La combinazione che il Re sta guardando (o null): la vedono anche gli altri. */
   selectTo(judgeId, index) {
-    if (this.phase !== "judging" || judgeId !== this.judge.id) return;
+    if (this.phase !== "judging" || judgeId !== this.activeJudge().id) return;
     this.selected = Number.isInteger(index) && index >= 0 && index < this.revealOrder.length ? index : null;
   }
 
   /** Il Re sceglie la risposta preferita. */
   pick(judgeId, index) {
     if (this.phase !== "judging") throw new Error("Non ci sono risposte da giudicare");
-    if (judgeId !== this.judge.id) throw new Error("Solo il Re può scegliere");
+    if (judgeId !== this.activeJudge().id) throw new Error("Solo il Re può scegliere");
     if (!Number.isInteger(index) || index < 0 || index >= this.revealOrder.length) {
       throw new Error("Scelta non valida");
     }
@@ -361,10 +401,11 @@ export class Game {
     winner.score += 1;
     this.lastWinner = winnerId;
     this.pickedIndex = index;
-    this.lastWinCards = this.submissions.get(winnerId).map((id) => this.cardTextFor(winnerId, id));
+    this.lastWinCards = this.submitted(winnerId).map((id) => this.cardTextFor(winnerId, id));
     this.phase = "roundEnd";
 
-    const events = [{ type: "picked", winnerId, index, blackId: this.currentBlack.id }];
+    /** @type {import("../types/cah.js").GameEvent[]} */
+    const events = [{ type: "picked", winnerId, index, blackId: this.activeBlack().id }];
     const turnEnd = this.checkWinner();
     if (turnEnd) events.push(turnEnd);
     return events;
@@ -386,7 +427,7 @@ export class Game {
   canReshuffle(playerId) {
     const p = this.players.find((x) => x.id === playerId);
     if (!p || this.phase !== "playing") return false;
-    if (this.judge && this.judge.id === playerId) return false;
+    if (this.judge && this.activeJudge().id === playerId) return false;
     if (this.submissions.has(playerId)) return false;
     return p.reshuffledRound !== this.round;
   }
@@ -418,7 +459,7 @@ export class Game {
   /** Gioca per conto di un giocatore: carte casuali, nell'ordine di pesca. */
   autoPlay(playerId) {
     const p = this.player(playerId);
-    const n = this.currentBlack.blanks;
+    const n = this.activeBlack().blanks;
     const picks = shuffle(p.hand.filter((id) => id !== JOLLY), this.rng).slice(0, n);
     return this.play(playerId, picks);
   }
@@ -426,7 +467,7 @@ export class Game {
   /** Il giudice non sceglie in tempo: viene scelta una risposta a caso. */
   autoPick() {
     const index = Math.floor(this.rng() * this.revealOrder.length);
-    return this.pick(this.judge.id, index);
+    return this.pick(this.activeJudge().id, index);
   }
 
   /** Gioca per tutti i bot che devono ancora rispondere. */
@@ -434,7 +475,7 @@ export class Game {
     const events = [];
     if (this.phase !== "playing") return events;
     for (const p of this.players) {
-      if (!p.isBot || p.id === this.judge.id || this.submissions.has(p.id)) continue;
+      if (!p.isBot || p.id === this.activeJudge().id || this.submissions.has(p.id)) continue;
       events.push(...this.autoPlay(p.id));
       if (this.phase !== "playing") break;
     }
@@ -443,12 +484,12 @@ export class Game {
 
   /** Il Re bot procede a passi: sfoglia le combinazioni, le affianca, sceglie e assegna il punto. Un passo ogni BOT_JUDGE_STEP_MS. */
   advanceBotJudge() {
-    if (this.phase !== "judging" || !this.judge.isBot) return;
+    if (this.phase !== "judging" || !this.activeJudge().isBot) return;
     const last = this.revealOrder.length - 1;
-    if (this.peek < last) return this.peekTo(this.judge.id, this.peek + 1);
-    if (!this.compare) return this.compareAll(this.judge.id);
-    if (this.selected === null) return this.selectTo(this.judge.id, Math.floor(this.rng() * this.revealOrder.length));
-    return this.pick(this.judge.id, this.selected);
+    if (this.peek < last) return this.peekTo(this.activeJudge().id, this.peek + 1);
+    if (!this.compare) return this.compareAll(this.activeJudge().id);
+    if (this.selected === null) return this.selectTo(this.activeJudge().id, Math.floor(this.rng() * this.revealOrder.length));
+    return this.pick(this.activeJudge().id, this.selected);
   }
 
   /** Stato pubblico: nessuna carta coperta visibile a nessun altro giocatore. */
@@ -476,7 +517,7 @@ export class Game {
       selected: this.phase === "judging" ? this.selected : null,
       winnerCards: this.phase === "roundEnd" ? this.lastWinCards ?? [] : [],
       // La mia risposta, compilata: la vedo sulla carta nera anche mentre il Re sfoglia.
-      mine: forPlayerId && this.submissions.has(forPlayerId) ? this.submissions.get(forPlayerId).map((id) => this.cardTextFor(forPlayerId, id)) : null,
+      mine: forPlayerId ? this.submissions.get(forPlayerId)?.map((id) => this.cardTextFor(forPlayerId, id)) ?? null : null,
       jollyHolder: this.jollyHolder,
       winner: this.winner,
     };
