@@ -8,9 +8,21 @@ root = Path(__file__).resolve().parent.parent
 read = lambda p: (root / p).read_text(encoding="utf-8")
 tpl = read("tools/web_template.html")
 # Lessico morfologico (Morph-it!, LGPL) e reggenze dei verbi: dati letti dal motore grammaticale.
-lex = read("data/lexicon_it/lex.json").replace("</", "<\\/")
+# Integrazione a mano per i nomi che Morph-it non ha (genere e plurale curati in data/lexicon_it/gaps.json).
+def merge_gaps(lex_d, infl_d):
+    for sg, g, pl in json.loads(read("data/lexicon_it/gaps.json"))["nomi"]:
+        if sg in lex_d:
+            continue
+        lex_d.setdefault(sg, []).append("N" + g + "s")
+        lex_d.setdefault(pl, [])
+        if "N" + g + "p" not in lex_d[pl]:
+            lex_d[pl].append("N" + g + "p")
+        infl_d[sg] = {"N": {g + "s": [sg], g + "p": [pl]}}
+    return lex_d, infl_d
+lex_d, infl_d = merge_gaps(json.loads(read("data/lexicon_it/lex.json")), json.loads(read("data/lexicon_it/inflect.json")))
+lex = json.dumps(lex_d, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 reggenze = read("data/reggenze.json").replace("</", "<\\/")
-inflect = read("data/lexicon_it/inflect.json").replace("</", "<\\/")
+inflect = json.dumps(infl_d, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 verbs3 = read("data/lexicon_it/verbs3.json").replace("</", "<\\/")
 engine = (f"const LEX = {lex};\nconst REGGENZE = {reggenze};\nconst INFLECT = {inflect};\nconst VERBS3 = {verbs3};\n"
           + re.sub(r"^import .*\n", "", read("src/game.js"), flags=re.M) + "\n" + read("src/agreement.js"))
