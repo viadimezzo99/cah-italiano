@@ -54,7 +54,8 @@ function askBotName(n, onOk) {
 }
 let viewer = null;      // chi sta guardando lo schermo in questo momento
 let lastViewer = null;
-let lastActKey = null;   // ultimo turno in cui questo telefono doveva agire (online), per suonare una volta sola
+let lastActKey = null;
+let countedSeq = -1;    // partita locale già contata nelle statistiche   // ultimo turno in cui questo telefono doveva agire (online), per suonare una volta sola
 let curtain = false;    // schermata "passa il telefono" da chiudere prima di vedere le carte
 let selected = [];      // ids delle carte scelte da chi guarda, in ordine di click
 let judgeSel = null;    // combinazione scelta dal Re, prima della conferma
@@ -122,7 +123,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.37";
+const APP_VERSION = "0.2.38";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -325,6 +326,83 @@ function dealHome(cards, delay0) {
     { duration: 520, delay: delay0 + i * 110, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards" }));
 }
 
+// Profilo: avatar scelto tra le carte del Memory e statistiche di questo telefono.
+const PROFILE_KEY = "cah-profile";
+const EMPTY_PROFILE = { name: "", avatar: 0, games: 0, wins: 0, rounds: 0, jolly: 0 };
+function loadProfile() {
+  try { return { ...EMPTY_PROFILE, ...JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}") }; } catch { return { ...EMPTY_PROFILE }; }
+}
+function saveProfile(p) {
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch { /* memoria del browser non disponibile */ }
+}
+function bumpStat(key) { const p = loadProfile(); p[key] = (p[key] || 0) + 1; saveProfile(p); }
+// Colore medio dell'immagine: la carta profilo prende quella tinta, così l'immagine si fonde con lo sfondo.
+function tintFrom(img, card) {
+  try {
+    // Colore più frequente dell'illustrazione: è lo sfondo, il personaggio e la cornice contano poco.
+    const N = 64;
+    const c = document.createElement("canvas");
+    c.width = N; c.height = N;
+    const x = c.getContext("2d");
+    x.drawImage(img, 0, 0, N, N);
+    const d = x.getImageData(0, 0, N, N).data;
+    const bins = new Map();
+    for (let i = 0; i < d.length; i += 4) {
+      const k = (d[i] >> 3) * 1024 + (d[i + 1] >> 3) * 32 + (d[i + 2] >> 3);
+      bins.set(k, (bins.get(k) || 0) + 1);
+    }
+    let best = 0, key = 0;
+    for (const [k, v] of bins) if (v > best) { best = v; key = k; }
+    const r = Math.floor(key / 1024) * 8 + 4, g = Math.floor((key % 1024) / 32) * 8 + 4, b = (key % 32) * 8 + 4;
+    card.style.setProperty("--tint", `rgb(${r}, ${g}, ${b})`);
+  } catch { /* immagine non leggibile: resta il colore di base */ }
+}
+function statCard(p) {
+  const nums = [["Partite", p.games], ["Vittorie", p.wins], ["Round", p.rounds], ["Memory", p.jolly]];
+  const img = MEMORY_IMGS[p.avatar] ? el("img", { class: "hc-avatar", src: MEMORY_IMGS[p.avatar], alt: "", draggable: "false" }) : null;
+  const card = el("button", { type: "button", class: "hcard hc-stats", "aria-label": "Profilo e statistiche", onclick: openProfile },
+    img ? el("span", { class: "hc-art" }, img) : null,
+    el("span", { class: "hc-title display" }, p.name || "Il tuo nome"),
+    el("span", { class: "hc-nums" }, nums.map(([l, v]) => el("span", { class: "hc-num" }, el("span", { class: "n" }, String(v)), el("span", { class: "l" }, l)))));
+  if (img) { if (img.complete && img.naturalWidth) tintFrom(img, card); else img.addEventListener("load", () => tintFrom(img, card)); }
+  return card;
+}
+function openProfile() {
+  let bg;
+  const close = () => { closeSheet(bg); setTimeout(() => document.querySelector(".hc-stats")?.replaceWith(statCard(loadProfile())), 180); };
+  const p = loadProfile();
+  // Nome: si aggiorna mentre si scrive; sulla carta compare alla chiusura del foglio.
+  const name = el("input", { type: "text", maxlength: "16", value: p.name || "", placeholder: "Il tuo nome", "aria-label": "Il tuo nome",
+    oninput: (e) => saveProfile({ ...loadProfile(), name: e.target.value.replace(/\s+/g, " ").trim() }) });
+  // Avatar: si scorrono le carte del Memory con le frecce, senza elenchi.
+  const pv = el("img", { class: "prof-img", src: MEMORY_IMGS[p.avatar], alt: "", draggable: "false" });
+  const step = (d) => () => {
+    const q = loadProfile();
+    const n = MEMORY_IMGS.length;
+    const a = (q.avatar + d + n) % n;
+    saveProfile({ ...q, avatar: a });
+    pv.src = MEMORY_IMGS[a];
+  };
+  const stepper = el("div", { class: "prof-av" },
+    el("button", { type: "button", class: "ghost round", "aria-label": "Avatar precedente", onclick: step(-1) }, "‹"),
+    pv,
+    el("button", { type: "button", class: "ghost round", "aria-label": "Avatar successivo", onclick: step(1) }, "›"));
+  const reset = () => askConfirm("Azzerare le statistiche di questo telefono?", () => { saveProfile({ ...loadProfile(), games: 0, wins: 0, rounds: 0, jolly: 0 }); close(); });
+  const rows = [["Partite giocate", p.games], ["Partite vinte", p.wins], ["Round vinti", p.rounds], ["Memory vinti", p.jolly]]
+    .map(([l, v]) => el("div", { class: "srow" }, el("span", {}, l), el("strong", {}, String(v))));
+  bg = openSheet({
+    title: "Il tuo profilo",
+    body: [
+      el("span", { class: "label" }, "Nome"), name,
+      el("span", { class: "label" }, "Avatar"), stepper,
+      el("span", { class: "label" }, "Statistiche"), el("div", { class: "slist" }, rows),
+      el("p", { class: "hidden-msg" }, "Contano solo le partite locali giocate su questo telefono."),
+      el("div", { class: "actions" }, el("button", { type: "button", class: "ghost", onclick: reset }, "Azzera statistiche")),
+    ],
+    actions: [primaryBtn("Chiudi", close)],
+  });
+}
+
 function showHome() {
   const first = !introDone;
   // Tre carte del gioco: la nera per la modalità principale, le altre due affiancate sotto.
@@ -338,7 +416,8 @@ function showHome() {
     el("div", { class: "home-top" }, top,
       el("button", { type: "button", class: "home-settings", "aria-label": "Impostazioni", title: "Impostazioni", onclick: openSettings }, settingsIcon())),
     el("nav", { class: "hand", "aria-label": "Menu" },
-      card("hc-black hc-big", "Locale", el("span", {}, "Con amici e bot, ", el("span", { class: "blank" }), " un telefono solo."), () => { homeTab = "local"; setup(); }),
+      card("hc-black", "Locale", el("span", {}, "Con amici e bot, ", el("span", { class: "blank" }), " un telefono solo."), () => { homeTab = "local"; setup(); }),
+      statCard(loadProfile()),
       card("hc-white", "Online", "Stanza con codice, fino a 10.", () => { homeTab = "online"; setup(); }),
       card("hc-accent", "Le carte", "Carte, categorie e pacchetti.", () => cardsScreen()))));
   dealHome([...app.querySelectorAll(".hcard")], first ? 1950 : 0);
@@ -1068,7 +1147,7 @@ function step() {
   if (game.phase === "playing") {
     scheduleLocalBots();
   } else if (game.phase === "judging" && game.judge.isBot) {
-    judgeTimer = setTimeout(() => { game.advanceBotJudge(); step(); }, BOT_JUDGE_STEP_MS);   // il Re bot sfoglia e sceglie a passi
+    judgeTimer = setTimeout(() => { game.advanceBotJudge(); step(); }, cfg.jolly ? BOT_JUDGE_STEP_MS : 1100);   // il Re bot sfoglia e sceglie a passi
   }
   render();
 }
@@ -1085,8 +1164,9 @@ function scheduleLocalBots() {
   for (const p of game.players) {
     if (!p.isBot || p.id === game.judge.id || game.submissions.has(p.id) || botsScheduled.ids.has(p.id)) continue;
     botsScheduled.ids.add(p.id);
-    // Lento solo quando il Re sei tu (per il Memory); negli altri turni i bot rispondono come prima.
-    const delay = game.judge.isBot ? 2000 : BOT_PLAY_MIN_MS + Math.random() * (BOT_PLAY_MAX_MS - BOT_PLAY_MIN_MS);
+    // Lento solo quando il Re sei tu e c'è il Memory: serve tempo. Senza jolly, o col Re bot, rispondono in fretta.
+    const memoryTurn = !game.judge.isBot && cfg.jolly;
+    const delay = memoryTurn ? BOT_PLAY_MIN_MS + Math.random() * (BOT_PLAY_MAX_MS - BOT_PLAY_MIN_MS) : 1200 + Math.random() * 1300;
     setTimeout(() => {
       if (seq !== localGameSeq || !game || game.phase !== "playing" || game.round !== round || game.submissions.has(p.id)) return;
       game.autoPlay(p.id);
@@ -1171,6 +1251,7 @@ function memoryWon() {
   Sound.play("trumpet");   // tromba e vibrazione: il jolly è vinto
   showJollyWon();
   if (online) { netSend({ type: "memoryDone" }); render(); return; }
+  bumpStat("jolly");
   game.awardJolly(viewer);
   step();
 }
@@ -1512,7 +1593,14 @@ function render() {
   if (s.phase !== "roundEnd") document.querySelectorAll(".shrink-ghost").forEach((n) => n.remove());
   if (s.phase === "playing" && selected.length === 0) wordsShown = 0;
   if (s.phase === "playing") stripShown = -1;   // nuovo giro: le combinazioni ripartono coperte
-  if (s.phase === "over") return renderWinner();
+  if (s.phase === "over") {
+    if (!online && countedSeq !== localGameSeq) {
+      countedSeq = localGameSeq;
+      bumpStat("games");
+      if (!game.player(game.winner).isBot) bumpStat("wins");
+    }
+    return renderWinner();
+  }
   const isJudge = s.judgeId === viewer;
   const me = s.players.find((p) => p.id === viewer);
   const need = s.black ? s.black.blanks : 1;
@@ -1596,6 +1684,7 @@ function render() {
     const last = game.lastWinner ? game.player(game.lastWinner) : null;
     if (wonRound !== s.round && last) {
       wonRound = s.round;
+      if (!online && !last.isBot) bumpStat("rounds");
       Sound.play("win");
     }
     note = null;
@@ -2247,18 +2336,31 @@ document.head.append(el("style", {}, `
 body:has(.home) { overflow: hidden; }
 .home { height: 100%; display: flex; flex-direction: column; gap: 14px; }
 /* Home: tre carte del gioco. La nera è la modalità principale. */
-.hand { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1.15fr 1fr; gap: 12px; padding-bottom: 8px; }
+.hand { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; padding-bottom: 8px; }
 .hcard { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; gap: 6px; min-height: 0; padding: 16px; border: 2px solid #111; border-radius: 18px; text-align: left; cursor: pointer; box-shadow: 0 10px 22px -14px #000a; color: #111; background: #fbf8f0; font-family: inherit; min-height: 44px; }
 .hcard:active { transform: scale(.98); }
-.hc-big { grid-column: 1 / -1; }
 .hcard .hc-title { font-size: 26px; font-weight: 800; line-height: 1; letter-spacing: -.01em; }
-.hc-big .hc-title { font-size: 44px; }
 .hcard .hc-sub { font-size: 14px; line-height: 1.3; font-weight: 500; opacity: .85; }
 .hc-arr { position: absolute; top: 14px; right: 16px; font-size: 22px; font-weight: 700; }
-.hc-black { background: #111; color: #fbf8f0; border-color: #111; outline: 2px solid #fbf8f0; outline-offset: 4px; }
+.hc-black { background: #111; color: #fbf8f0; border-color: #fbf8f0; }
+.hc-stats { background: var(--tint, #2a221c); color: #fbf8f0; border-color: var(--tint, #2a221c); justify-content: flex-end; overflow: hidden; }
+.hc-stats > * { position: relative; z-index: 1; }
+.hc-stats .hc-title, .hc-stats .hc-num { text-shadow: 0 1px 6px #000c; }
+.hc-art { position: absolute !important; z-index: 0 !important; top: 12px; left: 12px; width: 75%; aspect-ratio: 5 / 7; overflow: hidden; border-radius: 8px; background: var(--tint, #2a221c); }
+.hc-avatar { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; border: 0; border-radius: 0; }
+.hc-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; width: 100%; margin-top: 6px; }
+.hc-num { display: flex; flex-direction: column; gap: 2px; }
+.hc-num .n { font-size: 22px; font-weight: 800; line-height: 1; }
+.hc-num .l { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; opacity: .7; }
 .hc-white { background: #fbf8f0; color: #111; }
 .hc-accent { background: var(--accent); color: #fff; border-color: #111; }
 .hc-accent .hc-sub { color: #fff; }
+.prof-av { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.prof-img { width: 150px; aspect-ratio: 5 / 7; object-fit: cover; border-radius: 10px; }
+.round { width: 46px; flex: 0 0 46px; padding: 0; font-size: 24px; }
+.slist { display: flex; flex-direction: column; }
+.srow { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.srow strong { font-size: 18px; }
 .blank { display: inline-block; width: 4em; border-bottom: 3px solid var(--accent); margin: 0 .15em; vertical-align: baseline; }
 .home-top { display: flex; align-items: center; justify-content: flex-end; }
 .home-top .label { letter-spacing: .22em; }
