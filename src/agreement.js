@@ -11,14 +11,16 @@ const REGGENZE_DB = typeof REGGENZE !== "undefined" ? REGGENZE : (globalThis.REG
 // Nomi propri che il lessico conosce come parole comuni: non prendono articolo.
 // Verbi all'indicativo, terza persona: forma -> [lemma, modo, tempo, numero] (Morph-it!).
 const VERBS3_DB = typeof VERBS3 !== "undefined" ? VERBS3 : (globalThis.VERBS3 || {});
+/** @type {Map<string, string>|null} */
 let VERB_INV = null;
 // Stessa forma verbale (lemma, tempo) con il numero richiesto dal soggetto.
 function verbAgree(word, num) {
   if (!VERB_INV) {
-    VERB_INV = new Map();
+    const inv = new Map();
     for (const [form, list] of Object.entries(VERBS3_DB)) {
-      for (const [lemma, mood, tense, n] of list) VERB_INV.set(`${lemma}|${tense}|${n}`, form);
+      for (const [lemma, , tense, n] of list) inv.set(`${lemma}|${tense}|${n}`, form);
     }
+    VERB_INV = inv;
   }
   const low = word.toLowerCase();
   const e = (VERBS3_DB[low] || [])[0];
@@ -32,23 +34,30 @@ function verbAgree(word, num) {
 
 // Flessione: lemma -> forme di nomi e aggettivi per genere e numero (Morph-it!).
 const INFLECT_DB = typeof INFLECT !== "undefined" ? INFLECT : (globalThis.INFLECT || {});
+/** Una forma del lessico: lemma, categoria (N/A), genere (m/f), numero (s/p). */
+/** @typedef {{lemma:string, cat:string, g:string, n:string}} FormEntry */
+/** @type {Map<string, FormEntry[]>|null} */
 let FORM_INDEX = null;
+/** @returns {Map<string, FormEntry[]>} */
 function formIndex() {
   if (FORM_INDEX) return FORM_INDEX;
-  FORM_INDEX = new Map();
+  /** @type {Map<string, FormEntry[]>} */
+  const index = new Map();
   for (const [lemma, cats] of Object.entries(INFLECT_DB)) {
     for (const cat of ["N", "A"]) {
       const forms = cats[cat];
       if (!forms) continue;
       for (const [gn, list] of Object.entries(forms)) {
         for (const f of list) {
-          if (!FORM_INDEX.has(f)) FORM_INDEX.set(f, []);
-          FORM_INDEX.get(f).push({ lemma, cat, g: gn[0], n: gn[1] });
+          let list2 = index.get(f);
+          if (!list2) index.set(f, (list2 = []));
+          list2.push({ lemma, cat, g: gn[0], n: gn[1] });
         }
       }
     }
   }
-  return FORM_INDEX;
+  FORM_INDEX = index;
+  return index;
 }
 // Forma di un lemma per genere e numero, senza superlativi (-issimo/-issima).
 function pickForm(lemma, cat, g, n) {
@@ -298,8 +307,10 @@ function inflectPhrase(text, nNeeded) {
   const gs = [...new Set(cands.map((c) => c.g))];
   const headLower = norm(tokens[hi]);
   const g = gs.length === 1 ? gs[0] : headLower.endsWith("a") && gs.includes("f") ? "f" : gs.includes("m") ? "m" : gs[0];
-  const lemma = cands.find((c) => c.g === g).lemma;
-  const n = nNeeded || cands.find((c) => c.g === g).n;
+  const base = cands.find((c) => c.g === g) ?? cands[0];
+  if (!base) return null;
+  const lemma = base.lemma;
+  const n = nNeeded || base.n;
   // La parola già al numero giusto resta com'è ("cuore" non diventa la forma poetica "cuor").
   const sameForm = cands.some((c) => c.g === g && c.n === n);
   const head = (sameForm ? tokens[hi] : pickForm(lemma, "N", g, n)) ?? tokens[hi];
@@ -443,7 +454,10 @@ function agreeCopula(text, white) {
 // Una carta nera con uno o più spazi: ogni spazio attraversa le stesse fasi, nello stesso ordine.
 export function fillSentence(blackText, whites) {
   const parts = blackText.split("____");
-  const st = { blackText, whites, parts, segs: [], prevKept: false, keptPunct: false };
+  /** Segmenti della frase: testo fisso, spazio vuoto o parola inserita. */
+  /** @type {({t:"text", v:string} | {t:"slot", i:number} | {t:"word", v:string, i:number})[]} */
+  const segs = [];
+  const st = { blackText, whites, parts, segs, prevKept: false, keptPunct: false };
   for (let i = 0; i < parts.length; i++) {
     if (i === parts.length - 1) {
       st.segs.push({ t: "text", v: parts[i] });

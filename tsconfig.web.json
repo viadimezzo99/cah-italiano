@@ -1,0 +1,15 @@
+{
+  // Controllo dei tipi degli script della pagina (interfaccia, audio, stanza online).
+  // Comando: npm run typecheck
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [],
+    // Nella pagina i risultati di querySelector sono spesso null per costruzione: il controllo sui null resta solo sul motore.
+    "strictNullChecks": false,
+    // Gli script senza import/export condividono lo stesso spazio di nomi, come nel file finale.
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "legacy"
+  },
+  "include": ["tools/spell.js", "tools/room.js", "tools/audio.js", "tools/app.js", "types/**/*.d.ts", "src/**/*.js"]
+}

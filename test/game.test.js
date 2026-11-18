@@ -243,3 +243,10 @@ test("durante il giudizio chi non è il Re vede solo le combinazioni già sfogli
   g.compareAll(g.judge.id);
   assert.ok(g.publicState(other).reveal.every((r) => r.cards));
 });
+
+test("mazzo senza carte nere: errore chiaro all'inizio, non un crash più avanti", () => {
+  const cards = { white: Array.from({ length: 60 }, (_, i) => ({ id: "w" + i, text: "bianca " + i })), black: [] };
+  const players = [{ id: "a", name: "A" }, { id: "b", name: "B" }, { id: "c", name: "C" }];
+  const g = new Game(players, cards, { rng: seededRng(1) });
+  assert.throws(() => g.start(), /Nessuna carta nera disponibile/);
+});
