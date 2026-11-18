@@ -123,7 +123,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.42";
+const APP_VERSION = "0.2.43";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -1620,7 +1620,7 @@ function render() {
           class: "mini-black" + (shrinkNow && won && i === p.score - 1 ? " fresh" : ""),
         })));
       return el("div", {
-        class: ["seat", p.id === s.judgeId ? "judge" : "", p.hasPlayed ? "played" : "", won ? "won" : "",
+        class: ["seat", p.id === s.judgeId ? "judge" : "", s.phase === "playing" && p.hasPlayed ? "played" : "", won ? "won" : "",
           p.id === viewer && p.id !== s.judgeId ? "turn" : ""].join(" "),
         role: "listitem",
       },
@@ -1632,7 +1632,7 @@ function render() {
   // Freccia e pallino stanno sulla riga del round: non occupano altro spazio in verticale.
   const roundline = el("div", { class: "roundline" },
     el("button", { type: "button", class: "back-arrow", "aria-label": "Indietro", onclick: () => { homeTab = "home"; exitGame(); } }, "←"),
-    el("span", { class: "spacer" }),
+    roundProgress(s),
     el("button", { type: "button", class: "home-settings", "aria-label": "Impostazioni", title: "Impostazioni", onclick: openSettings }, settingsIcon()));
 
   let mainCard = null;
@@ -1775,12 +1775,12 @@ function render() {
   if (oldSrc && !pendingFrom) pendingFrom = { rect: oldSrc.getBoundingClientRect(), node: oldSrc };
   // Il volo parte dalla combinazione che si vedeva: la carta grande della vincente non compare a parte.
   if (s.phase === "roundEnd" && pendingFrom && mainCard) mainCard.style.visibility = "hidden";
-  requestAnimationFrame(() => fitText(app));
+  requestAnimationFrame(() => { fitText(app); refreshFades(app); keepSeatsInView(); });
   const oldRow = app.querySelector(".combo-row");
   comboScroll = oldRow ? oldRow.scrollLeft : null;
   app.replaceChildren(
     el("div", { class: "game" },
-      el("header", { class: "hud" }, board, roundline),
+      el("header", { class: "hud" }, boardWrap(board), roundline),
       el("main", { class: "stage" }, mainCard, extraRow, note),
       el("footer", { class: "dock" }, actions, railBlock),
       who));
@@ -1811,6 +1811,7 @@ function shrinkWinner(total, from = null) {
   const src = from ? from.node : card;
   if (!src || !mini) return;
   if (!motionOn()) { mini.classList.remove("fresh"); return; }
+  keepSeatsInView(true);   // il posto del vincitore deve essere in vista prima di calcolare dove atterra la carta
   const wait = 150, run = 900; // il volo dura poco; il segnaposto resta dopo
   const a = from ? from.rect : card.getBoundingClientRect(), t = mini.getBoundingClientRect();
   const k = Math.min(t.width / a.width, 0.2);
@@ -2200,6 +2201,77 @@ function attachHold(node, fn, flag = null, release = null) {
   node.addEventListener("contextmenu", (e) => e.preventDefault());
 }
 
+// File orizzontali che scorrono (giocatori, mano, combinazioni): invece di un taglio netto, il bordo sfuma
+// solo dal lato in cui c'è altro da vedere. Le classi si aggiornano allo scorrimento e al cambio di dimensione.
+const FADE_ROWS = ".board, .rail, .combo-row, .rv-strip";
+/** @param {Element} r */
+function updateFade(r) {
+  const max = r.scrollWidth - r.clientWidth;
+  const scrollsX = max > 2 && getComputedStyle(r).overflowX !== "hidden";
+  r.classList.toggle("fade-x", scrollsX);
+  r.classList.toggle("more-l", scrollsX && r.scrollLeft > 2);
+  r.classList.toggle("more-r", scrollsX && r.scrollLeft < max - 2);
+  if (r.classList.contains("board")) updateMoreBadges(r);
+}
+/** @param {ParentNode} [root] */
+function refreshFades(root = document) {
+  root.querySelectorAll(FADE_ROWS).forEach(updateFade);
+}
+window.addEventListener("resize", () => refreshFades());
+document.addEventListener("scroll", (e) => {
+  const r = e.target;
+  if (r instanceof Element && r.matches(FADE_ROWS)) updateFade(r);
+}, true);
+
+// Mentre si gioca: un pallino per ogni giocatore che deve rispondere, pieno quando ha risposto, e il conteggio.
+// Fuori da quella fase resta uno spazio vuoto che tiene ai lati freccia e impostazioni.
+function roundProgress(s) {
+  if (s.phase !== "playing") return el("span", { class: "spacer" });
+  const answering = s.players.filter((p) => p.id !== s.judgeId);
+  const done = answering.filter((p) => p.hasPlayed).length;
+  return el("span", { class: "spacer round-progress", role: "status", "aria-label": `${done} risposte su ${answering.length}` },
+    el("span", { class: "rp-dots", "aria-hidden": "true" }, answering.map((p) => el("span", { class: "rp-dot" + (p.hasPlayed ? " on" : "") }))),
+    el("span", { class: "rp-count", "aria-hidden": "true" }, `${done}/${answering.length}`));
+}
+
+// Fila dei giocatori con un contatore per lato: "+2" dice quanti posti restano fuori vista; toccandolo la fila scorre lì.
+function boardWrap(board) {
+  const badge = (side) => el("button", { type: "button", class: `more-badge ${side}`, hidden: true, "aria-label": side === "l" ? "Giocatori a sinistra" : "Giocatori a destra",
+    onclick: () => board.scrollBy({ left: (side === "l" ? -1 : 1) * board.clientWidth * 0.8, behavior: motionOn() ? "smooth" : "auto" }) });
+  return el("div", { class: "board-wrap" }, board, badge("l"), badge("r"));
+}
+/** @param {Element} board */
+function updateMoreBadges(board) {
+  const wrap = board.parentElement;
+  if (!wrap || !wrap.classList.contains("board-wrap")) return;
+  const b = board.getBoundingClientRect();
+  let left = 0, right = 0;
+  for (const seat of board.children) {
+    const r = seat.getBoundingClientRect();
+    if (r.left + r.width / 2 < b.left) left++;
+    else if (r.left + r.width / 2 > b.right) right++;
+  }
+  for (const [side, n] of [["l", left], ["r", right]]) {
+    const el2 = /** @type {HTMLElement|null} */ (wrap.querySelector(`.more-badge.${side}`));
+    if (!el2) continue;
+    el2.hidden = n === 0;
+    el2.textContent = `+${n}`;
+  }
+}
+
+// Con molti giocatori la fila scorre: chi ha appena vinto il turno, chi deve giocare e il Re restano in vista.
+/** @param {boolean} [instant] subito, senza scorrimento animato (serve prima di misurare il volo della carta) */
+function keepSeatsInView(instant = false) {
+  const board = app.querySelector(".board");
+  if (!board || board.scrollWidth <= board.clientWidth) return;
+  const target = board.querySelector(".seat.won") || board.querySelector(".seat.turn") || board.querySelector(".seat.judge");
+  if (!target) return;
+  const b = board.getBoundingClientRect(), t = target.getBoundingClientRect();
+  if (t.left < b.left + 24 || t.right > b.right - 24) {
+    board.scrollTo({ left: board.scrollLeft + (t.left + t.width / 2) - (b.left + b.width / 2), behavior: instant || !motionOn() ? "auto" : "smooth" });
+  }
+}
+
 // Scatto a ogni carta che scorre nelle file orizzontali (mano, tavolo, elenchi).
 const railStep = new WeakMap();
 document.addEventListener("scroll", (e) => {
@@ -2483,10 +2555,13 @@ button:active:not(:disabled) { transform: scale(.96); }
 .rv-card.picked { outline: 3px solid var(--accent); animation: rv-pop .5s ease-out; }
 .rv-card.rv-new { animation: rv-in .45s ease-out both; }
 .combo-row { width: 100%; min-width: 0; align-self: stretch; box-sizing: border-box; display: flex; align-items: center; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 20px 16px 24px; scrollbar-width: none; }
-.combo-row > .combo { flex: 0 0 86%; scroll-snap-align: center; opacity: .72; transition: opacity var(--t-base), transform var(--t-base), flex-basis var(--t-base); cursor: pointer; }
-.combo-row > .combo.sel { opacity: 1; transform: scale(1.03); }
+.combo-row > .combo { flex: 0 0 86%; scroll-snap-align: center; opacity: .72; transition: opacity var(--t-base); cursor: pointer; }
+.combo-row > .combo.sel { opacity: 1; }
 /* Le combinazioni hanno la stessa grandezza della carta nera, anche se la riga è in uno spazio con contenitore a misura. */
-.stage .combo-row > .combo { container-type: normal; width: auto; min-height: 0; flex: 0 0 min(72%, calc(44vh * 5 / 7)); }
+/* Sulla scena la fila occupa lo spazio rimasto e le carte si misurano su di essa (cqw/cqh):
+   entrano sempre intere, con o senza la mano sotto, a qualsiasi grandezza di carte e di schermo. */
+.stage > .combo-row { flex: 1 1 auto; min-height: 0; container-type: size; }
+.stage .combo-row > .combo { container-type: inline-size; width: auto; min-height: 0; flex: 0 0 min(78cqw, 100cqh * 5 / 7 * .9); }
 .stage .combo-row .combo .black { width: 100%; height: auto; aspect-ratio: 5 / 7; }
 .stage .combo-row .combo .black { line-height: 1.2; }
 /* Con la fila sotto, la carta nera mantiene la sua grandezza: non si restringe per far posto. */
@@ -2575,8 +2650,8 @@ document.head.append(el("style", {}, `
 .black { box-shadow: inset 0 0 0 2px rgba(255,255,255,.92), 0 22px 40px -18px rgba(0,0,0,.6); }
 .black.ready { position: relative; }
 .combo.sel { position: relative; }
-/* Stessa dimensione della carta nera in partita: con l'intestazione e la mano sotto deve restare tutta a schermo. */
-.combo.sel { flex: 0 0 min(90vw, calc((100svh - 330px) * 5 / 7)) !important; }
+/* La combinazione scelta è la più grande che entra intera nella fila (larghezza e altezza). */
+.stage .combo-row > .combo.sel { flex-basis: min(100cqw, 100cqh * 5 / 7); }
 .stage .combo-row .combo.sel .black { width: 100%; line-height: 1.2; }
 /* Jolly: carta bianca speciale, Memory e corona */
 .card.jolly { background: var(--paper, #f3e9dc); color: #1a130f; }
