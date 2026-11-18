@@ -45,7 +45,7 @@ h1, h2, .display { font-family: "Bricolage Grotesque", system-ui, sans-serif; te
 .hidden-msg { color: var(--muted); font-size: 14px; margin: 0; }
 button {
   font: inherit; font-weight: 600; color: inherit; cursor: pointer; touch-action: manipulation;
-  border: 1px solid var(--line); background: var(--paper); border-radius: 12px; padding: 11px 16px;
+  border: 1px solid var(--line); background: var(--paper); border-radius: 14px; min-height: 46px; padding: 0 16px; line-height: 1.2;
   transition: transform .15s, background .15s;
 }
 button:active:not(:disabled) { transform: scale(.97); }
@@ -54,7 +54,7 @@ button:disabled { opacity: .45; cursor: default; }
 button.primary { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 8px 18px -10px var(--accent); }
 button.ghost { background: transparent; }
 button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-input[type="text"] { font: inherit; color: inherit; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%; }
+input[type="text"] { font: inherit; color: inherit; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; min-height: 46px; padding: 0 14px; width: 100%; box-sizing: border-box; }
 input[type="range"] { width: 100%; accent-color: var(--accent); }
 
 /* Logo */
@@ -85,15 +85,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .topbar .tools { display: flex; gap: 6px; }
 .topbar .tools button { padding: 8px 12px; }
 .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; }
-.seat {
-  padding: 8px 10px; border-radius: 12px; background: var(--paper); border: 1px solid var(--line);
-  transition: transform .3s cubic-bezier(.2,.9,.3,1.3), border-color .3s, box-shadow .3s;
-}
-.seat.judge { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 10px 18px -12px var(--accent); }
-.seat.won { animation: pop .6s cubic-bezier(.2,.9,.3,1.4); border-color: var(--ok); }
 .seat .name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .seat .pts { font-family: "Bricolage Grotesque", sans-serif; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .seat .tag { font-size: 11px; color: var(--muted); }
+.seat.won { animation: pop .6s cubic-bezier(.2,.9,.3,1.4); }
 .seat.played .tag::after { content: " · pronto"; color: var(--ok); }
 .status { font-size: 14px; color: var(--muted); }
 .status strong { color: var(--fg); }
@@ -189,8 +184,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .spell-hints { display: flex; flex-wrap: wrap; gap: 6px; min-height: 0; }
 .spell-hints:empty { display: none; }
 .card-cats { display: flex; flex-wrap: wrap; gap: 8px; }
-.card-cats .chip { font: inherit; font-size: 14px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; }
-.card-cats .chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .spell-hints .chip { font: inherit; font-size: 14px; padding: 4px 11px; border-radius: 999px; border: 1px solid currentColor; background: transparent; color: inherit; cursor: pointer; }
 .spell-hints .chip.fix { font-style: italic; opacity: .85; }
 .card-preview { margin: 8px 0; padding: 12px 14px; border-radius: 12px; background: #111; color: #fff; font-size: 17px; line-height: 1.35; min-height: 3em; }
@@ -311,7 +304,7 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 .rail .card .txt { line-height: 1.28; }
 /* Nomi giocatori come gli spazi da riempire: fondo tenue e sottolineatura arancio. Carte senza bordi colorati. */
 .seat {
-  border: none; border-bottom: 3px solid var(--accent); border-radius: 8px 8px 0 0;
+  border: none; border-bottom: 3px solid var(--accent); border-radius: 8px 8px 0 0; transition: border-color .3s, box-shadow .3s;
   background: color-mix(in srgb, var(--accent) 12%, var(--paper));
 }
 .seat.judge { border-color: var(--accent); background: var(--accent); color: #fff; box-shadow: none; }
@@ -349,10 +342,10 @@ html, body, .card, .pcard, .black, .zoom, .black .text, .rail .card .txt { hyphe
 .hdr-logo .acc { color: var(--accent); }
 .home .menu { margin-top: 18px; }
 /* Pallino impostazioni e freccia indietro: piccoli, senza testo */
-.home-settings { width: 10px; height: 10px; min-height: 0; padding: 0; border: 0; border-radius: 50%; background: var(--accent); box-shadow: none; flex: none; font-size: 0; }
+.home-settings { width: 44px; height: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; box-shadow: none; flex: none; color: var(--accent); display: grid; place-items: center; }
 .home .home-top .home-settings { margin-left: auto; }
 .roundline .home-settings { align-self: center; }
-.back-arrow { background: none; border: 0; padding: 0 4px 0 0; color: var(--accent); font-size: 16px; line-height: 1; min-height: 0; box-shadow: none; align-self: center; }
+.back-arrow { background: none; border: 0; padding: 0; width: 40px; min-height: 40px; display: grid; place-items: center; color: var(--accent); font-size: 20px; line-height: 1; box-shadow: none; align-self: center; }
 /* Vittoria: come il passaggio di turno, con corona e segnaposti */
 .crown-screen { position: fixed; inset: 0; z-index: 60; background: #000; overflow: hidden; color: #fff; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; padding: 28px 26px 26px; }
 .crown-screen .iw { position: relative; margin-bottom: 28px; font-family: "Bricolage Grotesque", system-ui, sans-serif; font-weight: 800; font-size: clamp(36px, min(15vw, 8vh), 76px); line-height: 1.04; letter-spacing: -.02em; white-space: nowrap; }
@@ -2000,35 +1993,24 @@ const Sound = (() => {
     pair: [40, 50, 40],   // coppia trovata nel Memory: doppio colpo, più netto del flip
   };
   let hapticsOn = true;
+  // Suoni d'interfaccia (tocchi, digitazione, scorrimento): si possono spegnere senza toccare quelli di gioco.
+  const UI_SOUNDS = new Set(["tap", "key", "tick"]);
+  let uiOn = true;
   const SFX = {
-    pick: (t) => { burst(t, 0.03, 3200, 2, 0.14, sfxBus, "highpass"); tap(t, 260, 0.08); },
-    confirm: (t) => { burst(t, 0.05, 2600, 1.5, 0.2, sfxBus, "highpass"); tap(t, 200, 0.14); },
-    // Carta appoggiata sul tavolo: strisciata corta e un colpetto secco.
-    deal: (t) => { burst(t, 0.14, 2200, 1.1, 0.22, sfxBus, "bandpass", 700); tap(t + 0.12, 180, 0.12); },
-    // Carta girata: fruscio che sale.
-    flip: (t) => burst(t, 0.2, 900, 0.8, 0.28, sfxBus, "bandpass", 2600),
     // Mazzo mescolato: una serie di scatti rapidi, come una mescolata.
     shuffle: (t) => { for (let i = 0; i < 10; i++) burst(t + i * 0.038 + Math.random() * 0.012, 0.03, 3800 + Math.random() * 800, 1.4, 0.2, sfxBus, "highpass"); },
     // Schiocco di una carta nera sul tavolo: attacco secco e corpo grave.
     slam: (t) => { burst(t, 0.035, 2600, 1, 0.5, sfxBus); tap(t, 150, 0.45); },
-    error: (t) => { tap(t, 150, 0.2); burst(t, 0.06, 500, 1, 0.1, sfxBus); },
     // Foglio che si apre: fruscio di carta e qualche crepitio.
     paper: (t) => { burst(t, 0.24, 2400, 0.6, 0.18, sfxBus, "bandpass", 900); for (let k = 0; k < 5; k++) burst(t + 0.03 + k * 0.035 + Math.random() * 0.01, 0.02, 5000, 2, 0.12, sfxBus, "highpass"); },
     // Scatto a ogni carta che passa sotto il dito, come la rotella di una cassaforte.
     tick: (t) => { burst(t, 0.015, 4200, 3, 0.35, sfxBus, "highpass"); tap(t, 1100, 0.06); },
-    // Suoni d'interfaccia: un tocco leggero sui pulsanti e un ticchettio per ogni lettera.
-    tap: (t) => { burst(t, 0.02, 1800, 2, 0.12, sfxBus, "highpass"); tap(t, 520, 0.04); },
     key: (t) => burst(t, 0.012, 3000, 3, 0.07, sfxBus, "highpass"),
     // Colpo grave dell'apertura, come quello che accompagna il titolo nei giochi di combattimento.
     boom: (t) => { blip(55, t, 0.7, "sine", sfxBus, 0.9, 28); burst(t, 0.12, 300, 0.7, 0.35, sfxBus, "lowpass"); },
     // Vittoria: un applauso di tavolo, diverso dagli altri suoni.
-    win: (t) => {
-      for (let i = 0; i < 26; i++) {
-        const k = i / 26;
-        burst(t + k * 0.9 + Math.random() * 0.04, 0.07, 1500 + Math.random() * 1400, 0.8, 0.12 + 0.12 * Math.sin(Math.PI * k), sfxBus);
-      }
-    },
-    // Suoni scelti nelle prove: sovrascrivono quelli sopra con lo stesso nome.
+    // Suoni d'interfaccia: un tocco leggero sui pulsanti e un ticchettio per ogni lettera.
+    // Carta appoggiata sul tavolo, carta girata, errore, vittoria: versioni definitive.
     pick: (t) => { burst(t, 0.02, 3500, 2, 0.3, sfxBus); blip(2000, t, 0.02, "sine", sfxBus, 0.1); },
     deal: (t) => { for (let k = 0; k < 5; k++) burst(t + k * 0.07, 0.025, 2600, 2, 0.25, sfxBus); },
     flip: (t) => { burst(t, 0.03, 1500, 3, 0.3, sfxBus); burst(t + 0.07, 0.03, 1500, 3, 0.3, sfxBus); },
@@ -2192,7 +2174,7 @@ const Sound = (() => {
     unlock() { return ensure(); },
     play(name) {
       if (hapticsOn && HAPTIC[name] && navigator.vibrate) { try { navigator.vibrate(HAPTIC[name]); } catch { /* nessuna vibrazione */ } }
-      if (!sfxOn || !ensure()) return;
+      if (!sfxOn || (!uiOn && UI_SOUNDS.has(name)) || !ensure()) return;
       SFX[name]?.(ctx.currentTime + 0.01);
     },
     setHaptics(on) { hapticsOn = !!on; },
@@ -2204,6 +2186,7 @@ const Sound = (() => {
       if (changed && musicOn) { stopAll(); startMusic(); }
     },
     setSfx(on) { sfxOn = !!on; },
+    setUiSounds(on) { uiOn = !!on; },
     setSfxVolume(v) { sfxLevel = Math.max(0, Math.min(1, v)); if (sfxBus) sfxBus.gain.value = sfxLevel; },
     setVolume(v) { musicLevel = v; if (musicOn && rampTrack && !rampTimer) rampTrack.volume = trackTarget(); },
     setMusic(on) {
@@ -2748,7 +2731,7 @@ const replaceApp = app.replaceChildren.bind(app);
 app.replaceChildren = (...nodes) => {
   replaceApp(...nodes);
   const first = app.firstElementChild;
-  if (first && !first.classList.contains("game")) first.classList.add("enter");
+  if (first && !first.classList.contains("game") && !first.classList.contains("home")) first.classList.add("enter");
 };
 const MAX_HUMANS = 6;
 
@@ -2758,7 +2741,7 @@ const FONTS = {
   tecnico: { label: "Tecnico", css: '"IBM Plex Sans", system-ui, sans-serif' },
   fumetto: { label: "Fumetto", css: '"Permanent Marker", cursive' },
 };
-const DEFAULT_SETTINGS = { theme: "system", font: "moderno", textScale: 1, cardScale: 1, music: true, musicVol: 0.6, sfx: true, sfxVol: 1, vibration: true, motion: true };
+const DEFAULT_SETTINGS = { theme: "system", font: "moderno", textScale: 1, cardScale: 1, music: true, musicVol: 0.6, sfx: true, uiSfx: true, sfxVol: 1, vibration: true, motion: true };
 
 function loadSettings() {
   try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem("cah-settings") || "{}") }; }
@@ -2797,6 +2780,7 @@ function askBotName(n, onOk) {
 }
 let viewer = null;      // chi sta guardando lo schermo in questo momento
 let lastViewer = null;
+let lastActKey = null;   // ultimo turno in cui questo telefono doveva agire (online), per suonare una volta sola
 let curtain = false;    // schermata "passa il telefono" da chiudere prima di vedere le carte
 let selected = [];      // ids delle carte scelte da chi guarda, in ordine di click
 let judgeSel = null;    // combinazione scelta dal Re, prima della conferma
@@ -2826,6 +2810,8 @@ let stripShown = -1;                 // ultima combinazione già comparsa nella 
 let shrinkGhost = null;             // copia della carta vincente in volo: si toglie se si salta la pausa
 let online = null;      // partita online: { code, you, state, offline, winScore } oppure null
 
+// Icona impostazioni: una carta nera con lo spazio da riempire, come nel gioco.
+const settingsIcon = () => { const t = document.createElement("span"); t.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.5" fill="currentColor"/><path d="M8 14.5h8" stroke="var(--bg)" stroke-width="2" stroke-linecap="round"/><circle cx="8" cy="7" r="1.2" fill="var(--bg)"/></svg>'; return t.firstElementChild; };
 const el = (tag, attrs = {}, ...kids) => {
   const n = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -2853,6 +2839,7 @@ function applySettings() {
   document.body.classList.toggle("no-motion", !settings.motion);
   document.body.classList.toggle("motion-on", settings.motion);
   Sound.setSfx(settings.sfx);
+  Sound.setUiSounds(settings.uiSfx);
   Sound.setSfxVolume(settings.sfxVol);
   Sound.setHaptics(settings.vibration);
   Sound.setVolume(settings.musicVol);
@@ -2861,7 +2848,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.35";
+const APP_VERSION = "0.2.36";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -2936,6 +2923,7 @@ function openSettings() {
       toggle("music", "Musica di sottofondo"),
       slider("musicVol", "Volume musica", 0, 1, 0.05, (v) => `${Math.round(v * 100)}%`),
       toggle("sfx", "Effetti sonori"),
+      toggle("uiSfx", "Suoni d'interfaccia (tocchi e digitazione)"),
       slider("sfxVol", "Volume effetti", 0, 1, 0.05, (v) => `${Math.round(v * 100)}%`),
       toggle("vibration", "Vibrazione")),
     el("div", { class: "group" }, el("span", { class: "label" }, "Movimento"),
@@ -3038,20 +3026,49 @@ function playIntro(target) {
   }, 2000);
 }
 
+// Movimento delle carte della home. Stesso gesto per entrare e uscire: le carte "si distribuiscono" dal basso.
+const motionOn = () => !document.body.classList.contains("no-motion");
+let leavingHome = false;
+// Tocco su una carta: quella scelta si ingrandisce, le altre scivolano giù e svaniscono, poi cambia schermata.
+function leaveHome(tapped, next) {
+  if (leavingHome) return;
+  if (!motionOn() || !tapped.animate) { next(); return; }
+  leavingHome = true;
+  tapped.animate([{ transform: "none" }, { transform: "scale(1.05) rotate(-1.2deg)" }],
+    { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" });
+  document.querySelectorAll(".hcard").forEach((c) => {
+    if (c === tapped) return;
+    c.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(60px) scale(.94)" }],
+      { duration: 260, easing: "cubic-bezier(.4,0,.6,1)", fill: "forwards" });
+  });
+  document.querySelector(".home-top")?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" });
+  setTimeout(() => { leavingHome = false; next(); }, 260);
+}
+// Carte distribuite una dopo l'altra. Alla prima apertura aspettano che il logo sia arrivato in alto.
+function dealHome(cards, delay0) {
+  if (!motionOn()) return;
+  cards.forEach((c, i) => c.animate([{ opacity: 0, transform: "translateY(54px) scale(.94)" }, { opacity: 1, transform: "none" }],
+    { duration: 520, delay: delay0 + i * 110, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards" }));
+}
+
 function showHome() {
-  const row = (n, title, sub, go) => el("button", { type: "button", class: "menu-row", onclick: go },
-    el("span", { class: "n" }, n),
-    el("span", { class: "t" }, el("strong", {}, title), el("span", { class: "sub" }, sub)),
-    el("span", { class: "arr", "aria-hidden": "true" }, "→"));
+  const first = !introDone;
+  // Tre carte del gioco: la nera per la modalità principale, le altre due affiancate sotto.
+  const card = (kind, title, sub, go) => el("button", { type: "button", class: `hcard ${kind}`,
+    onclick: (e) => leaveHome(e.currentTarget, go) },
+    el("span", { class: "hc-title display" }, title),
+    el("span", { class: "hc-sub" }, sub),
+    el("span", { class: "hc-arr", "aria-hidden": "true" }, "→"));
   const top = wordmarkNode("hdr-logo");
   app.replaceChildren(el("section", { class: "home" },
     el("div", { class: "home-top" }, top,
-      el("button", { type: "button", class: "home-settings", "aria-label": "Impostazioni", onclick: openSettings })),
-    el("nav", { class: "menu", "aria-label": "Menu" },
-      row("01", "Locale", "Con amici e bot, un telefono solo", () => { homeTab = "local"; setup(); }),
-      row("02", "Online", "Stanza con codice, fino a 10 giocatori", () => { homeTab = "online"; setup(); }),
-      row("03", "Le carte", "Carte, categorie e pacchetti", () => cardsScreen()))));
-  if (!introDone) requestAnimationFrame(() => playIntro(top));
+      el("button", { type: "button", class: "home-settings", "aria-label": "Impostazioni", title: "Impostazioni", onclick: openSettings }, settingsIcon())),
+    el("nav", { class: "hand", "aria-label": "Menu" },
+      card("hc-black hc-big", "Locale", el("span", {}, "Con amici e bot, ", el("span", { class: "blank" }), " un telefono solo."), () => { homeTab = "local"; setup(); }),
+      card("hc-white", "Online", "Stanza con codice, fino a 10.", () => { homeTab = "online"; setup(); }),
+      card("hc-accent", "Le carte", "Carte, categorie e pacchetti.", () => cardsScreen()))));
+  dealHome([...app.querySelectorAll(".hcard")], first ? 1950 : 0);
+  if (first) requestAnimationFrame(() => playIntro(top));
 }
 
 function subHead(title) {
@@ -3375,53 +3392,41 @@ function deckMenu(dk, deckId) {
   ]);
 }
 
-// Condividi o importa: il mazzo come testo da copiare, e le frasi da incollare.
+// Condividi o importa: stesso formato nei due sensi, una frase per riga (con ____ per la nera). Niente codice.
 function openPackSheet(dk, deckId) {
   let bg;
   const close = () => closeSheet(bg);
-  const packData = () => {
+  const packText = () => {
     const d = loadCustom();
-    return { formato: "cah-pacchetto", versione: 2, nome: dk.name,
-      white: d.white.filter((c) => c.deck === deckId).map(({ text, cat }) => ({ text, cat })),
-      black: d.black.filter((c) => c.deck === deckId).map(({ text, cat }) => ({ text, cat })) };
+    return [...d.white, ...d.black].filter((c) => c.deck === deckId)
+      .map((c) => String(c.text).replace(/\s+/g, " ").trim()).filter(Boolean).join("\n");
   };
-  const exportBox = el("textarea", { rows: "4", readonly: "", "aria-label": "Il mazzo in testo", onfocus: (e) => e.target.select() });
-  exportBox.value = JSON.stringify(packData());
-  const copy = () => {
-    exportBox.focus(); exportBox.select(); exportBox.setSelectionRange(0, exportBox.value.length);
+  const exportBox = el("textarea", { class: "pack-text", rows: "6", readonly: "", "aria-label": "Frasi del mazzo",
+    placeholder: "Nessuna carta in questo mazzo", onfocus: (e) => e.target.select() });
+  exportBox.value = packText();
+  const copy = async () => {
+    const text = exportBox.value;
+    if (!text) { toast("Il mazzo è vuoto"); return; }
+    try { await navigator.clipboard.writeText(text); toast("Frasi copiate"); return; } catch { /* ripiego sotto */ }
+    exportBox.focus(); exportBox.select();
     let ok = false;
     try { ok = document.execCommand("copy"); } catch { ok = false; }
-    toast(ok ? "Testo copiato" : "Premi Seleziona tutto, poi copia");
+    toast(ok ? "Frasi copiate" : "Premi Seleziona tutto, poi copia");
   };
-  const pasteIn = el("textarea", { rows: "5", placeholder: "Una frase per riga\nFrase bianca\nFrase con ____ nera", "aria-label": "Frasi da importare" });
+  const pasteIn = el("textarea", { class: "pack-text", rows: "6", placeholder: "Una frase per riga\nCon ____ diventa una nera",
+    "aria-label": "Frasi da incollare" });
   bg = openSheet({
     title: `Mazzo ${dk.name}`,
     body: [
-      el("span", { class: "label" }, "Condividi"),
+      el("span", { class: "label" }, "Copia"),
       exportBox,
-      el("div", { class: "actions" },
-        el("button", { type: "button", class: "ghost", onclick: copy }, "Copia il testo")),
-      el("span", { class: "label" }, "Ricevi carte"),
-      el("p", { class: "hidden-msg" }, "Incolla le frasi, una per riga: con ____ diventa una nera, senza diventa una bianca."),
+      el("div", { class: "actions" }, el("button", { type: "button", class: "ghost", onclick: copy }, "Copia le frasi")),
+      el("span", { class: "label" }, "Incolla"),
       pasteIn,
+      el("p", { class: "hidden-msg" }, "Una frase per riga. Con ____ diventa una nera, senza diventa una bianca."),
     ],
     actions: [cancelBtn(close), primaryBtn("Aggiungi le carte", () => { const t = pasteIn.value; close(); importPack(t, deckId); })],
   });
-}
-
-// Il coperchio si alza, poi si apre il mazzo. Senza animazioni (riduzione movimento) si apre subito.
-function openDeckBox(box, go) {
-  if (document.body.classList.contains("no-motion") || !box.animate) { go(); return; }
-  box.classList.add("opening");
-  Sound.play("flip");
-  setTimeout(go, 1500);
-}
-
-// Tinta stabile per ogni mazzo, dal nome.
-function deckHue(name) {
-  let h = 0;
-  for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) % 360;
-  return h;
 }
 
 // Elimina un mazzo personale: le sue carte passano in "Senza mazzo".
@@ -3497,27 +3502,21 @@ function sampleCard(cards) {
 function renderDecks() {
   const v = cardsView;
   const { orig, mine } = allCards();
+  // Ogni mazzo è una carta della stessa famiglia della home: il base in nero, i personali in crema.
   const tile = (dk) => {
     const cards = dk.official ? orig : mine.filter((c) => c.deck === dk.id);
     const nW = cards.filter((c) => c.color === "w").length;
     const nB = cards.filter((c) => c.color === "b").length;
-    // Scatola del mazzo: si chiude sul tavolo e il coperchio si alza al tocco, poi si apre il mazzo.
-    const hue = dk.official ? 40 : dk.id === "senza" ? 210 : deckHue(dk.name);
     const go = () => { v.deck = dk.id; v.tab = "white"; v.cat = "Tutte"; v.q = ""; cardsScreen(); };
-    return el("div", { class: "deck-slot", style: `--hue:${hue}` },
-      el("button", { type: "button", class: `deck-box${dk.use ? "" : " off"}`, "aria-label": `Apri il mazzo ${dk.name}`,
-        onclick: (e) => openDeckBox(e.currentTarget, go) },
-        el("span", { class: "box-inside" }),
-        el("span", { class: "box-cards" }, el("span", { class: "box-card pcard w", style: "--k:.5" }, el("span", { class: "txt" }, sampleCard(cards)))),
-        el("span", { class: "box-lid" }, el("span", { class: "box-badge" }, dk.official ? "Espansione base" : "Mazzo")),
-        el("span", { class: "box-body" },
-          el("span", { class: "box-plate" }, el("strong", { class: "display" }, dk.name)),
-          el("span", { class: "box-count" }, `${nW} bianche · ${nB} nere`))),
-      el("div", { class: "deck-row" },
-        el("button", { type: "button", class: "switch", "aria-pressed": String(dk.use),
-          onclick: (e) => { e.stopPropagation(); toggleDeck(dk.id, () => cardsScreen()); } },
-        dk.use ? "Nelle partite: sì" : "Nelle partite: no"),
-        null));
+    return el("div", { class: `dk${dk.official ? " base" : ""}${dk.use ? "" : " off"}` },
+      el("button", { type: "button", class: "dk-main", "aria-label": `Apri il mazzo ${dk.name}`, onclick: go },
+        el("span", { class: "dk-mini", "aria-hidden": "true" }),
+        el("span", { class: "dk-text" },
+          el("span", { class: "dk-eyebrow" }, dk.official ? "Espansione base" : "Mazzo"),
+          el("span", { class: "dk-name display" }, dk.name),
+          el("span", { class: "dk-count" }, `${nW} bianche · ${nB} nere`))),
+      el("button", { type: "button", class: "switch", "aria-pressed": String(dk.use),
+        onclick: () => toggleDeck(dk.id, () => cardsScreen()) }, dk.use ? "In partita" : "Escluso"));
   };
   app.replaceChildren(el("section", { class: "cards-screen" },
     el("div", { class: "subhead" },
@@ -3525,11 +3524,12 @@ function renderDecks() {
       el("div", { class: "head-row" },
         el("h2", { class: "display" }, "Mazzi"),
         el("button", { type: "button", class: "add", onclick: () => openDeckForm(null, (id) => { cardsView.deck = id; cardsScreen(); }) }, "+ Nuovo mazzo"))),
-    el("p", { class: "hidden-msg" }, "Apri un mazzo per vedere e modificare le sue carte. Il pulsante sotto ogni mazzo decide se entra nelle partite."),
+    el("p", { class: "hidden-msg" }, "Tocca un mazzo per modificarne le carte. L'interruttore decide se entra nelle partite."),
     el("div", { class: "deck-list" }, decksList().map(tile))));
 }
 
-// Dentro un mazzo: la vista con tab, ricerca, equilibrio e categorie.
+// Dentro un mazzo. Tocco su una carta: la modifica. Tenerla premuta: la elimina (o la nasconde, per le ufficiali).
+// Il pulsante + aggiunge una carta. "Opzioni" raccoglie tutto ciò che riguarda il mazzo.
 function renderDeck(deckId, partial = false) {
   const v = cardsView;
   const dk = decksList().find((x) => x.id === deckId);
@@ -3540,122 +3540,66 @@ function renderDeck(deckId, partial = false) {
   if (v.cat !== "Tutte") list = list.filter((c) => c.cat === v.cat);
   const q = (v.q ?? "").trim().toLowerCase();
   if (q) list = list.filter((c) => c.text.toLowerCase().includes(q));
-
-  const search = el("input", { type: "search", class: "card-search", placeholder: "Cerca una carta…", "aria-label": "Cerca tra le carte",
-    oninput: (e) => { v.q = e.target.value; cardsScreen({ keep: true, partial: true }); } });
-  search.value = v.q ?? "";
   const count = (c) => pool.filter((x) => x.color === c).length;
-  const tabBtn = (id, label) => el("button", { type: "button", "aria-pressed": String(v.tab === id),
-    onclick: () => { v.tab = id; v.cat = "Tutte"; cardsScreen({ keep: true, partial: true }); } }, label);
-  const catBtn = (name) => el("button", { type: "button", class: "chip", "aria-pressed": String(v.cat === name),
-    style: `--cat:${catColor(name)}`, onclick: () => { v.cat = name; cardsScreen({ keep: true, partial: true }); } }, name);
+  // Ridisegna solo l'elenco: la barra di ricerca e l'intestazione restano dove sono.
+  const refresh = () => cardsScreen({ keep: true, partial: true });
+
   const tile = (c) => {
     const held = { v: false };
-    const node = el("button", { type: "button", class: `pcard ${c.color === "w" ? "w" : "b"}`,
-      style: `--cat:${catColor(c.cat)}`,
-      onclick: () => { if (held.v) return; showCardDetail(c, () => cardsScreen({ keep: true, partial: true }), list); } },
+    const node = el("button", { type: "button", class: `pcard ${c.color === "w" ? "w" : "b"}`, style: `--cat:${catColor(c.cat)}`,
+      onclick: () => { if (!held.v) openCardForm({ card: c, done: refresh }); } },
       el("span", { class: "txt" }, c.text),
-      el("span", { class: "tag" }, c.mine ? `${c.cat} · tua` : c.cat));
+      el("span", { class: "tag" }, c.cat));
     attachHold(node, () => { held.v = true; Sound.play("flip"); cardActions(c, () => cardsScreen({ keep: true })); }, held);
     return node;
   };
-  // Equilibrio: quante carte per categoria in questo mazzo.
-  const balance = (c) => {
-    const counts = catsOf(c).map((n) => ({ n, k: pool.filter((x) => x.color === c && x.cat === n).length }));
-    const max = Math.max(1, ...counts.map((x) => x.k));
-    const min = Math.min(...counts.map((x) => x.k));
-    return el("div", { class: "balance" },
-      el("span", { class: "label" }, `Equilibrio ${c === "b" ? "nere" : "bianche"} per categoria`),
-      ...counts.map(({ n, k }) => el("div", { class: "bal-row", style: `--cat:${catColor(n)}` },
-        el("span", { class: "bal-name" }, n),
-        el("span", { class: "bal-bar" }, el("span", { class: "bal-fill", style: `width:${Math.round((k / max) * 100)}%` })),
-        el("span", { class: k === min && k !== max ? "bal-n low" : "bal-n" }, String(k)))));
-  };
-  const stat = (n, label) => el("div", { class: "stat" }, el("strong", {}, String(n)), el("span", { class: "label" }, label));
 
-  // Intestazione fissa (titolo, ricerca, nuova carta): non viene mai ridisegnata mentre si scrive,
-  // così il cursore e la pagina restano dove sono.
-  const addBtn = dk.official ? null : el("button", { type: "button", class: "primary small", onclick: () => openCardForm({ deckId,
-    done: (c) => { v.tab = c === "b" ? "black" : "white"; v.q = ""; cardsScreen(); } }) }, "+ Carta");
+  const search = el("input", { type: "search", class: "card-search", placeholder: "Cerca una carta", "aria-label": "Cerca tra le carte",
+    oninput: (e) => { v.q = e.target.value; refresh(); } });
+  search.value = v.q ?? "";
+  const tabBtn = (id, label) => el("button", { type: "button", "aria-pressed": String(v.tab === id),
+    onclick: () => { v.tab = id; v.cat = "Tutte"; refresh(); } }, label);
+  const catBtn = (name) => el("button", { type: "button", class: "chip", "aria-pressed": String(v.cat === name),
+    onclick: () => { v.cat = name; refresh(); } }, name);
+
   const shell = el("div", { class: "deck-shell", "data-deck": deckId },
-    el("div", { class: "subhead" },
-      el("button", { type: "button", class: "ghost back", onclick: () => { v.deck = null; cardsScreen(); } }, "← Mazzi"),
-      el("div", { class: "head-row" },
-        el("div", { class: "head-title" },
-          el("h2", { class: "display" }, dk.name),
-          el("span", { class: "label" }, dk.official ? "Espansione base · ufficiale" : "Mazzo personale")),
-        el("button", { type: "button", class: "ghost", onclick: () => deckMenu(dk, deckId) }, "Gestisci"))),
-    el("div", { class: "cstats" }, stat(count("w"), "Bianche"), stat(count("b"), "Nere")),
-    el("div", { class: "toolbar" }, search, addBtn));
-  // Corpo: linguette, categorie, carte. È l'unica parte che si ridisegna mentre si cerca o si filtra.
-  const balanceBox = el("details", { class: "balance-box" }, el("summary", { class: "label" }, "Equilibrio per categoria"), balance(color));
+    el("div", { class: "topbar" },
+      el("button", { type: "button", class: "ghost", onclick: () => { v.deck = null; cardsScreen(); } }, "← Mazzi"),
+      el("button", { type: "button", class: "ghost", "aria-label": "Opzioni del mazzo", onclick: () => deckMenu(dk, deckId) }, "Opzioni")),
+    el("div", { class: "deck-title" },
+      el("h2", { class: "display" }, dk.name),
+      el("span", { class: "label" }, dk.official ? "Carte ufficiali" : `${count("w")} bianche · ${count("b")} nere`)),
+    search);
+
   const body = el("div", { class: "deck-body" },
-    el("div", { class: "tabs", role: "group", "aria-label": "Tipo di carta" }, tabBtn("white", "Bianche"), tabBtn("black", "Nere")),
+    el("div", { class: "tabs", role: "group", "aria-label": "Tipo di carta" }, tabBtn("white", `Bianche`), tabBtn("black", `Nere`)),
     el("div", { class: "chips", role: "group", "aria-label": "Categorie" }, ["Tutte", ...catsOf(color)].map(catBtn)),
     list.length
       ? gridNode(list.map(tile))
-      : el("p", { class: "hidden-msg" }, pool.length ? "Nessuna carta con questo filtro." : "Il mazzo è vuoto: tocca + Carta per aggiungerne una."),
-    balanceBox);
+      : el("p", { class: "hidden-msg" }, pool.length ? "Nessuna carta con questo filtro."
+        : dk.official ? "Nessuna carta." : "Il mazzo è vuoto. Premi + per aggiungere una carta."));
+
+  // Pulsante per aggiungere: sempre in basso a destra, come in tutte le schermate di gestione.
+  const fab = dk.official ? null : el("button", { type: "button", class: "fab", "aria-label": "Nuova carta",
+    onclick: () => openCardForm({ deckId, done: (c) => { v.tab = c === "b" ? "black" : "white"; v.cat = "Tutte"; v.q = ""; cardsScreen(); } }) }, "+");
 
   const current = app.querySelector(".deck-shell");
   if (partial && current && current.dataset.deck === deckId) {
     app.querySelector(".deck-body").replaceWith(body);
   } else {
-    app.replaceChildren(el("section", { class: "cards-screen" }, shell, body));
+    app.replaceChildren(el("section", { class: "cards-screen" }, shell, body, fab));
   }
 }
 
-function showCardDetail(c, refresh, list = [c]) {
-  let idx = Math.max(0, list.findIndex((x) => x.id === c.id));
-  let cur = list[idx] ?? c;
-  const card = el("div", { class: "zoom" });
-  const counter = el("p", { class: "hidden-msg" });
-  const catRow = el("div", { class: "chips", role: "group", "aria-label": "Categoria" });
-  const close = () => closeSheet(bg);
-  const paint = () => {
-    cur = list[idx] ?? cur;
-    card.className = `zoom ${cur.color === "w" ? "w" : "b"}`;
-    card.style.setProperty("--cat", catColor(cur.cat));
-    card.replaceChildren(el("div", { class: "txt" }, cur.text));
-    counter.textContent = `${idx + 1} / ${list.length} · ${cur.color === "w" ? "bianca" : "nera"} · ${cur.mine ? "tua" : "ufficiale"}`;
-    catRow.replaceChildren(...catsOf(cur.color).map((name) => el("button", {
-      type: "button", class: "chip", style: `--cat:${catColor(name)}`,
-      "aria-pressed": String(cur.cat === name),
-      onclick: () => { applyCat(cur, name); paint(); },
-    }, name)));
-  };
-  const step = (k) => { if (list.length > 1) { idx = (idx + k + list.length) % list.length; paint(); } };
-  let x0 = null;
-  card.addEventListener("pointerdown", (e) => { x0 = e.clientX; });
-  card.addEventListener("pointerup", (e) => {
-    if (x0 === null) return;
-    const dx = e.clientX - x0; x0 = null;
-    if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
-  });
-  const bg = el("div", { class: "zoom-bg", onclick: (e) => { if (e.target === bg && downTarget === bg) close(); } },
-    el("div", { class: "detail" },
-      el("div", { class: "sheet-nav" },
-        el("button", { type: "button", class: "ghost icon", "aria-label": "Carta precedente", onclick: () => step(-1) }, "‹"),
-        counter,
-        el("button", { type: "button", class: "ghost icon", "aria-label": "Carta successiva", onclick: () => step(1) }, "›")),
-      card,
-      catRow,
-      el("div", { class: "actions" },
-        cur.mine ? el("button", { type: "button", class: "ghost danger", onclick: () => { close(); deleteCard(cur, refresh); } }, "Elimina") : null,
-        el("button", { type: "button", class: "ghost", onclick: () => shareText(cur) }, "Condividi"),
-        el("button", { type: "button", class: "ghost", onclick: () => { close(); refresh(); } }, "Annulla"))));
-  paint();
-  document.body.append(bg);
-}
-
-// Pressione lunga: categoria, copia, elimina.
+// Pressione lunga su una carta: la tua si elimina; un'ufficiale si nasconde, o si ripristina se modificata.
 function cardActions(c, refresh) {
-  openMenu(c.cat, [
-    { label: "Modifica", run: () => openCardForm({ card: c, done: refresh }) },
-    !c.mine && hasOverride(c.id) ? { label: "Ripristina la carta originale", run: () => { resetOverride(c.id); refresh(); } } : null,
-    { label: "Condividi", run: () => shareText(c) },
-    { label: c.mine ? "Elimina" : "Nascondi", danger: true, run: () => (c.mine ? deleteCard(c, refresh) : hideOfficial(c.id, refresh)) },
-  ], [el("p", { class: "action-text" }, c.text)]);
+  const edited = !c.mine && hasOverride(c.id);
+  openMenu(c.color === "w" ? "Carta bianca" : "Carta nera", [
+    c.mine
+      ? { label: "Elimina", danger: true, run: () => deleteCard(c, refresh) }
+      : { label: "Nascondi", danger: true, run: () => hideOfficial(c.id, refresh) },
+    edited ? { label: "Ripristina l'originale", run: () => { resetOverride(c.id); refresh(); } } : null,
+  ]);
 }
 
 const hasOverride = (id) => { const d = loadCustom(); return id in d.textOverride || id in d.catOverride || id in d.hidden; };
@@ -3693,42 +3637,28 @@ function deleteCardNow(c, refresh) {
   refresh();
 }
 
-function shareText(c) {
-  const text = `"${c.text}" · ${c.cat}`;
-  if (navigator.share) { navigator.share({ text }).catch(() => {}); return; }
-  navigator.clipboard?.writeText(text).then(() => toast("Carta copiata"), () => toast("Non riesco a copiare"));
-}
-
-// Una sola scheda per carta: nuova, modifica la tua, o modifica una ufficiale.
-// card assente = nuova carta (bianca o nera, a scelta); card presente = modifica (il tipo non cambia).
-// Categoria: le bianche la scelgono; le nere la ricavano da quanti spazi ____ hanno.
+// Una scheda sola per carta: nuova (bianca o nera) o modifica. Nera: la categoria segue gli spazi ____.
+// Bianca: si sceglie la categoria.
 function openCardForm({ card = null, deckId = "senza", done = () => {} } = {}) {
   let color = card ? card.color : "w";
-  const official = !!card && !card.mine;
   let catVal = card ? card.cat : catsOf("w")[0];
-  const txt = el("textarea", { maxlength: "200", rows: "4", placeholder: "Scrivi la carta…", "aria-label": "Testo della carta" });
+  const txt = el("textarea", { maxlength: "200", rows: "3", placeholder: "Scrivi la carta…", "aria-label": "Testo della carta" });
   if (card) txt.value = card.text;
-  // Categoria: pulsantini in riga invece del menu a tendina del telefono.
+
   const catRow = el("div", { class: "card-cats", role: "group", "aria-label": "Categoria" });
-  const fillCats = () => {
-    catRow.replaceChildren(...catsOf("w").map((n) => el("button", {
-      type: "button", class: "chip", "aria-pressed": String(n === catVal),
-      onclick: () => { catVal = n; fillCats(); },
-    }, n)));
-  };
-  // Selettore del tipo: in modifica non compare, il tipo della carta resta quello.
+  const paintCats = () => catRow.replaceChildren(...catsOf("w").map((n) => el("button", {
+    type: "button", class: "chip", "aria-pressed": String(n === catVal), onclick: () => { catVal = n; paintCats(); },
+  }, n)));
+
+  // Il tipo si sceglie solo per le carte nuove: in modifica resta quello della carta.
   const colorSeg = el("div", { class: "seg", role: "group", "aria-label": "Tipo di carta", hidden: card ? "" : null });
   const paintColor = () => colorSeg.replaceChildren(...[["w", "Bianca"], ["b", "Nera"]].map(([k, label]) => el("button", {
-    type: "button", "aria-pressed": String(color === k), onclick: () => setColor(k),
+    type: "button", class: "chip", "aria-pressed": String(color === k), onclick: () => { color = k; paintColor(); update(); },
   }, label)));
-  const setColor = (c) => { color = c; paintColor(); fillCats(); update(); };
-  paintColor();
-  fillCats();
-  // Suggerimenti in tempo reale (stile T9) e anteprima della carta nera.
+
+  // Suggerimenti in tempo reale (stile T9).
   const hints = el("div", { class: "spell-hints", "aria-live": "polite" });
-  const cardPreview = el("div", { class: "card-preview", "aria-live": "polite" });
   const catNote = el("p", { class: "hidden-msg", "aria-live": "polite" });
-  const catLabel = el("span", { class: "label" }, "Categoria");
   const pickHint = (word) => {
     const cur = txt.value;
     const m = cur.match(/[\p{L}'-]+$/u);
@@ -3749,19 +3679,16 @@ function openCardForm({ card = null, deckId = "senza", done = () => {} } = {}) {
       loadSpell().then(() => update());
     }
     const black = color === "b";
-    cardPreview.hidden = !black;
-    catLabel.hidden = black;
     catRow.hidden = black;
+    catNote.hidden = !black;
     if (black) {
       const text = txt.value.replace(/\s+/g, " ").trim();
-      cardPreview.textContent = text ? text.replace(/_{4,}|____/g, "_____") : "Anteprima della carta nera";
-      // La categoria di una nera segue il numero di spazi: si decide da sola, non si sceglie.
       const withBlank = text.includes("____") ? text : `${text} ____`.trim();
-      catNote.textContent = text ? `Categoria: ${blackCatFor(withBlank)}` : "";
+      catNote.textContent = text ? `Categoria: ${blackCatFor(withBlank)}` : "Scrivi ____ dove va la risposta, fino a 3 volte.";
     }
   };
   txt.addEventListener("input", (e) => { if (e.inputType !== "deleteContentBackward") Sound.play("key"); update(); });
-  loadSpell().then(update);
+
   const save = () => {
     const d = loadCustom();
     let text = txt.value.replace(/\s+/g, " ").trim();
@@ -3773,37 +3700,28 @@ function openCardForm({ card = null, deckId = "senza", done = () => {} } = {}) {
     const cat = color === "w" ? catVal : blackCatFor(text);
     if (!card) {
       (color === "w" ? d.white : d.black).push({ text, cat, deck: deckId });
-      saveCustom(d);
       Sound.play("saved");
     } else if (card.mine) {
       Object.assign((card.color === "w" ? d.white : d.black)[card.idx], { text, cat });
-      saveCustom(d);
     } else {
-      // Carta ufficiale: si salva solo il testo e la categoria, l'originale resta intatto e si può ripristinare.
+      // Ufficiale: si salvano solo testo e categoria; l'originale resta intatto e si può ripristinare.
       d.textOverride[card.id] = text;
       if (card.color === "w") d.catOverride[card.id] = cat;
-      saveCustom(d);
     }
+    saveCustom(d);
     closeSheet(bg);
     done(color);
   };
   const close = () => closeSheet(bg);
-  const title = !card ? "Nuova carta" : official ? "Modifica carta ufficiale" : "Modifica carta";
+  paintColor();
+  paintCats();
   const bg = openSheet({
-    title,
-    body: [
-      colorSeg,
-      txt,
-      hints,
-      cardPreview,
-      catNote,
-      el("p", { class: "hidden-msg" }, "Bianca: una frase o un oggetto. Nera: scrivi ____ dove va la risposta, fino a 3 volte."),
-      catLabel,
-      catRow,
-    ],
+    title: !card ? "Nuova carta" : card.mine ? "Modifica carta" : "Modifica carta ufficiale",
+    body: [colorSeg, txt, hints, catNote, catRow],
     actions: [cancelBtn(close), primaryBtn("Salva", save)],
   });
   update();
+  if (!card) txt.focus({ preventScroll: true });
 }
 
 // Testo semplice: una frase per riga. Con ____ è nera, senza è bianca.
@@ -4326,6 +4244,11 @@ function render() {
   const need = s.black ? s.black.blanks : 1;
   const judging = s.phase === "judging" && isJudge;
   if (judging) resetJudgeIfNewRound();
+  // Online il telefono non cambia "giocatore di turno": il segnale è il passaggio a "devi agire", una volta per fase.
+  const actionable = !!online && (s.phase === "playing" ? (!isJudge && !!me && !me.hasPlayed) : (s.phase === "judging" && isJudge));
+  const actKey = actionable ? `${s.round}:${s.phase}` : null;
+  if (actKey && actKey !== lastActKey) Sound.play("turn");
+  lastActKey = actKey;
   const showPrivate = !curtain;
 
   // La carta vincente vola sotto il nome del vincitore all'inizio della pausa, poi il turno successivo parte.
@@ -4355,7 +4278,7 @@ function render() {
   const roundline = el("div", { class: "roundline" },
     el("button", { type: "button", class: "back-arrow", "aria-label": "Indietro", onclick: () => { homeTab = "home"; exitGame(); } }, "←"),
     el("span", { class: "spacer" }),
-    el("button", { type: "button", class: "home-settings", "aria-label": "Impostazioni", onclick: openSettings }));
+    el("button", { type: "button", class: "home-settings", "aria-label": "Impostazioni", title: "Impostazioni", onclick: openSettings }, settingsIcon()));
 
   let mainCard = null;
   let extraRow = null;    // fila delle combinazioni, sotto la carta nera (per chi non è il Re)
@@ -4589,6 +4512,20 @@ const FIREBASE_CONFIG = {
   appId: "1:68861634686:web:fbc0c14a031dfef91cd02f",
 };
 const NET_TIMEOUT_MS = 15000;
+// Se l'ospite cade (rete, schermo spento) la stanza resta: i giocatori aspettano il suo ritorno per questo tempo.
+const HOST_GRACE_MS = 10 * 60 * 1000;
+// Stato dell'ospite dalla stanza: "here" se collegato, "away" se assente da poco, "gone" se oltre il tempo.
+function hostState(v) {
+  if (!v) return "here";
+  return Date.now() - Number(v) > HOST_GRACE_MS ? "gone" : "away";
+}
+// Avviso fisso in alto, visibile su ogni schermata della stanza. Stringa vuota = niente avviso.
+function netBanner(text) {
+  let b = document.getElementById("net-banner");
+  if (!text) { b?.remove(); return; }
+  if (!b) { b = el("div", { id: "net-banner", class: "net-banner", role: "status" }); document.body.append(b); }
+  b.textContent = text;
+}
 let fbDb = null;           // database Firebase, null se l'SDK non si è caricato
 let netConnected = false;
 let myNetId = null;        // identità di questo telefono nella rete
@@ -4681,7 +4618,7 @@ async function createRoom(name) {
     if (!snap.exists()) break;
   }
   const ref = fbDb.ref(`rooms/${code}`);
-  ref.onDisconnect().remove(); // se l'ospite chiude l'app, la stanza sparisce
+  ref.onDisconnect().update({ hostAway: Date.now() }); // se l'ospite cade, la stanza resta e i giocatori aspettano
   await ref.set({ host: netId(), created: Date.now() });
   startHosting(code);
   hostRoom.handle(hostSelf, { type: "create", name, code });
@@ -4703,6 +4640,12 @@ function connectTo(code) {
     snap.ref.remove();
     try { onMessage(JSON.parse(raw)); } catch { /* messaggio non valido: ignorato */ }
   });
+  base.child("hostAway").on("value", (snap) => {
+    if (!online || online.code !== code) return;
+    const st = hostState(snap.val());
+    netBanner(st === "away" ? "L'ospite si è disconnesso. La partita riprende quando torna."
+      : st === "gone" ? "L'ospite non è tornato: la stanza non è più attiva." : "");
+  });
 }
 
 async function joinRoom(code, name) {
@@ -4710,6 +4653,7 @@ async function joinRoom(code, name) {
   if (!fbDb) throw new Error("Online non disponibile su questo telefono.");
   const snap = await fbDb.ref(`rooms/${code}`).once("value");
   if (!snap.exists()) throw new Error("Stanza non trovata");
+  if (hostState(snap.val().hostAway) === "gone") throw new Error("La stanza non è più attiva");
   connectTo(code);
   online = { code, you: null, state: null, offline: false, winScore: onlineWin };
   netSend({ type: "join", code, name });
@@ -4740,7 +4684,9 @@ function leaveNet() {
     const base = fbDb.ref(`rooms/${joinedCode}`);
     base.child(`out/${netId()}`).off();
     base.child(`presence/${netId()}`).remove();
+    base.child("hostAway").off();
   }
+  netBanner("");
   hostRoom = null; hostSelf = null; hostCode = null; hostConns.clear();
   joinedCode = null;
 }
@@ -4752,8 +4698,8 @@ function restoreNet() {
   try {
     if (hostRoom && hostCode) {
       const ref = fbDb.ref(`rooms/${hostCode}`);
-      ref.onDisconnect().remove();
-      ref.update({ host: netId() });
+      ref.update({ host: netId(), hostAway: null });
+      ref.onDisconnect().update({ hostAway: Date.now() });
       hostRoom.refresh();
     }
     if (joinedCode && !hostRoom) {
@@ -5025,7 +4971,21 @@ document.head.append(el("style", {}, `
 #app:has(.home), #app:has(.subscreen) { max-width: 560px; }
 #app:has(.home) { height: calc(100dvh - 44px); }
 body:has(.home) { overflow: hidden; }
-.home { height: 100%; display: flex; flex-direction: column; gap: 8px; }
+.home { height: 100%; display: flex; flex-direction: column; gap: 14px; }
+/* Home: tre carte del gioco. La nera è la modalità principale. */
+.hand { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1.15fr 1fr; gap: 12px; padding-bottom: 8px; }
+.hcard { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; gap: 6px; min-height: 0; padding: 16px; border: 2px solid #111; border-radius: 18px; text-align: left; cursor: pointer; box-shadow: 0 10px 22px -14px #000a; color: #111; background: #fbf8f0; font-family: inherit; min-height: 44px; }
+.hcard:active { transform: scale(.98); }
+.hc-big { grid-column: 1 / -1; }
+.hcard .hc-title { font-size: 26px; font-weight: 800; line-height: 1; letter-spacing: -.01em; }
+.hc-big .hc-title { font-size: 44px; }
+.hcard .hc-sub { font-size: 14px; line-height: 1.3; font-weight: 500; opacity: .85; }
+.hc-arr { position: absolute; top: 14px; right: 16px; font-size: 22px; font-weight: 700; }
+.hc-black { background: #111; color: #fbf8f0; border-color: #111; }
+.hc-white { background: #fbf8f0; color: #111; }
+.hc-accent { background: var(--accent); color: #fff; border-color: #111; }
+.hc-accent .hc-sub { color: #fff; }
+.blank { display: inline-block; width: 4em; border-bottom: 3px solid var(--accent); margin: 0 .15em; vertical-align: baseline; }
 .home-top { display: flex; align-items: center; justify-content: flex-end; }
 .home-top .label { letter-spacing: .22em; }
 .icon { padding: 6px 12px; font-size: 18px; border-radius: 999px; }
@@ -5034,17 +4994,6 @@ body:has(.home) { overflow: hidden; }
 .poster .logo.big svg { width: auto; height: 24vh; max-width: 30vw; aspect-ratio: 3 / 4; flex: 0 0 auto; }
 .poster .logo.big .wordmark { font-size: clamp(22px, 7vw, 36px); hyphens: none; white-space: nowrap; }
 .poster .logo.big .wordmark i { font-size: 12px; }
-.menu { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; border-bottom: 1px solid var(--line); margin-top: 18px; }
-.menu-row { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 8px;
-  padding: 16px 2px; border-top: 1px solid var(--line); font-family: "IBM Plex Sans", sans-serif; transition: padding .2s; }
-.menu-row { flex: 1 1 0; align-items: center; border-top: 1px solid var(--line); }
-.menu-row:active { padding-left: 12px; }
-.menu-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.menu-row .n { font-family: "IBM Plex Sans", sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .12em; color: var(--muted); }
-.menu-row .t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.menu-row .t strong { font-family: "Bricolage Grotesque", sans-serif; font-size: 27px; font-weight: 800; line-height: 1.05; letter-spacing: -.01em; }
-.menu-row .sub { font-size: 13px; color: var(--muted); }
-.menu-row .arr { font-size: 26px; color: var(--accent); font-weight: 700; }
 .subscreen { display: flex; flex-direction: column; gap: 16px; }
 .subhead { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .subhead .back { padding: 6px 0; border: 0; background: none; color: var(--muted); font-weight: 600; }
@@ -5060,17 +5009,7 @@ button { hyphens: none; -webkit-hyphens: none; }
 document.head.append(el("style", {}, `
 #app:has(.cards-screen) { max-width: 600px; }
 .head-row { display: flex; align-items: flex-end; justify-content: space-between; width: 100%; gap: 12px; }
-.add { all: unset; cursor: pointer; font-weight: 700; color: var(--accent); font-size: 15px; padding: 6px 0; }
-.cstats { display: flex; gap: 22px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.stat { display: flex; flex-direction: column; gap: 2px; background: none; border: 0; padding: 0; }
-.stat strong { font-family: "Bricolage Grotesque", sans-serif; font-size: 34px; font-weight: 800; line-height: 1; }
-.stat .label { letter-spacing: .14em; }
-.tabs { display: flex; gap: 18px; }
-.tabs button { all: unset; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--muted); padding: 4px 0; border-bottom: 2px solid transparent; }
-.tabs button[aria-pressed="true"] { background: none; color: var(--fg); border-bottom-color: var(--accent); }
-.chips { gap: 14px; }
-.chip { all: unset; box-sizing: border-box; cursor: pointer; flex: 0 0 auto; font-size: 13px; color: var(--muted); padding: 4px 0; }
-.chip[aria-pressed="true"] { background: none; border: 0; box-shadow: none; color: var(--fg); font-weight: 700; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 6px; text-decoration-thickness: 2px; }
+.add { all: unset; box-sizing: border-box; min-height: 40px; display: inline-flex; align-items: center; cursor: pointer; font-weight: 700; color: var(--accent); font-size: 15px; }
 .cards-screen .hidden-msg { font-size: 13px; }
 /* Bordo per categoria, parole mai spezzate */
 .card, .pcard, .zoom { border-width: 3px; border-style: solid; border-color: var(--cat, #d6d0c2); }
@@ -5085,110 +5024,71 @@ html, body, p, button, input, textarea, h1, h2 { hyphens: none !important; -webk
 .cat-row .bar { width: 6px; height: 36px; border-radius: 3px; background: var(--cat); }
 .cat-name { display: flex; flex-direction: column; min-width: 0; }
 .cat-name strong { font-family: "Bricolage Grotesque", sans-serif; font-size: 20px; font-weight: 800; }
-.switch { font-size: 13px; padding: 6px 12px; border-radius: 999px; }
-.switch[aria-pressed="false"] { color: var(--muted); background: transparent; }
 .newcat { display: flex; gap: 10px; align-items: center; }
 .newcat input { flex: 1; min-width: 0; }
 .pack-row { display: flex; gap: 10px; }
+.pack-text { width: 100%; box-sizing: border-box; min-height: 120px; padding: 12px 14px; font: inherit; font-size: 15px; line-height: 1.45; color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 14px; resize: vertical; }
+.pack-text::placeholder { color: var(--muted); }
+.net-banner { position: fixed; z-index: 90; top: calc(env(safe-area-inset-top, 0px) + 10px); left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+  padding: 10px 14px; border-radius: 14px; background: var(--accent); color: #1a130f; font-size: 14px; font-weight: 700; text-align: center; box-shadow: 0 10px 24px -12px #000c; animation: fade .2s both; }
+.pack-text[readonly] { color: var(--fg); }
 .pack-row button { flex: 1; }
 .cards-screen textarea { font: inherit; color: inherit; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; resize: vertical; width: 100%; }
-.chip[style] { border-left: 4px solid var(--cat); padding-left: 10px; }
-.chip[aria-pressed="true"] { border-left-width: 4px; }
 `));
 document.head.append(el("style", {}, `
 .cards-btn { align-self: center; border-radius: 999px; padding: 9px 16px; font-size: 14px; }
 .cards-screen { display: flex; flex-direction: column; gap: 14px; }
 .cards-screen h2 { font-size: 30px; }
-.cstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.balance { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; }
-.bal-row { display: grid; grid-template-columns: 96px 1fr 36px; gap: 10px; align-items: center; font-size: 13px; }
-.bal-name { font-weight: 600; color: var(--fg); }
-.card-search { width: 100%; box-sizing: border-box; padding: 10px 14px; font: inherit; font-size: 15px; color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; }
+/* ===== Controlli: un aspetto per tipo, uguale in tutte le schermate ===== */
+/* Scelta tra più opzioni: rettangoli della stessa larghezza, selezionato = pieno. */
+.seg > button { flex: 1 1 0; min-width: 0; }
+/* Filtri e interruttori: pillole. */
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; }
+.chip, .switch { min-height: 38px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 600; white-space: nowrap; flex: 0 0 auto; }
+.switch[aria-pressed="false"] { background: transparent; color: var(--muted); }
+/* Linguette con sottolineatura (Bianche / Nere). */
+.tabs { display: flex; gap: 20px; border-bottom: 1px solid var(--line); }
+.tabs button { min-height: 40px; padding: 0 0 8px; margin-bottom: -1px; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 15px; }
+.tabs button[aria-pressed="true"] { background: none; color: var(--fg); border-bottom: 2px solid var(--accent); }
+/* Campo di ricerca: come un campo di testo, ma tondo. */
+.card-search { width: 100%; box-sizing: border-box; min-height: 46px; padding: 0 16px; font: inherit; font-size: 15px; color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; }
 .card-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-/* Porta mazzi da scala 40: scatolina rettangolare in lacca opaca, con la fila di carte che spunta in cima, il coperchio con la tacca per le dita e la targhetta. */
-.deck-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; align-items: start; }
-@media (min-width: 640px) { .deck-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.deck-slot { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.deck-box { --tilt: -3deg; position: relative; display: block; width: 100%; aspect-ratio: 5 / 7.6; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: #efe6d2; -webkit-tap-highlight-color: transparent;
-  transform-style: preserve-3d; transform: perspective(900px) rotateY(var(--tilt)); transition: transform .45s cubic-bezier(.2,.7,.2,1); }
-.deck-slot:nth-child(even) .deck-box { --tilt: 3deg; }
-.deck-box:active { transform: perspective(900px) rotateY(var(--tilt)) scale(.98); }
-@media (hover: hover) { .deck-box:hover { transform: perspective(900px) rotateY(calc(var(--tilt) * .5)) translateY(-2px); } }
-/* Ombra morbida sotto la scatolina, appoggiata sul tavolo. */
-.deck-box::before { content: ""; position: absolute; left: 4%; right: 4%; bottom: -4%; height: 10%; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(closest-side, #0009, transparent); }
-/* Le carte in cima: la fila di bordi bianchi che si vede sopra il coperchio. */
-.deck-box .box-inside { display: none; position: absolute; left: 8%; right: 8%; top: 12%; height: 26%; z-index: 2; border-radius: 3px 3px 0 0; overflow: hidden;
-  background: radial-gradient(ellipse at 50% 100%, hsl(var(--hue) 85% 66% / .85), transparent 70%), linear-gradient(180deg, #05040a, hsl(var(--hue) 35% 10%));
-  box-shadow: inset 0 8px 12px #000e; }
-.deck-box .box-cards { display: none; position: absolute; left: 0; right: 0; top: -100%; height: 140%; z-index: 3; overflow: hidden; pointer-events: none; }
-/* La carta sta nella scatola sotto il bordo d'uscita (il fondo del vano): sale e si vede solo quando esce. */
-.deck-box .box-card { position: absolute; left: 11%; width: 78%; top: 100%; background: #fff; color: #111; border: 1px solid #c9a25a; border-radius: 6px; box-shadow: 0 6px 14px #0009; transform-origin: 50% 100%; backface-visibility: hidden; }
-.deck-box .box-card .txt { font-size: 9px; line-height: 1.2; font-weight: 700; padding: 6px; }
-/* Corpo in lacca opaca: sottile bordo chiaro, nessuna decorazione applicata. */
-.deck-box .box-body { position: absolute; left: 0; right: 0; top: 11%; bottom: 0; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; z-index: 1;
-  background:
-    linear-gradient(105deg, #ffffff14 0%, #0000 35%),
-    linear-gradient(180deg, hsl(var(--hue) 22% 17%), hsl(var(--hue) 28% 9%));
-  box-shadow: 0 6px 10px rgba(0,0,0,.4), inset 0 1px 0 #ffffff1f, inset 0 0 0 1px #000b; }
-.deck-box .box-body::before { content: ""; position: absolute; inset: 6px; border-radius: 4px; border: 1px solid #ffffff12; pointer-events: none; }
-.deck-box .box-body::after { display: none; }
-/* Targhetta piatta, senza profondità. */
-.deck-box .box-plate { display: block; background: #e2bd74; border: 1px solid #4a3414; border-radius: 3px; padding: 4px 11px; max-width: 84%; box-shadow: none; }
-.deck-box .box-plate strong { display: block; font-size: 16px; font-weight: 800; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #2a1c0c; text-shadow: none; }
-.deck-box .box-count { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: #e9d19c; text-transform: uppercase; }
-/* Coperchio: pannello separato con la tacca per le dita e una linea di giunzione. */
-.deck-box .box-lid { position: absolute; left: 0; right: 0; top: 11%; height: 30%; z-index: 2; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 6px 6px 3px 3px; transform-origin: 50% 0;
-  background: linear-gradient(105deg, #ffffff12 0%, #0000 40%), linear-gradient(180deg, hsl(var(--hue) 24% 20%), hsl(var(--hue) 30% 12%));
-  box-shadow: inset 0 1px 0 #ffffff26, inset 0 0 0 1px #000b, 0 3px 4px rgba(0,0,0,.45);
-  transition: transform .8s cubic-bezier(.45,.05,.25,1), opacity .5s ease .45s; }
-.deck-box .box-lid::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, #0000, #d8b56a88 20%, #d8b56a88 80%, #0000); }
-.deck-box .box-lid::after { content: ""; position: absolute; top: 0; left: 50%; width: 22%; height: 9%; transform: translateX(-50%); border-radius: 0 0 50% 50%; background: #000c; box-shadow: 0 1px 0 #ffffff1c; }
-.deck-box .box-badge { font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #efd29a; }
-.deck-box .box-badge::before { content: "◆  "; color: #b08d57; }
-.deck-box .box-badge::after { content: "  ◆"; color: #b08d57; }
-.deck-box.opening { transform: perspective(900px) rotateY(var(--tilt)) scale(1.02); }
-.deck-box.opening .box-lid { transform: rotateX(-110deg) translateY(-4%); opacity: 0; }
-.deck-box.opening .box-inside { display: block; animation: glowIn .6s ease .25s both; }
-.deck-box.opening .box-cards { display: block; }
-.deck-box.opening .box-card { animation: cardOut 1.15s cubic-bezier(.4,.1,.25,1) .3s both; }
-@keyframes glowIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes cardOut {
-  0% { transform: translateY(0) rotateX(22deg); }
-  55% { transform: translateY(-28%) rotateX(7deg); }
-  100% { transform: translateY(-55%) rotateX(0deg); }
-}
-.deck-box.off .box-body, .deck-box.off .box-lid { filter: grayscale(.85); opacity: .6; }
-.deck-row { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
-.deck-row .switch { font-size: 13px; padding: 8px 10px; }
-.deck-row .ghost { font-size: 13px; padding: 8px 10px; }
-.deck-count { font-size: 13px; color: var(--fg); opacity: 0.7; }
-.deck-sample { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+/* Mazzi: righe-carta piatte, stessa famiglia della home. Il base in nero, i personali in crema. */
+.deck-list { display: flex; flex-direction: column; gap: 12px; }
+.dk { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px; background: var(--paper); color: var(--fg); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 10px 20px -16px #000a; transition: opacity .2s; }
+.dk.base { background: #111; color: #fbf8f0; border-color: #111; }
+.dk.off { opacity: .55; }
+.dk-main { flex: 1 1 auto; min-width: 0; min-height: 56px; display: flex; align-items: center; gap: 14px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.dk-main:active { transform: scale(.98); }
+.dk-mini { flex: 0 0 auto; width: 34px; height: 48px; border-radius: 6px; border: 2px solid currentColor; display: grid; place-items: center; }
+.dk-mini::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.dk-text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.dk-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .6; }
+.dk-name { font-size: 20px; font-weight: 800; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dk-count { font-size: 13px; opacity: .7; }
+.dk .switch { flex: 0 0 auto; }
+.dk.base .switch[aria-pressed="false"] { color: #fbf8f0; border-color: #fbf8f066; }
+/* Gestione: schermata semplice. Barra superiore, ricerca, pillole, pulsante + in basso. */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.topbar .ghost { border: 0; background: none; padding: 6px 0; font-size: 15px; font-weight: 700; color: var(--muted); cursor: pointer; }
+.topbar .ghost[aria-label] { color: var(--accent); }
+.deck-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.deck-shell, .deck-body { display: flex; flex-direction: column; gap: 14px; }
+.cards-screen { padding-bottom: 96px; }
+.fab { position: fixed; right: max(18px, env(safe-area-inset-right, 0px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 20;
+  width: 60px; height: 60px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  background: var(--accent); color: #fff; font-size: 32px; font-weight: 400; line-height: 1; box-shadow: 0 10px 24px -8px var(--accent); }
 /* Gestione: una sola disposizione per ogni schermata e ogni foglio. */
 .head-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .head-title .label { font-size: 12px; }
-.head-row > button.ghost { flex: 0 0 auto; border: 0; background: none; font-size: 15px; font-weight: 700; color: var(--accent); padding: 6px 0; }
 [hidden] { display: none !important; }
 .deck-shell, .deck-body { display: flex; flex-direction: column; gap: 14px; }
 .toolbar { display: flex; gap: 8px; align-items: center; }
 .toolbar .card-search { flex: 1 1 auto; min-width: 0; }
-.primary.small { flex: 0 0 auto; width: auto; padding: 9px 16px; font-size: 14px; border-radius: 999px; }
-.balance-box { border-top: 1px solid var(--line); padding-top: 10px; }
-.balance-box > summary { cursor: pointer; list-style: none; padding: 4px 0; }
-.balance-box > summary::-webkit-details-marker { display: none; }
-.balance-box[open] > summary { margin-bottom: 10px; }
 .action-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .action-list button { width: 100%; justify-content: flex-start; text-align: left; font: inherit; font-size: 16px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--paper); color: var(--fg); cursor: pointer; }
 .action-list button.danger { color: var(--accent); }
 .sheet-bg.kb-top { align-items: flex-start; padding-top: 6vh; }
-.bal-bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
-.bal-fill { display: block; height: 100%; background: var(--cat); border-radius: 999px; }
-.bal-n { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
-.bal-n.low { color: var(--accent); font-weight: 700; }
-.stat { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; }
-.stat strong { font-family: "Bricolage Grotesque", sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
-.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
-.chip { flex: 0 0 auto; padding: 7px 13px; font-size: 13px; border-radius: 999px; }
 .cgrid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 10px; touch-action: pan-y; background: var(--bg); } /* niente puntini del fondo tra le carte */
 .pcard { position: relative; aspect-ratio: 5 / 7; border-radius: calc(11px * var(--k, 1)); padding: calc(9px * var(--k, 1)) calc(9px * var(--k, 1)) calc(10px * var(--k, 1)); text-align: left; display: flex; flex-direction: column; justify-content: flex-end;
   font-family: var(--card-font); font-weight: 600; font-size: calc(12px * var(--k, 1)); line-height: 1.28; hyphens: auto; -webkit-hyphens: auto; overflow: hidden; border: 1px solid #d6d0c2; box-shadow: 0 8px 16px -12px rgba(0,0,0,.5); }
@@ -5213,7 +5113,7 @@ boot();
 document.head.append(el("style", {}, `
 /* Transizioni e feedback: brevi, con il rispetto dell'impostazione "Movimento". */
 .enter { animation: screenIn .36s cubic-bezier(.2,.7,.2,1) both; }
-@keyframes screenIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+@keyframes screenIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 .no-motion .enter, .no-motion .splash .logo { animation: none; }
 button { transition: transform .12s ease, background-color .18s ease, opacity .18s ease, color .18s ease; }
 button:active:not(:disabled) { transform: scale(.96); }
