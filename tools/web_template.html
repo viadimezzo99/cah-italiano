@@ -91,7 +91,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .seat .pts { font-family: "Bricolage Grotesque", sans-serif; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .seat .tag { font-size: 11px; color: var(--muted); }
 .seat.won { animation: pop .6s cubic-bezier(.2,.9,.3,1.4); }
-.seat.played .tag::after { content: " · pronto"; color: var(--ok); }
 .status { font-size: 14px; color: var(--muted); }
 .status strong { color: var(--fg); }
 .roundline { display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: nowrap; }
@@ -226,6 +225,33 @@ input, textarea { caret-color: var(--accent); }
 .hud { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .hud .topbar .wordmark { font-size: 15px; }
 .board { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 1px 4px; }
+/* I giocatori si dividono la larghezza: fino a 4-5 stanno tutti in vista; con di più la fila scorre e sfuma. */
+.board > .seat { flex: 1 1 0; min-width: 78px; }
+.seat .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Sfumatura ai bordi delle file che scorrono, solo dal lato con altro contenuto. */
+@property --fl { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --fr { syntax: "<length>"; inherits: false; initial-value: 0px; }
+.fade-x { --fl: 0px; --fr: 0px; transition: --fl var(--t-base) ease, --fr var(--t-base) ease;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fl), #000 calc(100% - var(--fr)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--fl), #000 calc(100% - var(--fr)), transparent); }
+.fade-x.more-l { --fl: 36px; }
+.fade-x.more-r { --fr: 36px; }
+/* Contatori "+N" sopra i lati sfumati della fila dei giocatori. */
+.board-wrap { position: relative; min-width: 0; }
+.more-badge { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; min-width: 30px; height: 26px; padding: 0 8px;
+  border: none; border-radius: 13px; background: var(--fg); color: var(--bg); font: 700 12px/26px system-ui, sans-serif; cursor: pointer;
+  box-shadow: 0 4px 10px -4px rgba(0,0,0,.5); }
+.more-badge.l { left: 2px; }
+.more-badge.r { right: 2px; }
+/* Chi ha già risposto: spunta verde accanto al nome e sottolineatura verde. */
+.seat.played { border-bottom-color: var(--ok); }
+.seat.played .name::before { content: "✓ "; color: var(--ok); font-weight: 800; }
+/* Avanzamento del turno: pallini e conteggio, al centro sotto i giocatori. */
+.round-progress { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; }
+.rp-dots { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+.rp-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--muted); transition: background-color var(--t-base), border-color var(--t-base); }
+.rp-dot.on { background: var(--ok); border-color: var(--ok); }
+.rp-count { font-size: 12px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .board::-webkit-scrollbar { display: none; }
 .seat { flex: 0 0 auto; min-width: 96px; display: grid; grid-template-columns: 1fr auto; column-gap: 8px; align-items: center; padding: 7px 10px; border-radius: 12px; }
 .seat .name { grid-column: 1; }
