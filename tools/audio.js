@@ -99,35 +99,24 @@ const Sound = (() => {
     pair: [40, 50, 40],   // coppia trovata nel Memory: doppio colpo, più netto del flip
   };
   let hapticsOn = true;
+  // Suoni d'interfaccia (tocchi, digitazione, scorrimento): si possono spegnere senza toccare quelli di gioco.
+  const UI_SOUNDS = new Set(["tap", "key", "tick"]);
+  let uiOn = true;
   const SFX = {
-    pick: (t) => { burst(t, 0.03, 3200, 2, 0.14, sfxBus, "highpass"); tap(t, 260, 0.08); },
-    confirm: (t) => { burst(t, 0.05, 2600, 1.5, 0.2, sfxBus, "highpass"); tap(t, 200, 0.14); },
-    // Carta appoggiata sul tavolo: strisciata corta e un colpetto secco.
-    deal: (t) => { burst(t, 0.14, 2200, 1.1, 0.22, sfxBus, "bandpass", 700); tap(t + 0.12, 180, 0.12); },
-    // Carta girata: fruscio che sale.
-    flip: (t) => burst(t, 0.2, 900, 0.8, 0.28, sfxBus, "bandpass", 2600),
     // Mazzo mescolato: una serie di scatti rapidi, come una mescolata.
     shuffle: (t) => { for (let i = 0; i < 10; i++) burst(t + i * 0.038 + Math.random() * 0.012, 0.03, 3800 + Math.random() * 800, 1.4, 0.2, sfxBus, "highpass"); },
     // Schiocco di una carta nera sul tavolo: attacco secco e corpo grave.
     slam: (t) => { burst(t, 0.035, 2600, 1, 0.5, sfxBus); tap(t, 150, 0.45); },
-    error: (t) => { tap(t, 150, 0.2); burst(t, 0.06, 500, 1, 0.1, sfxBus); },
     // Foglio che si apre: fruscio di carta e qualche crepitio.
     paper: (t) => { burst(t, 0.24, 2400, 0.6, 0.18, sfxBus, "bandpass", 900); for (let k = 0; k < 5; k++) burst(t + 0.03 + k * 0.035 + Math.random() * 0.01, 0.02, 5000, 2, 0.12, sfxBus, "highpass"); },
     // Scatto a ogni carta che passa sotto il dito, come la rotella di una cassaforte.
     tick: (t) => { burst(t, 0.015, 4200, 3, 0.35, sfxBus, "highpass"); tap(t, 1100, 0.06); },
-    // Suoni d'interfaccia: un tocco leggero sui pulsanti e un ticchettio per ogni lettera.
-    tap: (t) => { burst(t, 0.02, 1800, 2, 0.12, sfxBus, "highpass"); tap(t, 520, 0.04); },
     key: (t) => burst(t, 0.012, 3000, 3, 0.07, sfxBus, "highpass"),
     // Colpo grave dell'apertura, come quello che accompagna il titolo nei giochi di combattimento.
     boom: (t) => { blip(55, t, 0.7, "sine", sfxBus, 0.9, 28); burst(t, 0.12, 300, 0.7, 0.35, sfxBus, "lowpass"); },
     // Vittoria: un applauso di tavolo, diverso dagli altri suoni.
-    win: (t) => {
-      for (let i = 0; i < 26; i++) {
-        const k = i / 26;
-        burst(t + k * 0.9 + Math.random() * 0.04, 0.07, 1500 + Math.random() * 1400, 0.8, 0.12 + 0.12 * Math.sin(Math.PI * k), sfxBus);
-      }
-    },
-    // Suoni scelti nelle prove: sovrascrivono quelli sopra con lo stesso nome.
+    // Suoni d'interfaccia: un tocco leggero sui pulsanti e un ticchettio per ogni lettera.
+    // Carta appoggiata sul tavolo, carta girata, errore, vittoria: versioni definitive.
     pick: (t) => { burst(t, 0.02, 3500, 2, 0.3, sfxBus); blip(2000, t, 0.02, "sine", sfxBus, 0.1); },
     deal: (t) => { for (let k = 0; k < 5; k++) burst(t + k * 0.07, 0.025, 2600, 2, 0.25, sfxBus); },
     flip: (t) => { burst(t, 0.03, 1500, 3, 0.3, sfxBus); burst(t + 0.07, 0.03, 1500, 3, 0.3, sfxBus); },
@@ -291,7 +280,7 @@ const Sound = (() => {
     unlock() { return ensure(); },
     play(name) {
       if (hapticsOn && HAPTIC[name] && navigator.vibrate) { try { navigator.vibrate(HAPTIC[name]); } catch { /* nessuna vibrazione */ } }
-      if (!sfxOn || !ensure()) return;
+      if (!sfxOn || (!uiOn && UI_SOUNDS.has(name)) || !ensure()) return;
       SFX[name]?.(ctx.currentTime + 0.01);
     },
     setHaptics(on) { hapticsOn = !!on; },
@@ -303,6 +292,7 @@ const Sound = (() => {
       if (changed && musicOn) { stopAll(); startMusic(); }
     },
     setSfx(on) { sfxOn = !!on; },
+    setUiSounds(on) { uiOn = !!on; },
     setSfxVolume(v) { sfxLevel = Math.max(0, Math.min(1, v)); if (sfxBus) sfxBus.gain.value = sfxLevel; },
     setVolume(v) { musicLevel = v; if (musicOn && rampTrack && !rampTimer) rampTrack.volume = trackTarget(); },
     setMusic(on) {
