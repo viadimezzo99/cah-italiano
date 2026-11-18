@@ -103,7 +103,7 @@ export function whiteAgreement(text) {
   const lexN = (LEX_DB[first] || []).filter((c) => c.startsWith("N"));
   if (lexN.length) {
     const pool = lexN.filter((c) => c.endsWith("s")).length ? lexN.filter((c) => c.endsWith("s")) : lexN;
-    const pick = pool.find((c) => c[1] === "m") && first.endsWith("a") ? pool.find((c) => c[1] === "f") : pool[0];
+    const pick = (first.endsWith("a") && pool.find((c) => c[1] === "f")) || pool.find((c) => c[1] === "m") || pool[0];
     return { g: pick[1], n: pick[2] };
   }
   if (SINGULAR_IN_I.has(first)) return { g: null, n: "s" };
@@ -287,7 +287,9 @@ function inflectPhrase(text, nNeeded) {
   const g = gs.length === 1 ? gs[0] : headLower.endsWith("a") && gs.includes("f") ? "f" : gs.includes("m") ? "m" : gs[0];
   const lemma = cands.find((c) => c.g === g).lemma;
   const n = nNeeded || cands.find((c) => c.g === g).n;
-  const head = pickForm(lemma, "N", g, n) ?? tokens[hi];
+  // La parola già al numero giusto resta com'è ("cuore" non diventa la forma poetica "cuor").
+  const sameForm = cands.some((c) => c.g === g && c.n === n);
+  const head = (sameForm ? tokens[hi] : pickForm(lemma, "N", g, n)) ?? tokens[hi];
   const out = [];
   for (let k = 0; k < hi; k++) {
     const ac = (formIndex().get(norm(tokens[k])) || []).filter((c) => c.cat === "A");
@@ -310,14 +312,37 @@ function inflectPhrase(text, nNeeded) {
 }
 
 // Il verbo subito dopo lo spazio (saltando un pronome come "si") prende il numero del soggetto.
-function agreeVerbAfter(text, num) {
+// Participi e aggettivi predicativi che concordano col soggetto ("vietato", "accolto", "scolpito", "sconsigliato").
+const PART_END = /(at|it|ut|lt|ost|tt|rt|nt|st|ss|rs)[oaie]$/iu;
+const AUX_PASS = /^(è|sono|era|erano|sarà|saranno|va|vanno|vengono|viene|verrà|verranno|andrà|andranno)$/i;
+// Desinenza concordata con il soggetto: plurale -i/-e, singolare -o/-a.
+function agreeEnding(w, num, gen) {
+  const fem = gen === "f" || (gen == null && /a$/i.test(w));
+  const v = num === "p" ? (fem ? "e" : "i") : (fem ? "a" : "o");
+  return w.slice(0, -1) + v;
+}
+function agreeVerbAfter(text, num, gen = null) {
   const m = text.match(/^(\s*)((?:(?:si|ci|mi|ti|vi|ne|lo|la|li|le)\s+)?)(\S+)/i);
   if (!m) return text;
   const verb = m[3].replace(/[^\p{L}']/gu, "");
   const punct = m[3].match(/[^\p{L}']+$/u)?.[0] ?? "";
-  const repl = verbAgree(verb, num);
-  if (!repl) return text;
-  return m[1] + m[2] + repl + punct + text.slice(m[0].length);
+  const repl = verbAgree(verb, num) ?? m[3].replace(/[^\p{L}']+$/u, "");
+  let tail = text.slice(m[0].length);
+  if (AUX_PASS.test(verb) && num) {
+    const g = gen === "f" ? "f" : "m";
+    // "è stato accolto": l'ausiliare "stato" concorda col soggetto, il participio pure.
+    let head = "";
+    const aux = tail.match(/^(\s*)(stat[oaie])(?=[\s.!?,;:]|$)/iu);
+    if (aux) {
+      const sg = num === "p" ? (g === "f" ? "state" : "stati") : (g === "f" ? "stata" : "stato");
+      head = aux[1] + sg;
+      tail = tail.slice(aux[0].length);
+    }
+    const part = tail.match(/^(\s*)(\p{L}+)(?=[\s.!?,;:]|$)/u);
+    if (part && PART_END.test(part[2])) tail = part[1] + agreeEnding(part[2], num, gen) + tail.slice(part[0].length);
+    tail = head + tail;
+  }
+  return m[1] + m[2] + repl + punct + tail;
 }
 
 // Numero richiesto dalla frase nera nello spazio i: plurale o singolare, oppure null (resta quello della carta).
@@ -337,6 +362,12 @@ function numberCue(blackText, before) {
 // Determinanti che cambiano con genere e numero della risposta: "questa" + "calze" -> "queste".
 const DET_FAMILIES = [["questo", "questa", "questi", "queste"], ["quel", "quella", "quei", "quelle"], ["mio", "mia", "miei", "mie"],
   ["tuo", "tua", "tuoi", "tue"], ["suo", "sua", "suoi", "sue"], ["nostro", "nostra", "nostri", "nostre"], ["vostro", "vostra", "vostri", "vostre"]];
+// Nomi di massa o astratti (niente "un" davanti): "il tetano", "lo smegma".
+const MASS_NOUNS = new Set(["tetano", "smegma", "alcolismo", "allattamento", "creazionismo", "autocannibalismo", "petting",
+  "eugenetica", "necrofilia", "scientology", "herpes", "flato", "invidia", "sexting", "viagra", "bukkake", "aids", "seppuku",
+  "sovracompensazione"]);
+// Risposta che inizia con un determinante ("quel tipo", "questa pizza", "due cani"): la preposizione non si contrae ("di quel tipo").
+const DET_START = /^(questo|questa|questi|queste|quest'|quel|quello|quella|quei|quegli|quelle|mio|mia|miei|mie|tuo|tua|tuoi|tue|suo|sua|suoi|sue|nostro|nostra|nostri|nostre|vostro|vostra|vostri|vostre|loro|ogni|alcuni|alcune|qualche|nessun|nessuno|nessuna|molto|molti|molte|poco|pochi|poche|tanto|tanti|tante|troppo|troppi|troppe|parecchi|parecchie|due|tre|quattro|cinque|sei|sette|otto|nove|dieci)\s/iu;
 function fixDeterminer(before, g, n) {
   const m = before.match(/(\p{L}+)(\s*)$/u);
   if (!m) return before;
@@ -408,6 +439,11 @@ export function fillSentence(blackText, whites) {
     }
     let white = whites[i];
     if (white != null) {
+      // La risposta comincia già con l'articolo contratto ("Dei serpenti") e la preposizione prima dello spazio o nella domanda lo fornisce: l'articolo della risposta si toglie.
+      const cPrep = (before.match(/(^|\s)(di|a|da|in|su)\s*$/i) ?? [])[2] ?? (i === 0 && QUESTION_PREP.test(blackText) ? blackText.match(QUESTION_PREP)[1] : null);
+      const cm = white.trim().match(/^(dei|degli|delle|del|della|dello|dell'|dal|dalla|dallo|dai|dagli|dalle|al|allo|alla|ai|agli|alle|nel|nella|nei|negli|nelle|sul|sulla|sui|sugli|sulle|sullo)(?=\s)/i);
+      const contrBase = cm ? ({ dei: "di", degli: "di", delle: "di", del: "di", della: "di", dello: "di", dal: "da", dalla: "da", dallo: "da", dai: "da", dagli: "da", dalle: "da", al: "a", allo: "a", alla: "a", ai: "a", agli: "a", alle: "a", nel: "in", nella: "in", nei: "in", negli: "in", nelle: "in", sul: "su", sulla: "su", sui: "su", sugli: "su", sulle: "su", sullo: "su" })[cm[1].toLowerCase()] : null;
+      if (cPrep && contrBase && cPrep.toLowerCase() === contrBase) white = white.trim().slice(cm[0].length).trimStart();
       const cop = agreeCopula(before, white);
       if (cop !== null) { parts[i] = cop; before = cop; }
     }
@@ -442,6 +478,30 @@ export function fillSentence(blackText, whites) {
         fusedPrep = true;
       }
     }
+    // Preposizione semplice a fine nero + risposta: l'indeterminativo cade e la preposizione si unisce all'articolo giusto
+    // ("pensare a un genocidio" → "pensare al genocidio"); davanti a vocale "a" diventa "ad" ("ad abbuffarsi").
+    if (!fusedPrep) {
+      const tp = before.match(/(^|\s)(a|di|da|in|su)\s*$/i);
+      const wt = white.trim();
+      const ind = wt.match(/^(un|uno|una)\s+(\p{L}[\p{L}\s'-]*?)([.!?]*)$/iu);
+      if (tp && ind && CONTRACT[tp[2].toLowerCase()]) {
+        const prep = tp[2].toLowerCase();
+        const info = whiteAgreement(ind[2]);
+        const artF = info ? defForm(info.g, info.n, firstWord(ind[2]), null) : null;
+        const joined = artF ? CONTRACT[prep][artF] : null;
+        if (joined) {
+          before = before.replace(/(^|\s)(a|di|da|in|su)\s*$/i, (m, sp) => sp + joined + (joined.endsWith("'") ? "" : " "));
+          parts[i] = before;
+          white = ind[2] + ind[3];
+          fusedPrep = true;
+        }
+      } else if (tp && tp[2].toLowerCase() === "a" && /^[aeiouàèéìòù]/i.test(wt) && !/^(uno|una|un|l')/i.test(wt)) {
+        before = before.replace(/(^|\s)a\s*$/i, (m, sp) => sp + "ad ");
+        parts[i] = before;
+        if (!isProperName(wt)) white = wt.charAt(0).toLowerCase() + wt.slice(1);
+        fusedPrep = true;
+      }
+    }
     const firstW = (white.trim().split(/\s+/)[0] || "").toLowerCase().replace(/[^\p{L}']/gu, "");
     // Verbo di apertura ("balla il tango"): se la parola seguente è un articolo o un pronome, è un verbo anche se il lessico conosce un nome uguale.
     const second = (white.trim().split(/\s+/)[1] || "").toLowerCase();
@@ -466,10 +526,15 @@ export function fillSentence(blackText, whites) {
         const kind = hasArt ? (/^(il|lo|la|l'|i|gli|le)$/.test(artWord) ? "def" : "indef") : null;
         const det = /(^|\s)(quante|quanti|quanta|quanto|tante|tanti|tanta|tanto|poche|pochi|poca|poco|troppe|troppi|troppa|troppo|parecchi|parecchie|due|tre|quattro|cinque|sei|sette|otto|nove|dieci|questo|questa|quest'|quel|quella|ogni|mio|mia|tuo|tua|suo|sua|nostro|nostra|vostro|vostra|loro|alcuni|alcune|qualche|nessun|nessuna|molto|molti|molte|poco|tanto|troppo|ogni)\s*$/i.test(before);
         if (det) before = fixDeterminer(before, own.g, cue ?? own.n);
-        const afterPrep = /(^|\s)(di|a|da|in|su|con|per|tra|fra)\s*$/i.test(before);
+        const afterPrep = /(^|\s)(di|a|da|in|su|con|per|tra|fra)\s*$/i.test(before) || (i === 0 && QUESTION_PREP.test(blackText));
         const blackArt = /(^|\s)(un|uno|una|un'|il|lo|la|l'|i|gli|le)\s*$/i.test(before);
-        const kindNow = kind ?? ((cue ?? own.n) === "p" && !afterPrep && !blackArt ? "indef" : undefined);
-        const bare = nounPhrase(flexed, atStart, { n: cue ?? own.n, kind: kindNow, noArt: det, g: artWord === "un'" ? "f" : undefined });
+        // Nomi di massa o astratti: senza articolo nella carta prendono il determinativo ("il tetano"), non "un tetano".
+        const massNoun = !hasArt && !det && MASS_NOUNS.has(firstWord(stripped).toLowerCase());
+        const kindNow = massNoun ? "def" : (kind ?? ((cue ?? own.n) === "p" && !afterPrep && !blackArt ? "indef" : undefined));
+        // Dopo una preposizione semplice il nome nudo non prende "uno/un": ci pensa la contrazione ("allo stupro").
+        const bareAfterPrep = !hasArt && (/(^|\s)(a|di|da|in|su)\s*$/i.test(before) || (i === 0 && QUESTION_PREP.test(blackText)));
+        // Con la domanda prima ("Di cosa ...? ") la risposta resta minuscola: la preposizione della domanda la introduce.
+        const bare = nounPhrase(flexed, atStart && !(i === 0 && QUESTION_PREP.test(blackText)), { n: cue ?? own.n, kind: kindNow, noArt: det || bareAfterPrep, g: artWord === "un'" ? "f" : undefined });
         if (bare) white = bare;
         // Due risposte nella stessa carta: se la prima chiude con "con il ...", la seconda, se è un nome nudo e la domanda è "come?", riprende "con" ("ti domandi come? con dei fantasmi").
         const rawW = (whites[i] ?? "").trim();
@@ -483,8 +548,10 @@ export function fillSentence(blackText, whites) {
       }
     }
     if (isSubj && white != null && parts[i + 1] !== undefined) {
-      const sn = subjNum ?? (nounOf(white.trim())?.n ?? null);
-      if (sn) parts[i + 1] = agreeVerbAfter(parts[i + 1], sn);
+      // Soggetto coordinato con "e" ("uno stupro e saccheggio") è plurale; l'infinito coordinato ("fare sesso e rubare") resta singolare.
+      const coordSubj = cue == null && /\s(e|ed)\s/.test(white.trim()) && whiteAgreement(white.trim()) !== null;
+      const sn = coordSubj ? "p" : (subjNum ?? (nounOf(white.trim())?.n ?? whiteAgreement(white.trim())?.n ?? null));
+      if (sn) parts[i + 1] = agreeVerbAfter(parts[i + 1], sn, white ? whiteAgreement(white.trim())?.g ?? null : null);
     }
     const gov = /sogn\p{L}*\s*$/iu.test(before) && whiteAgreement(white.trim()) !== null ? null : governedPrep(before);
     let prefixed = false;
@@ -493,7 +560,7 @@ export function fillSentence(blackText, whites) {
     const govWord = (white.trim().split(/\s+/)[0] || "").toLowerCase().replace(/[^\p{L}']/gu, "");
     const trailPrep = !gov ? before.match(/(^|\s)(a|di|da|in|su)\s*$/i) : null;
     const prepKey = gov ?? (trailPrep ? trailPrep[2].toLowerCase() : null);
-    const barePlain = !hasArt && !verbFirst && !adjAfterCopula && !fusedPrep && !isProperName(white) && !ART[govWord] && !/^(l'|un')/i.test(white.trim()) && !(LEX_DB[govWord] || []).some((c) => c.startsWith("A"));
+    const barePlain = !hasArt && !verbFirst && !adjAfterCopula && !fusedPrep && !DET_START.test(white.trim()) && !isProperName(white) && !ART[govWord] && !/^(l'|un')/i.test(white.trim()) && !(LEX_DB[govWord] || []).some((c) => c.startsWith("A"));
     // Il sostantivo in -e (pane, latte) non ha desinenza che dica il genere: lo tratto come singolare maschile.
     const barInfo = barePlain ? (whiteAgreement(white.trim()) ?? nounOf(white.trim()) ?? (/^\p{Ll}+e[.!?]*$/u.test(white.trim()) && !/(ole|ile|ule|ate|ose)[.!?]*$/.test(white.trim()) ? { g: "m", n: "s" } : null)) : null;
     const govBare = !!prepKey && !!CONTRACT[prepKey] && !!barInfo;
@@ -539,7 +606,11 @@ export function fillSentence(blackText, whites) {
   const restW = artMatch ? wTrim.slice(artMatch[0].length) : wTrim;
   const keepCase = isProperName(restW);
     if (!atStart) w = keepCase ? w : elideUna(lowerIfMidSentence(w));
-    segs.push({ t: "text", v: fixed.before }, { t: "word", v: w, i });
+    else if (w && /^\p{Ll}/u.test(w) && /(^\s*|[.!]\s*)$/.test(fixed.before)) w = w.charAt(0).toUpperCase() + w.slice(1);
+    // Il prefisso aggiunto prima della risposta ("dei ") apre la frase: anche lui vuole la maiuscola.
+    // Dopo il punto esclamativo o il punto il prefisso apre la frase; dopo il punto interrogativo lo stile del gioco resta minuscolo.
+    const fbCap = atStart ? fixed.before.replace(/([.!]\s+)(\p{Ll})([^.!?]*)$/u, (m, p, c, t) => p + c.toUpperCase() + t) : fixed.before;
+    segs.push({ t: "text", v: fbCap }, { t: "word", v: w, i });
     prevKept = keptPunct;
     // il testo dopo lo spazio può essere stato già concordato (verbo): non lo riscrivo
   }
@@ -548,7 +619,9 @@ export function fillSentence(blackText, whites) {
 }
 
 export function sentencePlain(blackText, whites) {
-  return fillSentence(blackText, whites).map((s) => (s.t === "slot" ? "____" : s.v)).join("");
+  const out = fillSentence(blackText, whites).map((s) => (s.t === "slot" ? "____" : s.v)).join("");
+  // Una frase che inizia con la risposta è una frase: la maiuscola va alla prima lettera (come "il labrador" → "Il labrador").
+  return out.replace(/^(\s*)(\p{Ll})/u, (m, sp, c) => sp + c.toUpperCase());
 }
 
 // Spazi e carte bianche: quale tipo di risposta entra in ogni spazio della carta nera.
