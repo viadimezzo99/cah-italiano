@@ -15,6 +15,7 @@ for (const [sg, g, pl] of dataJson("data/lexicon_it/gaps.json").nomi) {
   INFLECT[sg] = { N: { [g + "s"]: [sg], [g + "p"]: [pl] } };
 }
 globalThis.VERBS3 = dataJson("data/lexicon_it/verbs3.json");
+globalThis.UD_NOMI = dataJson("data/lexicon_it/ud_nomi.json");
 const { fillSentence, sentencePlain, whiteAgreement } = await import("../src/agreement.js");
 
 test("articolo indeterminativo femminile singolare", () => {
@@ -174,4 +175,9 @@ test("nome di massa senza articolo prende il determinativo: il tetano", () => {
 
 test("infinito sconosciuto come soggetto: resta invariato", () => {
   assert.equal(sentencePlain("Da oggi, sugli aerei, ____ è vietato.", ["Covare un uovo."]), "Da oggi, sugli aerei, covare un uovo è vietato.");
+});
+
+test("nomi ambigui risolti dai corpora annotati: 'fine' è femminile, 'potere' maschile", () => {
+  assert.equal(sentencePlain("Ho visto ____.", ["Fine."]), "Ho visto una fine.");
+  assert.equal(sentencePlain("Ho visto ____.", ["Potere."]), "Ho visto un potere.");
 });

@@ -24,7 +24,8 @@ lex = json.dumps(lex_d, ensure_ascii=False, separators=(",", ":")).replace("</",
 reggenze = read("data/reggenze.json").replace("</", "<\\/")
 inflect = json.dumps(infl_d, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 verbs3 = read("data/lexicon_it/verbs3.json").replace("</", "<\\/")
-engine = (f"const LEX = {lex};\nconst REGGENZE = {reggenze};\nconst INFLECT = {inflect};\nconst VERBS3 = {verbs3};\n"
+ud_nomi = read("data/lexicon_it/ud_nomi.json").replace("</", "<\\/")
+engine = (f"const LEX = {lex};\nconst REGGENZE = {reggenze};\nconst INFLECT = {inflect};\nconst VERBS3 = {verbs3};\nconst UD_NOMI = {ud_nomi};\n"
           + re.sub(r"^import .*\n", "", read("src/game.js"), flags=re.M) + "\n" + read("src/agreement.js"))
 import base64
 # Brano del menu, incorporato nella pagina (nessun file esterno).
