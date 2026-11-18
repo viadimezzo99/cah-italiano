@@ -49,8 +49,7 @@ function askBotName(n, onOk) {
         el("button", { type: "button", class: "ghost", onclick: close }, "Annulla"),
         el("button", { type: "button", class: "primary", onclick: ok }, "Aggiungi bot"))));
   document.body.append(bg);
-  input.focus();
-  input.select();
+  input.focus();   // niente select(): la selezione farebbe comparire le maniglie verdi del sistema
 }
 let viewer = null;      // chi sta guardando lo schermo in questo momento
 let lastViewer = null;
@@ -71,10 +70,11 @@ let botTimer = null;
 let judgeTimer = null;
 let roundTimer = null;     // passaggio automatico al round successivo (solo locale)
 const LOCAL_ROUND_PAUSE_MS = 1900;   // dopo il volo della carta scelta (600 ms) e il punto (1050 ms)
-const BOT_JUDGE_STEP_MS = 2500;      // tempo tra un passo e l'altro del Re bot (sfogliare, confrontare, scegliere)
+const BOT_JUDGE_STEP_MS = 900;      // tempo tra un passo e l'altro del Re bot (sfogliare, confrontare, scegliere)
 let jollyDraft = "";                  // testo scritto a mano sul jolly, mentre lo si compone sulla carta nera
 let mem = null;                       // Memory del Re: tessere, carte aperte, round a cui appartiene
 const MEMORY_IMGS = /*MEMORY_IMGS*/[];
+const PROFILE_IMGS = /*PROFILE_IMGS*/[];   // gli stessi personaggi senza sfondo, per la carta profilo
 const MEMORY_LOCAL = true;   // Memory anche nelle partite locali: la regola del jolly vale in entrambe le modalità
 const JOLLY_IMG = "/*JOLLY_IMG*/";   // carta jolly in mano
 const MEMORY_HUE = [0, 30, -25, 45, -40, 20, -15, 60];   // una tonalità diversa per ogni coppia
@@ -123,7 +123,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.38";
+const APP_VERSION = "0.2.39";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -359,12 +359,17 @@ function tintFrom(img, card) {
 }
 function statCard(p) {
   const nums = [["Partite", p.games], ["Vittorie", p.wins], ["Round", p.rounds], ["Memory", p.jolly]];
-  const img = MEMORY_IMGS[p.avatar] ? el("img", { class: "hc-avatar", src: MEMORY_IMGS[p.avatar], alt: "", draggable: "false" }) : null;
+  const img = PROFILE_IMGS[p.avatar] ? el("img", { class: "hc-avatar", src: PROFILE_IMGS[p.avatar], alt: "", draggable: "false" }) : null;
   const card = el("button", { type: "button", class: "hcard hc-stats", "aria-label": "Profilo e statistiche", onclick: openProfile },
     img ? el("span", { class: "hc-art" }, img) : null,
     el("span", { class: "hc-title display" }, p.name || "Il tuo nome"),
     el("span", { class: "hc-nums" }, nums.map(([l, v]) => el("span", { class: "hc-num" }, el("span", { class: "n" }, String(v)), el("span", { class: "l" }, l)))));
-  if (img) { if (img.complete && img.naturalWidth) tintFrom(img, card); else img.addEventListener("load", () => tintFrom(img, card)); }
+  // Il colore della carta viene dallo sfondo dell'illustrazione originale (quella con la cornice, senza ritagli).
+  if (MEMORY_IMGS[p.avatar]) {
+    const src = new Image();
+    src.onload = () => tintFrom(src, card);
+    src.src = MEMORY_IMGS[p.avatar];
+  }
   return card;
 }
 function openProfile() {
@@ -375,13 +380,13 @@ function openProfile() {
   const name = el("input", { type: "text", maxlength: "16", value: p.name || "", placeholder: "Il tuo nome", "aria-label": "Il tuo nome",
     oninput: (e) => saveProfile({ ...loadProfile(), name: e.target.value.replace(/\s+/g, " ").trim() }) });
   // Avatar: si scorrono le carte del Memory con le frecce, senza elenchi.
-  const pv = el("img", { class: "prof-img", src: MEMORY_IMGS[p.avatar], alt: "", draggable: "false" });
+  const pv = el("img", { class: "prof-img", src: PROFILE_IMGS[p.avatar], alt: "", draggable: "false" });
   const step = (d) => () => {
     const q = loadProfile();
-    const n = MEMORY_IMGS.length;
+    const n = PROFILE_IMGS.length;
     const a = (q.avatar + d + n) % n;
     saveProfile({ ...q, avatar: a });
-    pv.src = MEMORY_IMGS[a];
+    pv.src = PROFILE_IMGS[a];
   };
   const stepper = el("div", { class: "prof-av" },
     el("button", { type: "button", class: "ghost round", "aria-label": "Avatar precedente", onclick: step(-1) }, "‹"),
@@ -755,7 +760,7 @@ function openPackSheet(dk, deckId) {
       .map((c) => String(c.text).replace(/\s+/g, " ").trim()).filter(Boolean).join("\n");
   };
   const exportBox = el("textarea", { class: "pack-text", rows: "6", readonly: "", "aria-label": "Frasi del mazzo",
-    placeholder: "Nessuna carta in questo mazzo", onfocus: (e) => e.target.select() });
+    placeholder: "Nessuna carta in questo mazzo" });
   exportBox.value = packText();
   const copy = async () => {
     const text = exportBox.value;
@@ -1147,7 +1152,7 @@ function step() {
   if (game.phase === "playing") {
     scheduleLocalBots();
   } else if (game.phase === "judging" && game.judge.isBot) {
-    judgeTimer = setTimeout(() => { game.advanceBotJudge(); step(); }, cfg.jolly ? BOT_JUDGE_STEP_MS : 1100);   // il Re bot sfoglia e sceglie a passi
+    judgeTimer = setTimeout(() => { game.advanceBotJudge(); step(); }, BOT_JUDGE_STEP_MS);   // il Re bot sfoglia e sceglie a passi
   }
   render();
 }
@@ -2346,8 +2351,8 @@ body:has(.home) { overflow: hidden; }
 .hc-stats { background: var(--tint, #2a221c); color: #fbf8f0; border-color: var(--tint, #2a221c); justify-content: flex-end; overflow: hidden; }
 .hc-stats > * { position: relative; z-index: 1; }
 .hc-stats .hc-title, .hc-stats .hc-num { text-shadow: 0 1px 6px #000c; }
-.hc-art { position: absolute !important; z-index: 0 !important; top: 12px; left: 12px; width: 75%; aspect-ratio: 5 / 7; overflow: hidden; border-radius: 8px; background: var(--tint, #2a221c); }
-.hc-avatar { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; border: 0; border-radius: 0; }
+.hc-art { position: absolute !important; z-index: 0 !important; top: 10px; left: 10px; width: 78%; }
+.hc-avatar { display: block; width: 100%; height: auto; max-width: none; border: 0; }
 .hc-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; width: 100%; margin-top: 6px; }
 .hc-num { display: flex; flex-direction: column; gap: 2px; }
 .hc-num .n { font-size: 22px; font-weight: 800; line-height: 1; }
@@ -2356,7 +2361,7 @@ body:has(.home) { overflow: hidden; }
 .hc-accent { background: var(--accent); color: #fff; border-color: #111; }
 .hc-accent .hc-sub { color: #fff; }
 .prof-av { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.prof-img { width: 150px; aspect-ratio: 5 / 7; object-fit: cover; border-radius: 10px; }
+.prof-img { width: 150px; height: auto; object-fit: contain; }
 .round { width: 46px; flex: 0 0 46px; padding: 0; font-size: 24px; }
 .slist { display: flex; flex-direction: column; }
 .srow { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
@@ -2677,7 +2682,13 @@ document.addEventListener("focusin", (e) => {
   if (!(t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement)) return;
   const sheet = t.closest(".sheet-bg");
   if (sheet) {
-    setTimeout(() => t.scrollIntoView({ block: "center", behavior: "smooth" }), 350);
+    // Una sola spostamento, e solo se il campo finisce coperto dalla tastiera.
+    setTimeout(() => {
+      const vv = window.visualViewport;
+      const h = vv ? vv.height : window.innerHeight;
+      const r = t.getBoundingClientRect();
+      if (r.bottom > h - 12 || r.top < 80) t.scrollIntoView({ block: "nearest" });
+    }, 300);
     return;
   }
   if (t.closest(".cards-screen")) return;
