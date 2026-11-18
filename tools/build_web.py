@@ -25,6 +25,9 @@ app = spell + "\n" + read("tools/room.js") + "\n" + read("tools/app.js")
 mem_names = ["gatto", "cactus", "patata", "pinguino", "fantasma", "frigorifero", "ombrello", "vasca"]
 mem_uris = ["data:image/jpeg;base64," + base64.b64encode((root / f"tools/memory/{n}.jpg").read_bytes()).decode() for n in mem_names]
 app = app.replace("/*MEMORY_IMGS*/[]", json.dumps(mem_uris))
+# Ritagli senza sfondo dei personaggi, per la carta profilo (PNG trasparenti).
+prof_uris = ["data:image/png;base64," + base64.b64encode((root / f"tools/memory/cut/{n}.png").read_bytes()).decode() for n in mem_names]
+app = app.replace("/*PROFILE_IMGS*/[]", json.dumps(prof_uris))
 jolly_uri = "data:image/jpeg;base64," + base64.b64encode((root / "tools/memory/jolly.jpg").read_bytes()).decode()
 app = app.replace('"/*JOLLY_IMG*/"', json.dumps(jolly_uri))
 cards = json.loads(read("data/cards.json"))

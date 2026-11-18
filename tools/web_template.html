@@ -180,7 +180,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* Impostazioni */
-.sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; padding-bottom: var(--kb, 0px); transition: padding-bottom .2s ease; animation: fade .2s both; }
+.sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; padding-bottom: var(--kb, 0px); animation: fade .2s both; }
 .spell-hints { display: flex; flex-wrap: wrap; gap: 6px; min-height: 0; }
 .spell-hints:empty { display: none; }
 .card-cats { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -215,6 +215,12 @@ body.no-motion *, body.no-motion *::before, body.no-motion *::after { animation:
 /* ===== Ridisegno: partita a tutto schermo, senza scorrimento della pagina ===== */
 #app:has(.game) { max-width: none; height: calc(100dvh - 44px); }
 body:has(.game) { overflow: hidden; }
+/* Niente barra di scorrimento bianca a destra: l'app si muove con il dito, non con la barra. */
+html, body { scrollbar-width: none; overflow-x: hidden; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
+/* Testo digitato e selezione nei colori del gioco. */
+input, textarea { caret-color: var(--accent); }
+::selection { background: color-mix(in srgb, var(--accent) 45%, transparent); }
 .game { height: 100%; min-height: 0; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; --ch: clamp(120px, 19dvh, 170px); }
 .hud { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .hud .topbar .wordmark { font-size: 15px; }
