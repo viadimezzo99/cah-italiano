@@ -123,7 +123,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.43";
+const APP_VERSION = "0.2.44";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -545,6 +545,9 @@ const catsOf = (color) => (color === "b" ? BLACK_CATS : WHITE_CATS);
 const validCat = (name, color) => catsOf(color).includes(name);
 const defaultCat = (color) => (color === "b" ? BLACK_CATS[0] : WHITE_CATS[WHITE_CATS.length - 1]);
 
+// Spazio da riempire: due o più trattini bassi. Nelle carte si scrive sempre "____".
+const hasBlank = (t) => /_{2,}/.test(t);
+const normBlanks = (t) => t.replace(/_{2,}/g, "____");
 function loadCustom() {
   let d = null;
   try { d = JSON.parse(localStorage.getItem(CUSTOM_KEY) || "null"); } catch { d = null; }
@@ -555,6 +558,15 @@ function loadCustom() {
     .map((x) => ({ id: x.id, name: String(x.name || "Mazzo").replace(/\s+/g, " ").trim().slice(0, 30) || "Mazzo", use: x.use !== false }));
   if (!decks.some((x) => x.id === "senza")) decks.unshift({ id: "senza", name: "Senza mazzo", use: true });
   const ids = new Set(decks.map((x) => x.id));
+  // Una carta bianca con lo spazio ____ è in realtà una nera (es. scritta o importata nel tipo sbagliato): passa tra le nere.
+  const rawWhite = Array.isArray(d.white) ? d.white : [];
+  const rawBlack = Array.isArray(d.black) ? d.black : [];
+  const misplaced = rawWhite.filter((c) => c && typeof c.text === "string" && hasBlank(c.text));
+  if (misplaced.length) {
+    const known = new Set(rawBlack.map((c) => c && normBlanks(String(c.text))));
+    d.white = rawWhite.filter((c) => !misplaced.includes(c));
+    d.black = [...rawBlack, ...misplaced.filter((c) => !known.has(normBlanks(c.text))).map((c) => ({ ...c, text: normBlanks(c.text) }))];
+  }
   const fix = (list, color) => (Array.isArray(list) ? list : [])
     .filter((c) => c && typeof c.text === "string" && c.text.trim())
     .map((c) => ({
@@ -568,11 +580,15 @@ function loadCustom() {
   }
   const textOverride = {};
   if (d.textOverride && typeof d.textOverride === "object") {
-    for (const [id, t] of Object.entries(d.textOverride)) if (typeof t === "string" && t.trim()) textOverride[id] = t.replace(/\s+/g, " ").trim().slice(0, 200);
+    for (const [id, t] of Object.entries(d.textOverride)) {
+      if (typeof t !== "string" || !t.trim()) continue;
+      if (!id.startsWith("b") && hasBlank(t)) continue;   // una bianca ufficiale non può avere lo spazio ____
+      textOverride[id] = t.replace(/\s+/g, " ").trim().slice(0, 200);
+    }
   }
   const hidden = {};
   if (d.hidden && typeof d.hidden === "object") for (const [id, v] of Object.entries(d.hidden)) if (v === true) hidden[id] = true;
-  return {
+  const out = {
     hidden,
     textOverride,
     white: fix(d.white, "w"),
@@ -581,7 +597,10 @@ function loadCustom() {
     baseUse: d.baseUse !== false,   // il mazzo base (carte ufficiali) entra nelle partite
     catOverride,
   };
+  if (misplaced.length) saveCustom(out);   // la correzione resta: alla prossima apertura è già a posto
+  return out;
 }
+
 
 function saveCustom(d) {
   try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(d)); }
@@ -1011,21 +1030,30 @@ function openCardForm({ card = null, deckId = "senza", done = () => {} } = {}) {
       hints.replaceChildren();
       loadSpell().then(() => update());
     }
-    const black = color === "b";
+    // Una bianca con lo spazio ____ diventa nera al salvataggio: lo si dice subito, mentre si scrive.
+    const black = color === "b" || (hasBlank(txt.value) && !(card && !card.mine));
     catRow.hidden = black;
-    catNote.hidden = !black;
+    catNote.hidden = !black && !hasBlank(txt.value);
+    if (!black && hasBlank(txt.value)) catNote.textContent = "Le carte bianche ufficiali non possono avere lo spazio ____.";
     if (black) {
-      const text = txt.value.replace(/\s+/g, " ").trim();
+      const text = normBlanks(txt.value.replace(/\s+/g, " ").trim());
       const withBlank = text.includes("____") ? text : `${text} ____`.trim();
-      catNote.textContent = text ? `Categoria: ${blackCatFor(withBlank)}` : "Scrivi ____ dove va la risposta, fino a 3 volte.";
+      const moved = color === "w" ? "Ha lo spazio ____: sarà salvata come carta nera. " : "";
+      catNote.textContent = moved + (text ? `Categoria: ${blackCatFor(withBlank)}` : "Scrivi ____ dove va la risposta, fino a 3 volte.");
     }
   };
   txt.addEventListener("input", (e) => { if (e.inputType !== "deleteContentBackward") Sound.play("key"); update(); });
 
   const save = () => {
     const d = loadCustom();
-    let text = txt.value.replace(/\s+/g, " ").trim();
+    let text = normBlanks(txt.value.replace(/\s+/g, " ").trim());
     if (!text) { toast("Scrivi il testo della carta"); return; }
+    // Bianca con lo spazio ____: le personali diventano nere, le ufficiali non si possono salvare così.
+    if (color === "w" && hasBlank(text)) {
+      if (card && !card.mine) { toast("Le carte bianche non possono avere lo spazio ____: crea una carta nera."); Sound.play("error"); return; }
+      color = "b";
+      toast("Ha lo spazio ____: salvata come carta nera.");
+    }
     if (color === "b") {
       if (!text.includes("____")) text += " ____";
       if (text.split("____").length - 1 > 3) { toast("Una carta nera può avere al massimo 3 spazi"); return; }
@@ -1034,6 +1062,10 @@ function openCardForm({ card = null, deckId = "senza", done = () => {} } = {}) {
     if (!card) {
       (color === "w" ? d.white : d.black).push({ text, cat, deck: deckId });
       Sound.play("saved");
+    } else if (card.mine && card.color !== color) {
+      // Era bianca ed è diventata nera: lascia le bianche e passa tra le nere, nello stesso mazzo.
+      const [old] = d.white.splice(card.idx, 1);
+      d.black.push({ text, cat, deck: old?.deck ?? deckId });
     } else if (card.mine) {
       Object.assign((card.color === "w" ? d.white : d.black)[card.idx], { text, cat });
     } else {
