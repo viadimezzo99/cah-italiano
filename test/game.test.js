@@ -250,3 +250,14 @@ test("mazzo senza carte nere: errore chiaro all'inizio, non un crash più avanti
   const g = new Game(players, cards, { rng: seededRng(1) });
   assert.throws(() => g.start(), /Nessuna carta nera disponibile/);
 });
+
+test("carta personale bianca con lo spazio ____ (o ___): diventa nera, anche online", async () => {
+  const { sanitizeCustom } = await import("../src/game.js");
+  const out = sanitizeCustom({
+    white: [{ text: "Nonna", cat: "Soggetti" }, { text: "La mamma mi ha detto di non accettare caramelle da ___.", cat: "Soggetti" }],
+    black: [{ text: "Perché ____?" }],
+  });
+  assert.deepEqual(out.white.map((c) => c.text), ["Nonna"]);
+  assert.deepEqual(out.black.map((c) => c.text), ["Perché ____?", "La mamma mi ha detto di non accettare caramelle da ____."]);
+  assert.equal(out.black[1].blanks, 1);
+});

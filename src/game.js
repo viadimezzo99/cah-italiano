@@ -536,12 +536,16 @@ export const CUSTOM_MAX_BLACK = 300;
 export function sanitizeCustom(c) {
   const clean = (x) => String(x?.text ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
   const catOf = (x) => String(x?.cat ?? "").replace(/\s+/g, " ").trim().slice(0, 20) || "Altro";
-  const white = (Array.isArray(c?.white) ? c.white : []).slice(0, CUSTOM_MAX_WHITE)
+  // Una "bianca" con lo spazio da riempire (due o più trattini bassi) è una nera: passa tra le nere.
+  const hasBlank = (x) => /_{2,}/.test(clean(x));
+  const whiteIn = Array.isArray(c?.white) ? c.white : [];
+  const white = whiteIn.filter((x) => !hasBlank(x)).slice(0, CUSTOM_MAX_WHITE)
     .map((x) => ({ text: clean(x), cat: catOf(x) })).filter((x) => x.text)
     .map((x, i) => ({ id: `u${i}`, ...x }));
-  const black = (Array.isArray(c?.black) ? c.black : []).slice(0, CUSTOM_MAX_BLACK)
+  const blackIn = [...(Array.isArray(c?.black) ? c.black : []), ...whiteIn.filter(hasBlank)];
+  const black = blackIn.slice(0, CUSTOM_MAX_BLACK)
     .map((x) => {
-      let text = clean(x);
+      let text = clean(x).replace(/_{2,}/g, BLANK);
       if (!text) return null;
       if (!text.includes(BLANK)) text += ` ${BLANK}`;
       const blanks = text.split(BLANK).length - 1;
