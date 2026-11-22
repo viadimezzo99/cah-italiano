@@ -43,6 +43,10 @@ prof_uris = ["data:image/png;base64," + base64.b64encode((root / f"tools/memory/
 app = app.replace("/*PROFILE_IMGS*/[]", json.dumps(prof_uris))
 jolly_uri = "data:image/jpeg;base64," + base64.b64encode((root / "tools/memory/jolly.jpg").read_bytes()).decode()
 app = app.replace('"/*JOLLY_IMG*/"', json.dumps(jolly_uri))
+# Strato di design: un foglio di stile a parte, messo in app.js come ultimo <style> (il file non deve contenere apici inversi né "${").
+design = read("tools/design-v2.css")
+assert "`" not in design and "${" not in design, "design-v2.css non può contenere apici inversi né dollaro-graffa"
+app = app.replace("/*DESIGN_V2*/", design)
 cards = json.loads(read("data/cards.json"))
 # Evita che un testo contenga la sequenza di chiusura dello script.
 payload = json.dumps({"white": cards["white"], "black": cards["black"]}, ensure_ascii=False).replace("</", "<\\/")
@@ -51,5 +55,7 @@ html = (tpl.replace("/*ENGINE*/", engine)
            .replace("/*AUDIO*/", audio)
            .replace("/*APP*/", f"const CARDS = {payload};\n\n{app}"))
 out = root / "web" / "index.html"
-out.write_text(html, encoding="utf-8")
+# Fine riga LF anche su Windows: il file committato è LF e il confronto con git resta pulito.
+with open(out, "w", encoding="utf-8", newline="\n") as f:
+    f.write(html)
 print(out, f"{out.stat().st_size/1024:.0f} KB")

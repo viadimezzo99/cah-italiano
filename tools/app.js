@@ -123,7 +123,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.44";
+const APP_VERSION = "0.2.45";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -247,6 +247,12 @@ function setup() {
   if (homeTab === "local") return showLocal();
   if (homeTab === "online") return showOnline();
   return showHome();
+}
+
+// Nomi lunghi (fino a 16 lettere) nelle schermate a tutta larghezza: il corpo si riduce, così il nome non esce dallo schermo.
+/** @param {string} name */
+function nameFit(name) {
+  return `font-size:${Math.min(1, 10 / Math.max(1, String(name).length)).toFixed(2)}em`;
 }
 
 // Home: un titolo forte e tre voci di menu. Nessuna scatola, nessuno scorrimento.
@@ -1293,6 +1299,7 @@ function memoryBoard(s) {
       el("img", { class: "jolly-reveal", src: JOLLY_IMG, alt: "Carta jolly vinta" }));
   }
   return el("div", { class: "memory", role: "group", "aria-label": "Memory per il jolly" },
+    el("p", { class: "memory-hint" }, "Trova le coppie prima che gli altri rispondano: vinci il jolly."),
     el("div", { class: "memgrid" }, mem.tiles.map(tile)));
 }
 
@@ -1587,7 +1594,7 @@ function renderWinner() {
     el("div", { class: "iw" },
       crown,
       el("span", { class: "cr-line" }, wonLabel(w.name)),
-      el("span", { class: "cr-slot" }, el("span", { class: "cr-gap" }), el("span", { class: "cr-name" }, w.name)),
+      el("span", { class: "cr-slot" }, el("span", { class: "cr-gap" }), el("span", { class: "cr-name", style: nameFit(w.name) }, w.name)),
       el("span", { class: "cr-line" }, "grazie"),
       el("span", { class: "cr-pslot" }, el("span", { class: "cr-pgap" }), el("span", { class: "cr-phrase" }, rest))),
     el("button", { class: "primary cr-btn", type: "button", onclick: online ? () => netSend({ type: "back" }) : () => { homeTab = "local"; exitGame(); } },
@@ -1733,7 +1740,11 @@ function render() {
     const slam = slamPending;
     slamPending = false;
     if (!selected.includes(JOLLY)) { jollyDraft = ""; if (jollyKeys) { jollyKeys.value = ""; if (document.activeElement === jollyKeys) jollyKeys.blur(); } }
-    mainCard = blackCard(s, previewWhites(s), { canPlay, slam, jollyAt: canPlay ? selected.indexOf(JOLLY) : -1 });
+    // Chi deve rispondere vede a che punto è: "1 di 2 scelte", poi "Pronta" quando compaiono la X e la V.
+    const progress = canPlay && need > 0 && selected.length > 0
+      ? (selected.length >= need ? "Pronta" : `${selected.length} di ${need} scelte`)
+      : undefined;
+    mainCard = blackCard(s, previewWhites(s), { canPlay, slam, jollyAt: canPlay ? selected.indexOf(JOLLY) : -1, label: progress });
     // Risposte complete: sulla carta nera compaiono X (annulla la scelta) e V (conferma), come per il Re.
     if (canPlay && need > 0 && selected.length === need) {
       const blk = mainCard.querySelector(".black");
@@ -1796,7 +1807,7 @@ function render() {
       me.name === "Tu"
         ? el("span", {}, "È il tuo turno")
         : [el("span", {}, "È il turno di"),
-           el("span", { class: "cur-slot" }, el("span", { class: "cur-gap" }), el("span", { class: "cur-name" }, me.name))],
+           el("span", { class: "cur-slot" }, el("span", { class: "cur-gap" }), el("span", { class: "cur-name", style: nameFit(me.name) }, me.name))],
       el("span", { class: "cur-sub" }, "Le tue carte sono nascoste finché non tocchi."))) : null;
 
   // Al primo render di pausa la carta resta visibile: sarà shrinkWinner a farla rimpicciolire.
@@ -2777,3 +2788,6 @@ document.addEventListener("focusin", (e) => {
   }
 });
 // Il foglio resta in alto finché esiste: se tornasse giù al primo tocco fuori dal campo, il pulsante Salva cambierebbe posto.
+
+// Design v2: strato finale di rifinitura (sorgente: tools/design-v2.css). Deve restare l'ultimo <style> aggiunto al head.
+document.head.append(el("style", { id: "design-v2" }, `/*DESIGN_V2*/`));
