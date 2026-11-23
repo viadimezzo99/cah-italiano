@@ -41,6 +41,11 @@ Il controllo gira anche su GitHub prima di compilare l'APK.
 - **Cambia mano**: all'avvio si sceglie Mai / 3 a testa / A ogni turno (`reshuffles` 0 / 3 / 99). Si cambia tutta la mano al massimo
   una volta per turno, chi non è il Re e non ha ancora risposto. Online lo sceglie l'ospite (`setReshuffles`).
 
+## Avatar del profilo
+
+I primi quattro sono personaggi del Memory (`tools/memory`); gli altri sono illustrazioni in `tools/avatars/src`, ritagliate dallo sfondo
+e portate nello stesso formato (280x400) da `tools/avatars/make_avatars.py` (serve rembg). `order.json` dà l'ordine nel selettore del profilo.
+
 ## Musica
 
 Quattro brani per la home (`tools/music/menu-1..4.mp3`, alternati con dissolvenza incrociata in ordine mescolato, mai ripartendo

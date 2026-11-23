@@ -39,10 +39,17 @@ app = spell + "\n" + read("tools/room.js") + "\n" + read("tools/app.js")
 mem_names = ["gatto", "cactus", "patata", "pinguino", "fantasma", "frigorifero", "ombrello", "vasca"]
 mem_uris = ["data:image/jpeg;base64," + base64.b64encode((root / f"tools/memory/{n}.jpg").read_bytes()).decode() for n in mem_names]
 app = app.replace("/*MEMORY_IMGS*/[]", json.dumps(mem_uris))
-# Avatar del profilo: i personaggi del Memory. Il ritaglio senza sfondo (PNG trasparente) e l'illustrazione intera (da cui viene il colore della carta).
-avatar_names = ["gatto", "cactus", "patata", "pinguino"]
-avatars = [{"cut": "data:image/png;base64," + base64.b64encode((root / f"tools/memory/cut/{n}.png").read_bytes()).decode(),
-            "bg": "data:image/jpeg;base64," + base64.b64encode((root / f"tools/memory/{n}.jpg").read_bytes()).decode()} for n in avatar_names]
+# Avatar del profilo: il ritaglio senza sfondo (PNG trasparente) e l'illustrazione intera (da cui viene il colore della carta).
+# I primi quattro sono personaggi del Memory (tools/memory); gli altri sono in tools/avatars (vedi make_avatars.py e order.json).
+avatar_names = ["gatto", "cactus", "patata", "pinguino"] + json.loads((root / "tools/avatars/order.json").read_text(encoding="utf-8"))
+def avatar_path(kind, n):
+    for d in ("tools/avatars", "tools/memory"):
+        p = root / d / (("cut/" + n + ".png") if kind == "cut" else (n + ".jpg"))
+        if p.exists():
+            return p
+    raise FileNotFoundError(f"avatar {n}: manca {kind}")
+avatars = [{"cut": "data:image/png;base64," + base64.b64encode(avatar_path("cut", n).read_bytes()).decode(),
+            "bg": "data:image/jpeg;base64," + base64.b64encode(avatar_path("bg", n).read_bytes()).decode()} for n in avatar_names]
 app = app.replace("/*AVATARS*/[]", json.dumps(avatars))
 jolly_uri = "data:image/jpeg;base64," + base64.b64encode((root / "tools/memory/jolly.jpg").read_bytes()).decode()
 app = app.replace('"/*JOLLY_IMG*/"', json.dumps(jolly_uri))
