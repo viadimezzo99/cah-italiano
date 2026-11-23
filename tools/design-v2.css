@@ -187,3 +187,115 @@ body { overflow-x: clip; }
   .hud .round-progress { flex: 0 0 auto; }
   .hud .back-arrow { order: -1; }
 }
+
+/* --- Testo selezionato: arancio del gioco in entrambi i temi ------------------------------ */
+/* Prima una regola con sfondo trasparente annullava l'evidenziazione: nelle caselle non si vedeva cosa era selezionato.
+   Chiaro: arancio tenue con testo scuro. Scuro: arancio pieno con testo bianco. Contrasto oltre 4.5:1 in entrambi. */
+:root { --sel: #f2a77f; --sel-ink: #1c1a17; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --sel: #c4502a; --sel-ink: #fff; }
+}
+:root[data-theme="dark"] { --sel: #c4502a; --sel-ink: #fff; }
+::selection, input::selection, textarea::selection { background: var(--sel); color: var(--sel-ink); text-shadow: none; }
+input, textarea { caret-color: var(--accent); accent-color: var(--accent); }
+
+/* --- Scelta dei mazzi: una tessera per mazzo (partita locale e stanza online) -------------- */
+.deckpick { display: flex; flex-direction: column; gap: var(--sp-3); }
+.dpk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); }
+/* button.dpk e button.dpk[aria-pressed]: devono pesare più di button[aria-pressed="true"] (nero pieno) del foglio di base. */
+button.dpk, button.dpk[aria-pressed] {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  min-height: 150px; padding: 12px; width: 100%;
+  background: transparent; color: var(--muted); border: 2px dashed var(--line); border-radius: var(--r-l);
+  text-align: left; box-shadow: none;
+  transition: border-color var(--t-base) var(--ease-out), background-color var(--t-base) var(--ease-out),
+    color var(--t-base) var(--ease-out), transform var(--t-fast) var(--ease-out), box-shadow var(--t-base) var(--ease-out);
+}
+button.dpk:active { transform: scale(.97); }
+button.dpk[aria-pressed="true"] {
+  background: var(--paper); color: var(--fg); border: 2px solid var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow-card);
+}
+.dpk-stack { position: relative; display: block; width: 100%; height: 76px; margin-bottom: 8px; transition: filter var(--t-base), opacity var(--t-base); }
+button.dpk:not(.on) .dpk-stack { filter: grayscale(1); opacity: .55; }
+.dpk-stack i {
+  position: absolute; left: 50%; bottom: 0; display: block; width: 48px; height: 68px; margin-left: -24px;
+  border-radius: 8px; transform-origin: 50% 120%;
+  transition: transform var(--t-slow) var(--ease-out);
+  box-shadow: 0 6px 12px -8px rgba(0, 0, 0, .65);
+}
+/* Le carte restano bianche o nere in ogni tema: dietro una nera, davanti due bianche. */
+.dpk-stack .k { background: #111; border: 1px solid rgba(255, 255, 255, .22); transform: translateX(-3px) rotate(-3deg); }
+.dpk-stack .w2 { background: #f3efe6; border: 1.5px solid rgba(0, 0, 0, .3); transform: translateX(3px) rotate(3deg); }
+.dpk-stack .w1 {
+  background:
+    linear-gradient(#bdb6a8, #bdb6a8) 8px 10px / 22px 3px no-repeat,
+    linear-gradient(#bdb6a8, #bdb6a8) 8px 17px / 30px 3px no-repeat,
+    #fff;
+  border: 1.5px solid rgba(0, 0, 0, .3); display: grid; align-items: end; justify-items: start; padding: 0 0 5px 8px;
+}
+.dpk-stack .w1 b { font: 800 22px/1 var(--card-font, inherit); color: #111; }
+button.dpk.on .dpk-stack .k { transform: translateX(-20px) rotate(-15deg); }
+button.dpk.on .dpk-stack .w2 { transform: translateX(20px) rotate(15deg); }
+button.dpk.on .dpk-stack .w1 { transform: rotate(-1deg); }
+/* Spunta: cerchio pieno e arancio se il mazzo entra, cerchio vuoto se è escluso (non solo il colore cambia). */
+.dpk-tick {
+  position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 15px; font-weight: 800; line-height: 1;
+  border: 2px solid var(--line); background: transparent; color: transparent; transform: scale(.8);
+  transition: transform var(--t-base) var(--ease-out), background-color var(--t-base), border-color var(--t-base), color var(--t-base);
+}
+button.dpk.on .dpk-tick { background: var(--accent); border-color: var(--accent); color: var(--on-accent); transform: scale(1); }
+.dpk-name { font-size: 19px; font-weight: 800; line-height: 1.1; max-width: 100%; overflow-wrap: anywhere; }
+.dpk-count { font-size: 12px; line-height: 1.3; color: var(--muted); }
+.dpk-sum { margin: 0; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
+.dpk-sum.bad { color: var(--accent-ink); }
+@media (forced-colors: active) {
+  button.dpk.on { outline: 3px solid Highlight; }
+}
+
+/* --- Casella di ricerca: la croce per svuotare segue i colori del gioco (prima era blu di sistema) --- */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+  width: 22px; height: 22px; margin-left: 6px;
+  background: var(--accent-ink);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / 14px 14px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center / 14px 14px no-repeat;
+}
+
+/* --- Home: stesso disegno nei due temi, leggibile su ogni altezza di schermo ---------------------------- */
+/* Disegni nelle carte: riempiono lo spazio vuoto sopra il titolo e dicono cosa fa ogni voce. */
+.hc-ico { position: absolute; top: 16px; left: 16px; width: 48px; height: 48px; display: block; pointer-events: none; opacity: .92; }
+.hc-ico svg { display: block; width: 100%; height: 100%; }
+.hc-black .hc-ico { color: #fbf8f0; }
+.hc-white .hc-ico { color: #111; }
+.hc-accent .hc-ico { color: var(--on-accent); }
+/* La carta profilo è del colore dell'illustrazione: nel tema scuro, senza un filo di luce, si confonde con lo sfondo. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hc-stats { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16), 0 10px 22px -14px #000a; }
+  :root:not([data-theme="light"]) .hc-accent { border-color: transparent; }
+  :root:not([data-theme="light"]) .hc-white { border-color: #fbf8f0; }
+}
+:root[data-theme="dark"] .hc-stats { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16), 0 10px 22px -14px #000a; }
+:root[data-theme="dark"] .hc-accent { border-color: transparent; }
+:root[data-theme="dark"] .hc-white { border-color: #fbf8f0; }
+/* Schermi bassi: niente disegni, e la pagina può scorrere invece di tagliare le carte. */
+@media (max-height: 660px) {
+  .hc-ico { display: none; }
+}
+@media (max-height: 560px) {
+  #app:has(.home) { height: auto; min-height: calc(100dvh - 44px); }
+  body:has(.home) { overflow-y: auto; }
+  .home { height: auto; }
+  .hand { grid-template-rows: none; grid-auto-rows: minmax(136px, auto); }
+  /* Il marchio passa su una riga sola, così lascia spazio alle carte. */
+  .hdr-logo { font-size: 26px; line-height: 1.05; }
+  .hdr-logo > span { display: inline; margin-right: .28em; }
+}
+/* Telefono girato o finestra larga e bassa: le quattro carte in fila. */
+@media (orientation: landscape) and (max-height: 560px) {
+  #app:has(.home) { max-width: 960px; }
+  .hand { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .hcard .hc-title { font-size: clamp(20px, 3.2vw, 26px); }
+  .hc-stats .hc-art { width: 60%; }
+}

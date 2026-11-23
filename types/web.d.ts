@@ -9,6 +9,7 @@ declare global {
   const Game: typeof GameMod.Game;
   const JOLLY: typeof GameMod.JOLLY;
   const JOLLY_MAX: typeof GameMod.JOLLY_MAX;
+  const BOT_JUDGE_VIEW_MS: typeof GameMod.BOT_JUDGE_VIEW_MS;
   const DEFAULTS: typeof GameMod.DEFAULTS;
   const seededRng: typeof GameMod.seededRng;
   const shuffle: typeof GameMod.shuffle;

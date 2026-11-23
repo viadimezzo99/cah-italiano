@@ -63,3 +63,58 @@ test("riconnettersi non fa ripartire il conto alla rovescia", (t) => {
   mock.timers.tick(21_000);                         // t = 61 s dall'inizio del turno
   assert.equal(room.game.phase, "judging", "il riaggancio non allunga il turno");
 });
+
+// Il Re bot guarda ogni carta almeno 3 secondi: un solo passo (sfogliare, confrontare, scegliere) ogni 3000 ms.
+test("il Re bot online aspetta almeno 3 secondi a ogni passo", (t) => {
+  mock.timers.enable({ apis: ["setTimeout"] });
+  t.after(() => mock.timers.reset());
+  let found = null;
+  for (let i = 0; i < 40 && !found; i++) {
+    const host = __createRoomHost({ cards, turnSeconds: 0 });
+    const a = phone(host, "a");
+    const letters = "ABCDEFGHJKMNPQRSTUVWXYZ";
+    const code = `BJ${letters[i % letters.length]}${letters[Math.floor(i / letters.length)]}`;   // solo caratteri validi per un codice stanza
+    host.handle(a.conn, { type: "create", name: "Alice", code });
+    host.handle(a.conn, { type: "addBot", name: "Tana" });
+    host.handle(a.conn, { type: "addBot", name: "Tega" });
+    host.handle(a.conn, { type: "start", winScore: 5 });
+    const room = host.rooms.get(code);
+    if (room.game.judge.isBot) found = { host, room, a };
+  }
+  assert.ok(found, "prima o poi il Re è un bot");
+  const { host, room, a } = found;
+  const aId = a.last("joined").playerId;
+  mock.timers.tick(2000);                           // i bot rispondono
+  const me = room.game.players.find((p) => p.id === aId);
+  host.handle(a.conn, { type: "play", cards: me.hand.slice(0, room.game.currentBlack.blanks) });
+  const g = room.game;
+  assert.equal(g.phase, "judging", "risposte di tutti: tocca al Re bot");
+  const n = g.revealOrder.length;
+  assert.equal(g.peek, 0);
+  // Ogni passo avviene solo dopo 3 secondi pieni.
+  for (let step = 1; step < n; step++) {
+    mock.timers.tick(2999);
+    assert.equal(g.peek, step - 1, "prima dei 3 secondi la carta resta quella");
+    mock.timers.tick(1);
+    assert.equal(g.peek, step, "dopo 3 secondi passa alla successiva");
+  }
+  mock.timers.tick(2999);
+  assert.equal(g.compare, false, "dopo l'ultima carta aspetta ancora 3 secondi");
+  mock.timers.tick(1);
+  assert.equal(g.compare, true);
+  mock.timers.tick(2999);
+  assert.equal(g.selected, null, "anche prima di scegliere");
+  mock.timers.tick(1);
+  assert.notEqual(g.selected, null);
+  mock.timers.tick(2999);
+  assert.equal(g.phase, "judging", "e prima di assegnare il punto");
+  mock.timers.tick(1);
+  assert.equal(g.phase, "roundEnd");
+});
+
+test("BOT_JUDGE_VIEW_MS è almeno 3 secondi e lo usano locale e online", () => {
+  const src = (f) => readFileSync(new URL(f, root), "utf8");
+  assert.ok(globalThis.BOT_JUDGE_VIEW_MS >= 3000 || /BOT_JUDGE_VIEW_MS = (\d+)/.exec(src("src/game.js"))[1] >= 3000);
+  assert.match(src("tools/app.js"), /BOT_JUDGE_VIEW_MS\);/, "il Re bot locale usa la costante");
+  assert.match(src("tools/room.js"), /BOT_JUDGE_VIEW_MS : 2000/, "il Re bot online usa la costante");
+});

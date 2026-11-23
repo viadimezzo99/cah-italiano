@@ -8,6 +8,9 @@ import { blankAccepts } from "./agreement.js";
 export const JOLLY = "JOLLY";
 export const JOLLY_MAX = 80;
 
+// Il Re bot guarda ogni carta almeno 3 secondi (sfoglia, confronta, sceglie: un passo ogni tanto), in locale e online.
+export const BOT_JUDGE_VIEW_MS = 3000;
+
 export const DEFAULTS = {
   handSize: 10,
   winScore: 8, // le regole non fissano una fine: è un'opzione della stanza

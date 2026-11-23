@@ -218,9 +218,8 @@ body:has(.game) { overflow: hidden; }
 /* Niente barra di scorrimento bianca a destra: l'app si muove con il dito, non con la barra. */
 html, body { scrollbar-width: none; overflow-x: hidden; }
 html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
-/* Testo digitato e selezione nei colori del gioco. */
+/* Testo digitato nei colori del gioco (la selezione è in tools/design-v2.css). */
 input, textarea { caret-color: var(--accent); }
-::selection { background: color-mix(in srgb, var(--accent) 45%, transparent); }
 .game { height: 100%; min-height: 0; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; --ch: clamp(120px, 19dvh, 170px); }
 .hud { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .hud .topbar .wordmark { font-size: 15px; }
@@ -272,7 +271,6 @@ input, textarea { caret-color: var(--accent); }
 .dock .actions button.primary { width: auto; padding: 6px 12px; font-size: 13px; }
 *, *::before, *::after { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 input, textarea { -webkit-user-select: text; user-select: text; }
-::selection { background: transparent; }
 .dock .judge-nav { flex: 0 0 auto; }
 .dock > .col { gap: 4px; min-height: 0; flex: 1 1 auto; }
 .dock .rail { flex: 1 1 auto; min-height: 0; align-items: flex-end; padding: 14px 6px 8px; gap: 10px; }

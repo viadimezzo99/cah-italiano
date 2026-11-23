@@ -28,7 +28,7 @@ function saveSettings() {
 let settings = loadSettings();
 let unlocked = false;   // l'audio parte solo dopo un gesto dell'utente
 let game = null;
-let cfg = { names: ["Tu"], bots: [], winScore: 5, jolly: true }; // partita locale: persone e bot, mazzo scelto prima
+let cfg = { names: ["Tu"], bots: [], winScore: 5 }; // partita locale: persone e bot, mazzo scelto prima (niente jolly: vale solo online)
 
 // Nomi di fantasia suggeriti per i bot: chi aggiunge il bot può cambiarli.
 const BOT_SUGGEST = ["Tana", "Tega", "Tino", "Tone", "Jack"];
@@ -70,12 +70,10 @@ let botTimer = null;
 let judgeTimer = null;
 let roundTimer = null;     // passaggio automatico al round successivo (solo locale)
 const LOCAL_ROUND_PAUSE_MS = 1900;   // dopo il volo della carta scelta (600 ms) e il punto (1050 ms)
-const BOT_JUDGE_STEP_MS = 900;      // tempo tra un passo e l'altro del Re bot (sfogliare, confrontare, scegliere)
 let jollyDraft = "";                  // testo scritto a mano sul jolly, mentre lo si compone sulla carta nera
 let mem = null;                       // Memory del Re: tessere, carte aperte, round a cui appartiene
 const MEMORY_IMGS = /*MEMORY_IMGS*/[];
 const PROFILE_IMGS = /*PROFILE_IMGS*/[];   // gli stessi personaggi senza sfondo, per la carta profilo
-const MEMORY_LOCAL = true;   // Memory anche nelle partite locali: la regola del jolly vale in entrambe le modalità
 const JOLLY_IMG = "/*JOLLY_IMG*/";   // carta jolly in mano
 const MEMORY_HUE = [0, 30, -25, 45, -40, 20, -15, 60];   // una tonalità diversa per ogni coppia
 let wordsShown = 0;                  // quante parole sono già comparse sulla carta nera (non si ripetono)
@@ -86,6 +84,8 @@ let shrinkGhost = null;             // copia della carta vincente in volo: si to
 let online = null;      // partita online: { code, you, state, offline, winScore } oppure null
 
 // Icona impostazioni: una carta nera con lo spazio da riempire, come nel gioco.
+// Un disegno SVG scritto come testo diventa un nodo (el() mette innerHTML come attributo, non come contenuto).
+const svgNode = (html) => { if (!html) return null; const t = document.createElement("span"); t.innerHTML = html; return t.firstElementChild; };
 const settingsIcon = () => { const t = document.createElement("span"); t.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.5" fill="currentColor"/><path d="M8 14.5h8" stroke="var(--bg)" stroke-width="2" stroke-linecap="round"/><circle cx="8" cy="7" r="1.2" fill="var(--bg)"/></svg>'; return t.firstElementChild; };
 const el = (tag, attrs = {}, ...kids) => {
   const n = document.createElement(tag);
@@ -123,7 +123,7 @@ function applySettings() {
 }
 
 // Aggiornamento dal repository: legge l'ultima release e offre la nuova APK.
-const APP_VERSION = "0.2.45";
+const APP_VERSION = "0.2.46";
 const UPDATE_API = "https://api.github.com/repos/viadimezzo99/cah-italiano/releases/latest";
 const isNewer = (a, b) => {
   const x = a.split(".").map(Number), y = b.split(".").map(Number);
@@ -419,6 +419,7 @@ function showHome() {
   // Tre carte del gioco: la nera per la modalità principale, le altre due affiancate sotto.
   const card = (kind, title, sub, go) => el("button", { type: "button", class: `hcard ${kind}`,
     onclick: (e) => leaveHome(e.currentTarget, go) },
+    el("span", { class: "hc-ico", "aria-hidden": "true" }, svgNode(HOME_ICONS[kind])),
     el("span", { class: "hc-title display" }, title),
     el("span", { class: "hc-sub" }, sub),
     el("span", { class: "hc-arr", "aria-hidden": "true" }, "→"));
@@ -434,6 +435,14 @@ function showHome() {
   dealHome([...app.querySelectorAll(".hcard")], first ? 1950 : 0);
   if (first) requestAnimationFrame(() => playIntro(top));
 }
+
+// Disegni delle carte della home (tratto, colore del testo della carta): telefono che passa di mano, mondo, carte in pila.
+const HOME_ICON_ATTRS = 'viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
+const HOME_ICONS = {
+  "hc-black": `<svg ${HOME_ICON_ATTRS}><rect x="15" y="6" width="18" height="32" rx="4"/><path d="M21 11h6"/><circle cx="24" cy="33" r="1.4" fill="currentColor" stroke="none"/><path d="M8 18c-2.4 3.4-2.4 7.6 0 11M40 18c2.4 3.4 2.4 7.6 0 11M4 15c-3.6 5-3.6 12 0 17M44 15c3.6 5 3.6 12 0 17"/></svg>`,
+  "hc-white": `<svg ${HOME_ICON_ATTRS}><circle cx="24" cy="24" r="16"/><ellipse cx="24" cy="24" rx="7" ry="16"/><path d="M8 24h32M10 15h28M10 33h28"/></svg>`,
+  "hc-accent": `<svg ${HOME_ICON_ATTRS}><rect x="8" y="12" width="20" height="28" rx="3" transform="rotate(-10 18 26)"/><rect x="19" y="7" width="20" height="28" rx="3" transform="rotate(8 29 21)"/><path d="M24 17h10M24 22h7" transform="rotate(8 29 21)"/></svg>`,
+};
 
 function subHead(title) {
   return el("div", { class: "subhead" },
@@ -456,9 +465,9 @@ function localPanel() {
   const refresh = () => {
     const total = cfg.names.length + cfg.bots.length;
     const ok = total >= 3;
-    startBtn.disabled = !ok;
+    startBtn.disabled = !ok || !!deckProblem();
     hint.textContent = ok
-      ? `${total} giocatori${cfg.bots.length ? ` (${cfg.bots.length} bot)` : ""} · vittoria a ${cfg.winScore} punti · jolly ${cfg.jolly ? "sì" : "no"} · ${decksInGame()} mazzi nelle partite`
+      ? `${total} giocatori${cfg.bots.length ? ` (${cfg.bots.length} bot)` : ""} · vittoria a ${cfg.winScore} punti`
       : "Servono almeno 3 giocatori: aggiungi dei bot se siete meno.";
   };
 
@@ -477,11 +486,7 @@ function localPanel() {
     type: "button", "aria-pressed": String(cfg.winScore === n),
     onclick: () => { cfg.winScore = n; setup(); },
   }, `${n} punti`));
-  const jollyBtns = /** @type {[string, boolean][]} */ ([["Sì", true], ["No", false]]).map(([label, v]) => el("button", {
-    type: "button", "aria-pressed": String(cfg.jolly === v),
-    onclick: () => { cfg.jolly = v; setup(); },
-  }, label));
-  const deckBtns = deckToggleList();
+  const deckBox = deckPicker(() => refresh());
 
   refresh();
   return el("div", { class: "panel" },
@@ -493,10 +498,8 @@ function localPanel() {
     cfg.names.length + cfg.bots.length < 10 ? el("button", { type: "button", class: "ghost", onclick: () => askBotName(cfg.bots.length, (name) => { cfg.bots.push(name); setup(); }) }, "+ Aggiungi bot") : null,
     el("span", { class: "label" }, "Vittoria · decidetela prima di iniziare"),
     el("div", { class: "seg" }, winBtns),
-    el("span", { class: "label" }, "Jolly · il Re lo vince con il Memory"),
-    el("div", { class: "seg" }, jollyBtns),
     el("span", { class: "label" }, "Carte · quali mazzi entrano"),
-    el("div", { class: "seg" }, deckBtns),
+    deckBox,
     hint,
     startBtn);
 }
@@ -518,7 +521,7 @@ function start() {
   }
   localGameSeq++;
   botsScheduled = null;
-  game = new Game(players, deck, { winScore: cfg.winScore, pool: localPool, jolly: cfg.jolly });
+  game = new Game(players, deck, { winScore: cfg.winScore, pool: localPool, jolly: false });   // il jolly (e il Memory del Re) esiste solo online
   selected = [];
   judgeSel = null;
   viewer = null;
@@ -698,7 +701,6 @@ function decksList() {
   const d = loadCustom();
   return [{ id: BASE_ID, name: "Base", official: true, use: d.baseUse }, ...d.decks.map((x) => ({ ...x, official: false }))];
 }
-const decksInGame = () => decksList().filter((x) => x.use).length;
 
 // Interruttore di un mazzo: entra o no nelle partite.
 function toggleDeck(id, refresh) {
@@ -709,10 +711,63 @@ function toggleDeck(id, refresh) {
   refresh();
 }
 
-// Pulsanti dei mazzi nella schermata di partita locale.
-function deckToggleList() {
-  return decksList().map((dk) => el("button", { type: "button", class: "chip", "aria-pressed": String(dk.use),
-    onclick: () => toggleDeck(dk.id, () => setup()) }, dk.name));
+// Quante carte entrano in partita con i mazzi accesi (conta solo quelle che esistono davvero: niente nascoste).
+function deckTotals() {
+  const { orig, mine } = allCards();
+  const t = { decks: 0, w: 0, b: 0 };
+  for (const dk of decksList()) {
+    if (!dk.use) continue;
+    t.decks++;
+    for (const c of dk.official ? orig : mine.filter((x) => x.deck === dk.id)) c.color === "w" ? t.w++ : t.b++;
+  }
+  return t;
+}
+/** Perché con questi mazzi la partita non può partire (oppure null). */
+function deckProblem(t = deckTotals()) {
+  if (!t.decks) return "Scegli almeno un mazzo.";
+  if (!t.b) return "I mazzi scelti non hanno carte nere: accendi il mazzo Base o aggiungi una carta nera.";
+  if (!t.w) return "I mazzi scelti non hanno carte bianche: accendi il mazzo Base o aggiungi delle carte bianche.";
+  return null;
+}
+
+// Scelta dei mazzi della partita, in locale e online: una tessera per mazzo, con la pila di carte, i conteggi e la spunta.
+// Un tocco accende o spegne il mazzo; la tessera cambia sul posto, senza ridisegnare la schermata.
+/** @param {() => void} [onChange] chiamata dopo ogni tocco, a conteggi aggiornati */
+function deckPicker(onChange) {
+  const { orig, mine } = allCards();
+  const rows = decksList().map((dk) => {
+    const cs = dk.official ? orig : mine.filter((c) => c.deck === dk.id);
+    return { id: dk.id, dk, w: cs.filter((c) => c.color === "w").length, b: cs.filter((c) => c.color === "b").length };
+  });
+  const sum = el("p", { class: "dpk-sum", role: "status" });
+  const tiles = rows.map((r) => el("button", { type: "button", class: "dpk" + (r.dk.official ? " base" : ""), "aria-pressed": String(r.dk.use),
+    onclick: () => { toggleDeck(r.id, sync); Sound.play("flip"); } },
+    el("span", { class: "dpk-stack", "aria-hidden": "true" },
+      el("i", { class: "k" }), el("i", { class: "w2" }),
+      el("i", { class: "w1" }, el("b", {}, (r.dk.name.trim().charAt(0) || "?").toUpperCase()))),
+    el("span", { class: "dpk-tick", "aria-hidden": "true" }, "✓"),
+    el("span", { class: "dpk-name display" }, r.dk.name),
+    el("span", { class: "dpk-count" }, r.w + r.b ? `${r.w} bianche · ${r.b} nere` : "Mazzo vuoto")));
+  function sync() {
+    const now = decksList();
+    tiles.forEach((btn, i) => {
+      const on = !!now.find((x) => x.id === rows[i].id)?.use;
+      btn.classList.toggle("on", on);
+      btn.setAttribute("aria-pressed", String(on));
+    });
+    const t = deckTotals();
+    const problem = deckProblem(t);
+    sum.classList.toggle("bad", !!problem);
+    sum.textContent = problem ?? `In partita: ${t.decks} ${t.decks === 1 ? "mazzo" : "mazzi"} · ${t.w} bianche · ${t.b} nere`;
+    if (onChange) onChange();
+  }
+  const box = el("div", { class: "deckpick", role: "group", "aria-label": "Mazzi della partita" }, el("div", { class: "dpk-grid" }, tiles), sum);
+  tiles.forEach((btn, i) => btn.classList.toggle("on", !!rows[i].dk.use));
+  const t0 = deckTotals();
+  const p0 = deckProblem(t0);
+  sum.classList.toggle("bad", !!p0);
+  sum.textContent = p0 ?? `In partita: ${t0.decks} ${t0.decks === 1 ? "mazzo" : "mazzi"} · ${t0.w} bianche · ${t0.b} nere`;
+  return box;
 }
 
 // Nuovo mazzo o rinomina: piccolo foglio con il nome.
@@ -1165,14 +1220,11 @@ function step() {
   if (game.phase === "playing") {
     scheduleLocalBots();
   } else if (game.phase === "judging" && game.judge.isBot) {
-    judgeTimer = setTimeout(() => { game.advanceBotJudge(); step(); }, BOT_JUDGE_STEP_MS);   // il Re bot sfoglia e sceglie a passi
+    judgeTimer = setTimeout(() => { game.advanceBotJudge(); step(); }, BOT_JUDGE_VIEW_MS);   // il Re bot sfoglia e sceglie a passi: almeno 3 secondi su ogni carta
   }
   render();
 }
 
-// Quando il Re sei tu, ogni bot risponde in un momento casuale tra 20 e 60 secondi, così hai tempo per il Memory.
-const BOT_PLAY_MIN_MS = 20000;
-const BOT_PLAY_MAX_MS = 60000;
 let botsScheduled = null;   // { round, ids }: bot già programmati per questo turno
 let localGameSeq = 0;       // cambia a ogni nuova partita: i timer dei bot della partita precedente non devono più agire
 function scheduleLocalBots() {
@@ -1182,9 +1234,7 @@ function scheduleLocalBots() {
   for (const p of game.players) {
     if (!p.isBot || p.id === game.judge.id || game.submissions.has(p.id) || botsScheduled.ids.has(p.id)) continue;
     botsScheduled.ids.add(p.id);
-    // Lento solo quando il Re sei tu e c'è il Memory: serve tempo. Senza jolly, o col Re bot, rispondono in fretta.
-    const memoryTurn = !game.judge.isBot && cfg.jolly;
-    const delay = memoryTurn ? BOT_PLAY_MIN_MS + Math.random() * (BOT_PLAY_MAX_MS - BOT_PLAY_MIN_MS) : 1200 + Math.random() * 1300;
+    const delay = 1200 + Math.random() * 1300;
     setTimeout(() => {
       if (seq !== localGameSeq || !game || game.phase !== "playing" || game.round !== round || game.submissions.has(p.id)) return;
       game.autoPlay(p.id);
@@ -1723,7 +1773,7 @@ function render() {
     if (!online && !roundTimer) roundTimer = setTimeout(nextRound, LOCAL_ROUND_PAUSE_MS);
   } else if (isJudge) {
     // Il Memory esiste solo online: in locale il telefono passa di mano, quindi non avrebbe senso.
-    note = ((online || MEMORY_LOCAL) && s.jolly !== false && s.jollyHolder === null && !(mem && mem.won && mem.round === s.round)) ? memoryBoard(s) : el("p", { class: "hidden-msg" }, "Sei il Re: aspetta che gli altri confermino.");
+    note = (online && s.jolly !== false && s.jollyHolder === null && !(mem && mem.won && mem.round === s.round)) ? memoryBoard(s) : el("p", { class: "hidden-msg" }, "Sei il Re: aspetta che gli altri confermino.");
   } else if (s.phase === "playing" && !me.hasPlayed) {
     note = null;   // niente istruzioni in primo piano: la carta nera stessa dice quando è pronta
   } else if (me.hasPlayed) {
@@ -2353,6 +2403,10 @@ function renderLobby() {
     type: "button", "aria-pressed": String(onlineWin === n),
     onclick: () => { onlineWin = n; render(); },
   }, `${n} punti`));
+  // Mazzi: li sceglie l'ospite con le stesse tessere del locale. Il Base, se spento, viaggia nel messaggio di avvio.
+  const startBtn = el("button", { type: "button", class: "primary", disabled: !ok || !!deckProblem(),
+    onclick: () => netSend({ type: "start", winScore: onlineWin, custom: customPayload(), base: !!loadCustom().baseUse }) }, "Avvia partita");
+  const deckBox = isHost ? deckPicker(() => { startBtn.disabled = !ok || !!deckProblem(); }) : null;
   const jollyNow = st.jolly !== false;   // scelta dell'ospite: la vedono tutti
   const jollySeg = [["Sì", true], ["No", false]].map(([label, v]) => el("button", {
     type: "button", "aria-pressed": String(jollyNow === v),
@@ -2374,13 +2428,15 @@ function renderLobby() {
           `${p.name}${p.id === st.hostId ? " · host" : ""}${p.id === online.you ? " (tu)" : ""}${p.ready ? " · pronto" : ""}`))),
         isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Vittoria") : null,
         isHost ? el("div", { class: "seg" }, seg) : null,
+        isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Carte · quali mazzi entrano") : null,
+        deckBox,
         isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Jolly · il Re lo vince con il Memory") : null,
         isHost ? el("div", { class: "seg" }, jollySeg) : el("p", { class: "hidden-msg" }, `Jolly: ${jollyNow ? "sì" : "no"}`),
         // Dopo una partita la stanza resta aperta: ognuno si dichiara pronto, e quando lo sono tutti si ricomincia.
         me ? el("button", { type: "button", class: me.ready ? "ghost" : "primary", onclick: () => netSend({ type: "ready" }) },
           me.ready ? "Pronto: aspetto gli altri" : "Sono pronto") : null,
         isHost
-          ? el("button", { type: "button", class: "primary", disabled: !ok, onclick: () => netSend({ type: "start", winScore: onlineWin, custom: customPayload() }) }, "Avvia partita")
+          ? startBtn
           : el("p", { class: "hidden-msg" }, ok ? "In attesa che l'host avvii la partita." : "Servono almeno 3 giocatori per iniziare."),
         isHost && !ok ? el("p", { class: "hidden-msg" }, "Servono almeno 3 giocatori: aggiungi dei bot se siete meno.") : null,
         // Con pochi amici: l'ospite aggiunge dei bot (con il nome che sceglie), che giocano sul suo telefono.

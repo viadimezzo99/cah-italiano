@@ -9,7 +9,6 @@ const ROOM_WIN_SCORES = [3, 5, 8];
 const ROOM_CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // niente I, L, O, 0, 1
 const ROOM_PAUSE_MS = 4000;
 const BOT_NAMES = ["Tana", "Tega", "Tino", "Tone", "Jack"];
-const ROOM_BOT_JUDGE_STEP_MS = 2500;   // tempo tra un passo e l'altro del Re bot
 
 function randomHex(bytes) {
   const b = new Uint8Array(bytes);
@@ -111,7 +110,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         else g.advanceBotJudge();
       } catch { /* stato già cambiato */ }
       afterChange(room);
-    }, phase === "judging" ? ROOM_BOT_JUDGE_STEP_MS : 2000);   // il Re bot sfoglia e sceglie a passi
+    }, phase === "judging" ? BOT_JUDGE_VIEW_MS : 2000);   // il Re bot sfoglia e sceglie a passi
   }
 
   function afterChange(room) {
@@ -129,16 +128,20 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
   }
 
   // Avvia una partita: la stessa per il primo giro (host) e per i giri successivi (tutti pronti).
-  function startGame(room, winScore, custom, jolly = true) {
+  function startGame(room, winScore, custom, jolly = true, base = true) {
+    // Il mazzo base può essere spento: con solo le carte personali servono comunque carte nere e bianche.
+    const deck = mergeCustom(base ? cards : { white: [], black: [] }, custom);
+    if (!deck.black.length || !deck.white.length) throw new Error("I mazzi scelti non hanno carte nere e bianche");
     room.winScore = winScore;
     room.custom = custom;
     room.jolly = jolly;
+    room.base = base;
     for (const p of room.players) p.ready = false;
     // Il registro delle carte uscite resta alla stanza: le partite successive non ripetono carte.
     room.pool ??= { white: new Set(), black: new Set() };
     room.game = new Game(
       room.players.map((p) => ({ id: p.id, name: p.name, isBot: !!p.isBot })),
-      mergeCustom(cards, custom),
+      deck,
       { winScore, pool: room.pool, jolly },
     );
     room.game.start();
@@ -149,7 +152,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
   function maybeAutoStart(room) {
     if (room.game || !room.winScore) return;
     const seated = room.players.filter((p) => p.conn || p.isBot);
-    if (seated.length >= ROOM_MIN_PLAYERS && seated.every((p) => p.isBot || p.ready)) startGame(room, room.winScore, room.custom, room.jolly);
+    if (seated.length >= ROOM_MIN_PLAYERS && seated.every((p) => p.isBot || p.ready)) startGame(room, room.winScore, room.custom, room.jolly, room.base !== false);
   }
 
   function addPlayer(room, conn, name) {
@@ -256,7 +259,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         if (room.game) throw new Error("La partita è già iniziata");
         if (room.players.length < ROOM_MIN_PLAYERS) throw new Error(`Servono almeno ${ROOM_MIN_PLAYERS} giocatori`);
         const winScore = ROOM_WIN_SCORES.includes(msg.winScore) ? msg.winScore : 5;
-        startGame(room, winScore, msg.custom, typeof msg.jolly === "boolean" ? msg.jolly : room.jollyChoice !== false);
+        startGame(room, winScore, msg.custom, typeof msg.jolly === "boolean" ? msg.jolly : room.jollyChoice !== false, msg.base !== false);
         return;
       }
       case "play": {
