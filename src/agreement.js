@@ -990,7 +990,9 @@ function phaseNounAgreement(st, sl) {
   };
   const preverbal = sl.isSubj && subjectBeforeVerb();
   // Risposta a "Qual è ...?", "Chi è ...?": dopo la copula la risposta ha il determinativo ("I mutilati", "Il razzismo"), non il partitivo.
-  const answerDef = /(^|[.!?]\s+)(qual[ei]?|chi|che cos['’]è|cos['’]è)\b[^?]*\?\s*$/i.test(sl.before);
+  // Lo stesso quando "Cosa" è il soggetto del verbo ("Cosa piace ai neri? Il tetano.") o la domanda è "Perché ...?".
+  const answerDef = /(^|[.!?]\s+)(qual[ei]?|chi|che cos['’]è|cos['’]è|perch[eé])(?![\p{L}])[^?]*\?\s*$/iu.test(sl.before)
+    || /(^|[.!?]\s+)(che\s+)?cosa\s+(non\s+)?((mi|ti|ci|vi|si|le|gli)\s+)?(non\s+)?(piace|piacciono|migliora|peggiora|fece|fa|fanno|permette|permetterebbe|crea|aiuta|aiuterebbe|rende|causa|succede|accade|fallisce|sarà|è|era|rovina|salva|uccide|serve|servirebbe)(?![\p{L}])[^?]*\?\s*$/iu.test(sl.before);
   // Nomi di massa: partitivo ("del razzismo", come "dei mutilati" al plurale); determinativo per soggetto, dopo preposizione e nelle risposte.
   // Dopo la copula ("è la speranza", non "è della speranza": quello vorrebbe dire "appartiene") e davanti a "contro" ("il sexting contro lo sniffare colla").
   const afterCopula = /(^|\s)(è|era|fu|sarà|sarebbe|sembra|diventa|resta|rimane)\s*$/i.test(sl.before);

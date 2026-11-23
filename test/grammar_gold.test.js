@@ -76,7 +76,7 @@ const GOLD = [
   ["nome invariabile plurale dopo 'a'", "La vita degli indiani d'America cambiò per sempre quando gli uomini bianchi li introdussero a ____", ["Gay."], "La vita degli indiani d'America cambiò per sempre quando gli uomini bianchi li introdussero ai gay"],
   ["nome femminile con complemento dopo 'di'", "La medicina alternativa sta ora adottando i poteri curativi di ____", ["Cena a buffet per 5 euro."], "La medicina alternativa sta ora adottando i poteri curativi della cena a buffet per 5 euro"],
   ["nome femminile con complemento dopo 'a'", "Recenti studi hanno mostrato che topi di laboratorio impiegano il 50% in meno per uscire da un labirinto se sono stati esposti a ____", ["Cena a buffet per 5 euro."], "Recenti studi hanno mostrato che topi di laboratorio impiegano il 50% in meno per uscire da un labirinto se sono stati esposti alla cena a buffet per 5 euro"],
-  ["nome ambiguo aggettivo/plurale (molle)", "Cosa aiuterebbe Monti a rilassarsi? ____", ["Molle Slinky attorcigliate."], "Cosa aiuterebbe Monti a rilassarsi? Delle molle Slinky attorcigliate."],
+  ["nome ambiguo aggettivo/plurale (molle)", "Cosa aiuterebbe Monti a rilassarsi? ____", ["Molle Slinky attorcigliate."], "Cosa aiuterebbe Monti a rilassarsi? Le molle Slinky attorcigliate."],
 
   // --- Maiuscole e minuscole
   ["nome proprio sconosciuto resta maiuscolo", "Inventa un haiku: ____.", ["Auschwitz."], "Inventa un haiku: Auschwitz."],
@@ -133,6 +133,11 @@ const GOLD = [
   ["dopo preposizione: determinativo contratto", "Il mio ex mi ha lasciato per colpa di ____.", ["Razzismo."], "Il mio ex mi ha lasciato per colpa del razzismo."],
   ["dopo la copula: determinativo", "Il colpo di scena finale: è ____, ma in realtà è ____.", ["Speranza.", "Una disfunzione erettile."], "Il colpo di scena finale: è la speranza, ma in realtà è una disfunzione erettile."],
   ["'X contro Y': determinativo", "Il nuovo reality show: ____ contro ____, e vince chi resiste di più.", ["Sexting.", "Sniffare colla."], "Il nuovo reality show: il sexting contro lo sniffare colla, e vince chi resiste di più."],
+  ["'Cosa' soggetto del verbo: determinativo", "Cosa piace ai neri? ____", ["Tetano."], "Cosa piace ai neri? Il tetano."],
+  ["'Cosa' soggetto del verbo: determinativo (plurale)", "Cosa migliora con l'età? ____", ["Caccole."], "Cosa migliora con l'età? Le caccole."],
+  ["'Cosa' soggetto con 'sarà' (lettera accentata)", "Cosa sarà disponibile a volontà in paradiso? ____", ["Tetano."], "Cosa sarà disponibile a volontà in paradiso? Il tetano."],
+  ["'Perché' : determinativo", "Perché ho male ovunque? ____", ["Razzismo."], "Perché ho male ovunque? Il razzismo."],
+  ["'Cosa' complemento: partitivo", "Cosa usano gli insegnanti per motivare i ragazzi? ____", ["Tetano."], "Cosa usano gli insegnanti per motivare i ragazzi? Del tetano."],
   ["nome astratto numerabile resta indeterminativo", "Ho scoperto ____ nel mio armadio.", ["Stupro su appuntamento."], "Ho scoperto uno stupro su appuntamento nel mio armadio."],
 ];
 
