@@ -1,4 +1,4 @@
-// Suoni e musica. La musica sono due brani registrati (menu e partita), in loop, incorporati nella pagina.
+// Suoni e musica. La musica sono brani registrati incorporati nella pagina: quattro per la home (alternati con dissolvenza), uno per la partita.
 // Gli effetti sono sintetizzati con Web Audio (nessun file): tutti sulle note della tonalità dei brani (do minore),
 // tutti allo stesso livello di picco, così stanno insieme alla musica senza coprirla né sparire.
 const Sound = (() => {
@@ -10,19 +10,57 @@ const Sound = (() => {
   let sfxLevel = 1;                   // volume effetti scelto nelle impostazioni (0..1)
   let pausedByApp = false;            // la pagina è in secondo piano o chiusa: la musica tace
 
-  // Brani. Ogni file ha la sua sonorità misurata (LUFS integrati): il volume si regola su quella,
-  // così menu e partita suonano allo stesso livello anche se uno è più dinamico dell'altro.
+  // Brani. Ogni brano ha la sua sonorità misurata (LUFS integrati, vedi tools/music/prepare_tracks.py): il volume si regola
+  // su quella, così tutti arrivano allo stesso livello anche se uno è più forte o più dinamico di un altro.
   const MUSIC_TARGET_LUFS = -19;      // sonorità di un brano con il cursore delle impostazioni al 100%
-  const TRACKS = {
-    menu: { src: "/*MENU_MP3*/", lufs: -14.9 },
-    game: { src: "/*GAME_MP3*/", lufs: -18.8 },
-  };
-  const RAMP_SEC = 6;                 // quanto dura il crescendo all'inizio
+  /** @type {Record<string, {src: string, lufs: number}>} */
+  const TRACKS = /*TRACKS*/{};
+  // Home e menu: quattro brani che si alternano. Partita: un brano solo, in loop.
+  /** @type {Record<string, string[]>} */
+  const LISTS = { menu: ["menu-1", "menu-2", "menu-3", "menu-4"], game: ["game"] };
+  const START_FADE_SEC = 6;           // crescendo quando la musica parte
+  const XFADE_SEC = 5;                // dissolvenza incrociata tra un brano della home e il successivo
+  const THEME_FADE_SEC = 1.4;         // passaggio tra home e partita
+  const LAST_KEY = "cah-music-last";  // l'ultimo brano della home: alla prossima apertura se ne sceglie un altro
+  /** @type {Record<string, HTMLAudioElement>} */
   const audioEls = {};
+  /** @type {Record<string, number>} */
+  const level = {};                   // dissolvenza di ogni brano, da 0 a 1
+  /** @type {Map<string, {from: number, to: number, t0: number, ms: number, done?: () => void}>} */
+  const fades = new Map();
+  /** @type {string|null} */
+  let current = null;                 // il brano in corso (o in pausa, se l'app è in secondo piano)
+  let crossing = false;               // una dissolvenza incrociata è già partita
+  /** @type {string[]} */
+  let queue = [];                     // i brani della home ancora da suonare, in ordine mescolato
+  let musicTimer = null;
+  /** @type {string|null} */
+  let lastMenu = (() => { try { return localStorage.getItem(LAST_KEY); } catch { return null; } })();
+
+  const isMenu = (name) => LISTS.menu.includes(name);
+  function shuffled(list) {
+    const a = list.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+  // Il prossimo brano della home. La coda si rimescola quando finisce e non ricomincia mai dal brano appena suonato.
+  function peekNext() {
+    if (!queue.length) {
+      queue = shuffled(LISTS.menu);
+      const last = current && isMenu(current) ? current : lastMenu;
+      if (queue.length > 1 && queue[0] === last) queue.push(/** @type {string} */ (queue.shift()));
+    }
+    return queue[0];
+  }
+  const takeNext = () => { const n = peekNext(); queue.shift(); return n; };
+
   function track(name) {
     if (!audioEls[name]) {
       const a = new Audio(TRACKS[name].src);
-      a.loop = true; a.preload = "auto";
+      a.preload = "auto";
+      a.loop = !isMenu(name);
+      // Se il brano finisce prima che la dissolvenza sia partita (pagina rallentata in secondo piano), passa lo stesso al successivo.
+      a.addEventListener("ended", () => { if (!a.loop && current === name && theme === "menu" && musicOn && !pausedByApp) startTrack(takeNext(), 1.5, 0); });
       audioEls[name] = a;
     }
     return audioEls[name];
@@ -31,21 +69,52 @@ const Sound = (() => {
     const gain = Math.pow(10, (MUSIC_TARGET_LUFS - TRACKS[name].lufs) / 20);
     return Math.max(0, Math.min(1, gain * musicLevel));
   }
-  let rampT0 = 0, rampTimer = null, rampName = null;
-  // Volume del brano in corso: sale da quasi zero fino al livello scelto in RAMP_SEC secondi.
-  function rampTo(name) {
-    clearInterval(rampTimer);
-    rampName = name; rampT0 = Date.now();
+  // Volume finale = livello di sonorità del brano x dissolvenza. La dissolvenza è a potenza costante (seno), così
+  // incrociando due brani il volume non cala a metà.
+  function applyVolume(name) {
+    const a = audioEls[name];
+    if (!a) return;
+    const k = Math.max(0, Math.min(1, level[name] ?? 0));
+    try { a.volume = Math.max(0, Math.min(1, trackTarget(name) * Math.sin(k * Math.PI / 2))); } catch (e) { /* alcuni browser non cambiano il volume */ }
+  }
+  function fade(name, to, sec, done) {
+    fades.set(name, { from: level[name] ?? 0, to, t0: Date.now(), ms: sec * 1000, done });
+  }
+  function tickMusic() {
+    for (const [name, f] of [...fades]) {
+      const k = f.ms <= 0 ? 1 : Math.min(1, (Date.now() - f.t0) / f.ms);
+      level[name] = f.from + (f.to - f.from) * k;
+      applyVolume(name);
+      if (k >= 1) { fades.delete(name); if (f.done) f.done(); }
+    }
+    // Il brano della home sta per finire: parte il successivo, con dissolvenza incrociata.
+    if (theme === "menu" && current && !crossing) {
+      const a = audioEls[current];
+      if (a && !a.paused && isFinite(a.duration) && a.duration > 0 && a.duration - a.currentTime <= XFADE_SEC) crossTo(takeNext(), XFADE_SEC);
+    }
+  }
+  // Fa partire un brano dall'inizio con un crescendo (da `from` a 1).
+  function startTrack(name, sec, from) {
     const a = track(name);
-    const tick = () => {
-      const k = Math.min(1, (Date.now() - rampT0) / (RAMP_SEC * 1000));
-      const target = trackTarget(name);
-      const start = Math.max(0.02, target * 0.2);
-      try { a.volume = start + (target - start) * k; } catch (e) { /* alcuni browser non cambiano il volume */ }
-      if (k >= 1) { clearInterval(rampTimer); rampTimer = null; }
-    };
-    tick();
-    rampTimer = setInterval(tick, 150);
+    current = name;
+    if (isMenu(name)) {
+      lastMenu = name;
+      try { localStorage.setItem(LAST_KEY, name); } catch { /* nessuno storage: alla prossima apertura può ripetersi */ }
+    }
+    try { a.currentTime = 0; } catch (e) { /* brano non ancora caricato: parte dall'inizio comunque */ }
+    level[name] = from;
+    applyVolume(name);
+    fade(name, 1, sec);
+    a.play().catch(() => { /* il browser chiede prima un tocco */ });
+    if (isMenu(name)) track(peekNext());   // il prossimo si prepara in anticipo, così la dissolvenza è senza attese
+  }
+  // Il brano in corso sfuma mentre il successivo sale.
+  function crossTo(name, sec) {
+    const old = current;
+    crossing = true;
+    startTrack(name, sec, 0);
+    if (old && old !== name) fade(old, 0, sec, () => { if (audioEls[old]) audioEls[old].pause(); level[old] = 0; crossing = false; });
+    else crossing = false;
   }
 
   // Effetti: guadagno che porta il picco di ciascuno a -12 dB (effetti di gioco) o -18 dB (interfaccia).
@@ -179,9 +248,10 @@ const Sound = (() => {
   if (typeof document !== "undefined" && document.addEventListener) document.addEventListener("visibilitychange", () => (document.hidden ? hideMusic() : showMusic()));
   if (typeof window !== "undefined" && window.addEventListener) window.addEventListener("pagehide", hideMusic);
 
-  // Ferma i brani e il crescendo in corso.
+  // Ferma i brani e le dissolvenze in corso. Il brano resta "in corso": alla ripresa continua da dov'era.
   function stopAll() {
-    clearInterval(rampTimer); rampTimer = null;
+    clearInterval(musicTimer); musicTimer = null;
+    fades.clear(); crossing = false;
     for (const name in audioEls) audioEls[name].pause();
   }
 
@@ -198,14 +268,26 @@ const Sound = (() => {
     document.addEventListener("pointerdown", first, true);
     document.addEventListener("keydown", first, true);
   }
-  // Menu o partita: il brano del tema in loop, con crescendo; l'altro si ferma.
+  // Menu o partita. Partita: il brano in loop. Home: i quattro brani in ordine mescolato, uno dopo l'altro.
   function startMusic() {
     if (pausedByApp || !musicOn) return;
     if (!gestureSeen) { armGesture(); return; }
-    const other = theme === "game" ? "menu" : "game";
-    if (audioEls[other]) audioEls[other].pause();
-    rampTo(theme);
-    track(theme).play().catch(() => { /* il browser chiede prima un tocco */ });
+    if (!musicTimer) musicTimer = setInterval(tickMusic, 120);
+    const cur = current ? audioEls[current] : null;
+    if (cur && !cur.paused) return;                                       // già in corso, con la sua dissolvenza
+    if (current && cur && (theme === "game") === !isMenu(current)) {      // era in pausa (app in secondo piano): riprende da dov'era
+      fade(current, 1, 2);
+      cur.play().catch(() => { /* il browser chiede prima un tocco */ });
+      return;
+    }
+    startTrack(theme === "game" ? "game" : takeNext(), START_FADE_SEC, 0.2);
+  }
+  // Home <-> partita: il brano di prima sfuma mentre parte quello nuovo.
+  function switchTheme() {
+    const old = current;
+    if (old && audioEls[old] && !audioEls[old].paused) fade(old, 0, THEME_FADE_SEC, () => { if (audioEls[old]) audioEls[old].pause(); level[old] = 0; });
+    crossing = false;
+    startTrack(theme === "game" ? "game" : takeNext(), START_FADE_SEC, 0.2);
   }
 
   return {
@@ -227,12 +309,25 @@ const Sound = (() => {
       const next = name === "game" ? "game" : "menu";
       const changed = next !== theme;
       theme = next;
-      if (changed && musicOn) { stopAll(); startMusic(); }
+      if (!changed) return;
+      if (musicOn && !pausedByApp && gestureSeen) switchTheme();
+      else { stopAll(); current = null; }   // musica spenta o app in secondo piano: al ritorno parte il brano del nuovo tema
+    },
+    // Il brano successivo della home, subito (dissolvenza breve). Vale solo in home e con la musica accesa.
+    skip() {
+      if (!musicOn || pausedByApp || !gestureSeen || theme !== "menu") return false;
+      crossTo(takeNext(), 1.5);
+      return true;
+    },
+    /** Quale brano della home suona ("Brano 2 di 4"), oppure null. */
+    info() {
+      if (!musicOn || theme !== "menu" || !current || !isMenu(current)) return null;
+      return { index: LISTS.menu.indexOf(current) + 1, total: LISTS.menu.length };
     },
     setSfx(on) { sfxOn = !!on; },
     setUiSounds(on) { uiOn = !!on; },
     setSfxVolume(v) { sfxLevel = Math.max(0, Math.min(1, v)); if (sfxBus) sfxBus.gain.value = sfxLevel; },
-    setVolume(v) { musicLevel = v; if (musicOn && rampName && !rampTimer) track(rampName).volume = trackTarget(rampName); },
+    setVolume(v) { musicLevel = v; for (const name in audioEls) applyVolume(name); },
     setMusic(on) {
       musicOn = !!on;
       if (!musicOn) { stopAll(); return; }

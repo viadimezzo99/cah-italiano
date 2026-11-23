@@ -1,0 +1,27 @@
+{
+ "menu-1": {
+  "file": "menu-1.mp3",
+  "lufs": -14.9,
+  "seconds": 143.0
+ },
+ "menu-2": {
+  "file": "menu-2.mp3",
+  "lufs": -17.5,
+  "seconds": 143.2
+ },
+ "menu-3": {
+  "file": "menu-3.mp3",
+  "lufs": -18.0,
+  "seconds": 187.5
+ },
+ "menu-4": {
+  "file": "menu-4.mp3",
+  "lufs": -17.4,
+  "seconds": 154.7
+ },
+ "game": {
+  "file": "game.mp3",
+  "lufs": -18.8,
+  "seconds": 162.9
+ }
+}

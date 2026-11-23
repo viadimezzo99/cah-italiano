@@ -197,6 +197,12 @@ function openSettings() {
     el("div", { class: "group" }, el("span", { class: "label" }, "Audio"),
       toggle("music", "Musica di sottofondo"),
       slider("musicVol", "Volume musica", 0, 1, 0.05, (v) => `${Math.round(v * 100)}%`),
+      // I brani della home si alternano da soli; qui si vede quale suona e si può passare al successivo.
+      (() => {
+        const info = settings.music ? Sound.info() : null;
+        return info ? el("div", { class: "row" }, el("span", {}, `Brano ${info.index} di ${info.total}`),
+          el("button", { type: "button", class: "ghost", onclick: () => { Sound.skip(); rebuild(); } }, "Prossimo brano")) : null;
+      })(),
       toggle("sfx", "Effetti sonori"),
       toggle("uiSfx", "Suoni d'interfaccia (tocchi e digitazione)"),
       slider("sfxVol", "Volume effetti", 0, 1, 0.05, (v) => `${Math.round(v * 100)}%`),
@@ -339,7 +345,8 @@ function loadProfile() {
   let p;
   try { p = { ...EMPTY_PROFILE, ...JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}") }; } catch { p = { ...EMPTY_PROFILE }; }
   // Quattro personaggi sono stati tolti (erano tagliati male): chi li aveva scelti riparte dal primo. Poi il numero resta valido.
-  if (!p.av2) { if (p.avatar > 3) p.avatar = 0; p.av2 = 1; saveProfile(p); }
+  // Gli avatar disegnati in vettoriale (della 0.2.48) sono stati tolti: chi ne aveva scelto uno riparte dal primo.
+  if (!p.av3) { if (p.avatar > 3) p.avatar = 0; p.av2 = 1; p.av3 = 1; saveProfile(p); }
   p.avatar = Math.min(Math.max(0, p.avatar | 0), Math.max(0, AVATARS.length - 1));
   return p;
 }
@@ -1232,7 +1239,7 @@ function renderDeck(deckId, partial = false) {
     const held = { v: false };
     const node = el("button", { type: "button", class: `pcard ${c.color === "w" ? "w" : "b"}`, style: `--cat:${catColor(c.cat)}`,
       onclick: () => { if (!held.v) openCardForm({ card: c, done: refresh }); } },
-      el("span", { class: "cat-mark" }, catIcon(c.cat)),
+      c.color === "w" ? null : el("span", { class: "cat-mark" }, catIcon(c.cat)),   // le bianche non hanno il logo trasparente sullo sfondo
       el("span", { class: "txt" }, c.text),
       el("span", { class: "tag" }, catIcon(c.cat), el("span", {}, c.cat)));
     attachHold(node, () => { held.v = true; Sound.play("flip"); cardActions(c, () => cardsScreen({ keep: true })); }, held);
@@ -2119,7 +2126,7 @@ function render() {
         node.style.setProperty("--i", i);
         node.style.setProperty("--cat", catColor(c.cat));
         if (c.jolly) node.classList.add("jolly");
-        else node.append(el("span", { class: "cat-mark" }, catIcon(c.cat)), el("span", { class: "kind" }, catIcon(c.cat), el("span", {}, KIND[c.cat] ?? c.cat)));
+        else node.append(el("span", { class: "kind" }, catIcon(c.cat), el("span", {}, KIND[c.cat] ?? c.cat)));
         if (c.jolly) return node;
         return node;
       }));

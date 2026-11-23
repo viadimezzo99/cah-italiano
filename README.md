@@ -41,11 +41,12 @@ Il controllo gira anche su GitHub prima di compilare l'APK.
 - **Cambia mano**: all'avvio si sceglie Mai / 3 a testa / A ogni turno (`reshuffles` 0 / 3 / 99). Si cambia tutta la mano al massimo
   una volta per turno, chi non è il Re e non ha ancora risposto. Online lo sceglie l'ospite (`setReshuffles`).
 
-## Avatar del profilo
+## Musica
 
-I primi quattro sono i personaggi del Memory (`tools/memory`). Gli altri sono disegnati da `tools/avatars/make_avatars.py`
-(SVG, retino e grana di stampa; serve Playwright per Node, numpy e Pillow) e finiscono in `tools/avatars` insieme a `order.json`,
-che `tools/build_web.py` legge per costruire l'elenco. Per aggiungerne uno basta una nuova funzione di testa e una riga in `build()`.
+Quattro brani per la home (`tools/music/menu-1..4.mp3`, alternati con dissolvenza incrociata in ordine mescolato, mai ripartendo
+dall'ultimo suonato) e uno per la partita (`game.mp3`, in loop). Ogni brano ha la sua sonorità misurata in `tools/music/tracks.json`
+(LUFS): `tools/audio.js` regola il volume su quella, così tutti arrivano allo stesso livello. Per aggiungere brani:
+`python3 tools/music/prepare_tracks.py brano.wav ...` (serve ffmpeg) taglia il silenzio, codifica in mp3 e misura.
 
 ## Mazzi: codice di condivisione
 

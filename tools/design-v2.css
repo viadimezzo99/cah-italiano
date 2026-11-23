@@ -324,7 +324,7 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 /* --- Loghi di categoria sulle carte ---------------------------------------------------------------- */
-/* Etichetta in alto (logo + nome) e, sullo sfondo, lo stesso logo grande e tenue: la categoria si riconosce a colpo d'occhio. */
+/* Etichetta in alto (logo + nome). Le carte bianche non hanno altro; le nere dell'elenco hanno anche il logo grande e tenue sullo sfondo. */
 .cat-ico { display: block; flex: 0 0 auto; width: 1.1em; height: 1.1em; }
 .chip-ico { width: 16px; height: 16px; margin-right: 6px; }
 button.chip { display: inline-flex; align-items: center; justify-content: center; }

@@ -28,27 +28,21 @@ ud_nomi = read("data/lexicon_it/ud_nomi.json").replace("</", "<\\/")
 engine = (f"const LEX = {lex};\nconst REGGENZE = {reggenze};\nconst INFLECT = {inflect};\nconst VERBS3 = {verbs3};\nconst UD_NOMI = {ud_nomi};\n"
           + re.sub(r"^import .*\n", "", read("src/game.js"), flags=re.M) + "\n" + read("src/agreement.js"))
 import base64
-# Brano del menu, incorporato nella pagina (nessun file esterno).
-menu_mp3 = "data:audio/mpeg;base64," + base64.b64encode((root / "tools/menu.mp3").read_bytes()).decode()
-game_mp3 = "data:audio/mpeg;base64," + base64.b64encode((root / "tools/game.mp3").read_bytes()).decode()
-audio = read("tools/audio.js").replace("/*MENU_MP3*/", menu_mp3).replace("/*GAME_MP3*/", game_mp3)
+# Brani, incorporati nella pagina: tools/music/tracks.json dice file e sonorità (LUFS) di ciascuno (vedi tools/music/prepare_tracks.py).
+tracks_meta = json.loads(read("tools/music/tracks.json"))
+tracks = {n: {"src": "data:audio/mpeg;base64," + base64.b64encode((root / "tools/music" / m["file"]).read_bytes()).decode(), "lufs": m["lufs"]}
+          for n, m in tracks_meta.items()}
+audio = read("tools/audio.js").replace("/*TRACKS*/{}", json.dumps(tracks))
 spell = read("tools/spell.js")
 app = spell + "\n" + read("tools/room.js") + "\n" + read("tools/app.js")
 # Immagini del Memory, incorporate come data URI (nessun file esterno).
 mem_names = ["gatto", "cactus", "patata", "pinguino", "fantasma", "frigorifero", "ombrello", "vasca"]
 mem_uris = ["data:image/jpeg;base64," + base64.b64encode((root / f"tools/memory/{n}.jpg").read_bytes()).decode() for n in mem_names]
 app = app.replace("/*MEMORY_IMGS*/[]", json.dumps(mem_uris))
-# Avatar del profilo: il ritaglio senza sfondo (PNG trasparente) e l'illustrazione intera (da cui viene il colore della carta).
-# I primi quattro sono dei Memory; gli altri stanno in tools/avatars (generati da tools/avatars/make_avatars.py).
-avatar_names = ["gatto", "cactus", "patata", "pinguino"] + json.loads((root / "tools/avatars/order.json").read_text(encoding="utf-8"))
-def avatar_path(kind, n):
-    for d in ("tools/avatars", "tools/memory"):
-        p = root / d / (("cut/" + n + ".png") if kind == "cut" else (n + ".jpg"))
-        if p.exists():
-            return p
-    raise FileNotFoundError(f"avatar {n}: manca {kind}")
-avatars = [{"cut": "data:image/png;base64," + base64.b64encode(avatar_path("cut", n).read_bytes()).decode(),
-            "bg": "data:image/jpeg;base64," + base64.b64encode(avatar_path("bg", n).read_bytes()).decode()} for n in avatar_names]
+# Avatar del profilo: i personaggi del Memory. Il ritaglio senza sfondo (PNG trasparente) e l'illustrazione intera (da cui viene il colore della carta).
+avatar_names = ["gatto", "cactus", "patata", "pinguino"]
+avatars = [{"cut": "data:image/png;base64," + base64.b64encode((root / f"tools/memory/cut/{n}.png").read_bytes()).decode(),
+            "bg": "data:image/jpeg;base64," + base64.b64encode((root / f"tools/memory/{n}.jpg").read_bytes()).decode()} for n in avatar_names]
 app = app.replace("/*AVATARS*/[]", json.dumps(avatars))
 jolly_uri = "data:image/jpeg;base64," + base64.b64encode((root / "tools/memory/jolly.jpg").read_bytes()).decode()
 app = app.replace('"/*JOLLY_IMG*/"', json.dumps(jolly_uri))
