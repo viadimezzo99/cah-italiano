@@ -265,11 +265,13 @@ input[type="search"]::-webkit-search-cancel-button {
 
 /* --- Home: stesso disegno nei due temi, leggibile su ogni altezza di schermo ---------------------------- */
 /* Disegni nelle carte: riempiono lo spazio vuoto sopra il titolo e dicono cosa fa ogni voce. */
-.hc-ico { position: absolute; top: 16px; left: 16px; width: 48px; height: 48px; display: block; pointer-events: none; opacity: .92; }
+.hc-ico { position: absolute; top: 14px; left: 14px; width: 58px; height: 58px; display: block; pointer-events: none; }
 .hc-ico svg { display: block; width: 100%; height: 100%; }
 .hc-black .hc-ico { color: #fbf8f0; }
 .hc-white .hc-ico { color: #111; }
 .hc-accent .hc-ico { color: var(--on-accent); }
+/* Le due carte del logo di "Le carte" hanno colori fissi: un'ombra le stacca dall'arancione. */
+.hc-accent .hc-ico svg { filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .35)); }
 /* La carta profilo è del colore dell'illustrazione: nel tema scuro, senza un filo di luce, si confonde con lo sfondo. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .hc-stats { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16), 0 10px 22px -14px #000a; }
@@ -298,4 +300,49 @@ input[type="search"]::-webkit-search-cancel-button {
   .hand { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .hcard .hc-title { font-size: clamp(20px, 3.2vw, 26px); }
   .hc-stats .hc-art { width: 60%; }
+}
+
+/* --- Loghi di categoria sulle carte ---------------------------------------------------------------- */
+/* Etichetta in alto (logo + nome) e, sullo sfondo, lo stesso logo grande e tenue: la categoria si riconosce a colpo d'occhio. */
+.cat-ico { display: block; flex: 0 0 auto; width: 1.1em; height: 1.1em; }
+.chip-ico { width: 16px; height: 16px; margin-right: 6px; }
+button.chip { display: inline-flex; align-items: center; justify-content: center; }
+.rail .card .kind { display: flex; align-items: center; gap: .4em; color: color-mix(in srgb, var(--cat) 78%, #000); }
+.rail .card .kind > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.rail .card .kind .cat-ico { width: 1.6em; height: 1.6em; }
+.cat-mark {
+  position: absolute; left: 50%; top: 36%; width: 46%; aspect-ratio: 1; transform: translate(-50%, -50%);
+  color: var(--cat); opacity: .13; pointer-events: none;
+}
+.cat-mark .cat-ico { width: 100%; height: 100%; stroke-width: 1.5; }
+.rail .card .txt, .pcard .txt { position: relative; z-index: 1; }
+.card .num { z-index: 2; }
+.pcard .tag { display: flex; align-items: center; gap: .4em; opacity: 1; color: color-mix(in srgb, var(--cat) 78%, #000); }
+.pcard .tag > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pcard .tag .cat-ico { width: 1.5em; height: 1.5em; }
+.pcard.b .tag { color: #fff; opacity: .78; }
+.pcard.b .cat-mark { color: #fff; opacity: .12; }
+.black .foot { display: flex; align-items: center; gap: 6px; }
+.black .foot .cat-ico { width: 16px; height: 16px; }
+
+/* --- Testo delle carte: sempre dentro la carta -------------------------------------------------------- */
+/* Il corpo è il corpo base della carta per un rapporto (--fit) che calcola fitText: cambia insieme alla carta, non a pixel fissi.
+   Niente tagli a 6 righe: se il testo è lungo si rimpicciolisce, non si taglia. */
+.rail .card .txt { font-size: calc(1em * var(--fit, 1)); }
+.rail .card .txt, .pcard .txt { display: block; -webkit-line-clamp: none; overflow: visible; max-width: 100%; }
+/* Ultima risorsa, solo per parole più larghe della carta anche a un corpo leggibile: la parola va a capo dove serve. */
+.black .text[data-break], .card .txt[data-break], .pcard .txt[data-break] { overflow-wrap: anywhere !important; word-break: break-word !important; }
+
+/* --- Combinazioni del giudizio: margini ed etichetta in proporzione alla carta -------------------------------- */
+/* Con margini in pixel una carta da 70 px era quasi tutta margine: il testo non c'entrava e l'etichetta usciva dalla carta. */
+.stage .combo-row .combo .black { padding: 7cqi 6.5cqi; border-radius: 6cqi; }
+.stage .combo-row .combo .black .foot { font-size: clamp(4px, 4.6cqi, 11px); gap: 1.8cqi; min-width: 0; white-space: nowrap; overflow: hidden; }
+.stage .combo-row .combo .black .foot > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.stage .combo-row .combo .black .foot .cat-ico { width: 1.7em; height: 1.7em; }
+/* X e V seguono la grandezza della carta (mai sotto 44 px) e restano nell'angolo: non coprono più l'etichetta "Pronta". */
+.black .combo-ctrl { right: 4.5cqi; bottom: 4.5cqi; gap: 3cqi; }
+.black .combo-ctrl button { width: clamp(44px, 17cqi, 56px); height: clamp(44px, 17cqi, 56px); font-size: clamp(17px, 6.5cqi, 22px); }
+/* Con X e V sulla carta l'etichetta "Pronta" è ridondante: su una carta stretta resta solo l'icona, così non finisce sotto i pulsanti. */
+@container (max-width: 230px) {
+  .black:has(> .combo-ctrl) .foot > span { display: none; }
 }

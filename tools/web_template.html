@@ -109,7 +109,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .07; border-radius: inherit;
   background-image: radial-gradient(#fff 0.6px, transparent 0.7px); background-size: 4px 4px;
 }
-.black .text { font-size: 7.5cqi; text-wrap: pretty; overflow-wrap: anywhere; position: relative; z-index: 1; }
+.black .text { font-size: calc(7.5cqi * var(--fit, 1)); text-wrap: pretty; overflow-wrap: anywhere; position: relative; z-index: 1; }
 .black .foot { font-size: 11px; font-family: "IBM Plex Sans", sans-serif; letter-spacing: .08em; text-transform: uppercase; opacity: .6; position: relative; z-index: 1; }
 .slot {
   display: inline-block; min-width: 3.6em; border-bottom: 2px dashed color-mix(in srgb, var(--accent) 80%, transparent);

@@ -437,11 +437,12 @@ function showHome() {
 }
 
 // Disegni delle carte della home (tratto, colore del testo della carta): telefono che passa di mano, mondo, carte in pila.
-const HOME_ICON_ATTRS = 'viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
+const HOME_ICON_ATTRS = 'viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"';
 const HOME_ICONS = {
   "hc-black": `<svg ${HOME_ICON_ATTRS}><rect x="15" y="6" width="18" height="32" rx="4"/><path d="M21 11h6"/><circle cx="24" cy="33" r="1.4" fill="currentColor" stroke="none"/><path d="M8 18c-2.4 3.4-2.4 7.6 0 11M40 18c2.4 3.4 2.4 7.6 0 11M4 15c-3.6 5-3.6 12 0 17M44 15c3.6 5 3.6 12 0 17"/></svg>`,
   "hc-white": `<svg ${HOME_ICON_ATTRS}><circle cx="24" cy="24" r="16"/><ellipse cx="24" cy="24" rx="7" ry="16"/><path d="M8 24h32M10 15h28M10 33h28"/></svg>`,
-  "hc-accent": `<svg ${HOME_ICON_ATTRS}><rect x="8" y="12" width="20" height="28" rx="3" transform="rotate(-10 18 26)"/><rect x="19" y="7" width="20" height="28" rx="3" transform="rotate(8 29 21)"/><path d="M24 17h10M24 22h7" transform="rotate(8 29 21)"/></svg>`,
+  // Due carte piene, come nel gioco: dietro la nera, davanti la bianca. Colori fissi (le carte sono sempre bianche o nere).
+  "hc-accent": `<svg ${HOME_ICON_ATTRS}><g transform="rotate(-13 16 28)"><rect x="4" y="9" width="24" height="33" rx="4.5" fill="#111" stroke="#fbf8f0" stroke-width="1.8"/><path d="M10 33h12" stroke="#fbf8f0" stroke-width="2.4"/></g><g transform="rotate(9 31 25)"><rect x="18" y="7" width="24" height="33" rx="4.5" fill="#fff" stroke="#111" stroke-width="2.4"/><path d="M23.5 16h13M23.5 22h13M23.5 28h7" stroke="#111" stroke-width="2.4"/></g></svg>`,
 };
 
 function subHead(title) {
@@ -544,6 +545,27 @@ const CAT_COLOR = {
   "1 risposta": "#5f7d2e", "2 risposte": "#b04a7a", "3 risposte": "#3d5a80",
 };
 const KIND = { "Soggetti": "Soggetto", "Luoghi": "Luogo", "Oggetti": "Oggetto", "Azioni": "Azione", "Situazioni": "Situazione" };
+// Loghi di categoria: stesso tratto per tutti (24 x 24, 2 px, colore del testo). Bianche: persona, luogo, scatola, fulmine, fumetto.
+// Nere: una carta con 1, 2 o 3 spazi da riempire.
+const CAT_ICON_ATTRS = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"';
+const slotsIcon = (lines) => `<rect x="5" y="2.8" width="14" height="18.4" rx="2.6"/><path d="${lines}"/>`;
+const CAT_ICONS = {
+  "Soggetti": '<circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.5c.6-4.2 3.4-6.6 7.2-6.6s6.6 2.4 7.2 6.6"/>',
+  "Luoghi": '<path d="M12 21.5S5.5 15.8 5.5 10a6.5 6.5 0 0 1 13 0c0 5.8-6.5 11.5-6.5 11.5z"/><circle cx="12" cy="10" r="2.5"/>',
+  "Oggetti": '<path d="M12 2.8l8.2 4.3v9.8L12 21.2l-8.2-4.3V7.1z"/><path d="M3.8 7.1L12 11.4l8.2-4.3M12 11.4v9.8"/>',
+  "Azioni": '<path d="M13.2 2.5L5 13.3h6.2l-.8 8.2L19 10.4h-6.1z"/>',
+  "Situazioni": '<path d="M4 5.5h16v11h-8.8l-4.7 4v-4H4z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01" stroke-width="2.6"/>',
+  "1 risposta": slotsIcon("M8.5 12h7"),
+  "2 risposte": slotsIcon("M8.5 9.5h7M8.5 15h7"),
+  "3 risposte": slotsIcon("M8.5 8h7M8.5 12h7M8.5 16h7"),
+  "altro": '<path d="M3.5 12.5v-8h8l9 9-8 8z"/><circle cx="8" cy="9" r="1.2"/>',
+};
+/** Logo di una categoria come nodo SVG. @param {string} name @param {string} [cls] */
+function catIcon(name, cls = "cat-ico") {
+  const n = svgNode(`<svg ${CAT_ICON_ATTRS}>${CAT_ICONS[name] ?? CAT_ICONS["altro"]}</svg>`);
+  n.setAttribute("class", cls);
+  return n;
+}
 // Una carta nera sta nella categoria del suo numero di spazi: non si sceglie a mano.
 const blackCatFor = (text) => BLACK_CATS[Math.min(3, Math.max(1, String(text).split("____").length - 1)) - 1];
 const ORIG_COLOR = "#9a9186";
@@ -960,8 +982,9 @@ function renderDeck(deckId, partial = false) {
     const held = { v: false };
     const node = el("button", { type: "button", class: `pcard ${c.color === "w" ? "w" : "b"}`, style: `--cat:${catColor(c.cat)}`,
       onclick: () => { if (!held.v) openCardForm({ card: c, done: refresh }); } },
+      el("span", { class: "cat-mark" }, catIcon(c.cat)),
       el("span", { class: "txt" }, c.text),
-      el("span", { class: "tag" }, c.cat));
+      el("span", { class: "tag" }, catIcon(c.cat), el("span", {}, c.cat)));
     attachHold(node, () => { held.v = true; Sound.play("flip"); cardActions(c, () => cardsScreen({ keep: true })); }, held);
     return node;
   };
@@ -972,7 +995,7 @@ function renderDeck(deckId, partial = false) {
   const tabBtn = (id, label) => el("button", { type: "button", "aria-pressed": String(v.tab === id),
     onclick: () => { v.tab = id; v.cat = "Tutte"; refresh(); } }, label);
   const catBtn = (name) => el("button", { type: "button", class: "chip", "aria-pressed": String(v.cat === name),
-    onclick: () => { v.cat = name; refresh(); } }, name);
+    onclick: () => { v.cat = name; refresh(); } }, name === "Tutte" ? null : catIcon(name, "cat-ico chip-ico"), name);
 
   const shell = el("div", { class: "deck-shell", "data-deck": deckId },
     el("div", { class: "topbar" },
@@ -1061,7 +1084,7 @@ function openCardForm({ card = null, deckId = "senza", done = () => {} } = {}) {
   const catRow = el("div", { class: "card-cats", role: "group", "aria-label": "Categoria" });
   const paintCats = () => catRow.replaceChildren(...catsOf("w").map((n) => el("button", {
     type: "button", class: "chip", "aria-pressed": String(n === catVal), onclick: () => { catVal = n; paintCats(); },
-  }, n)));
+  }, catIcon(n, "cat-ico chip-ico"), n)));
 
   // Il tipo si sceglie solo per le carte nuove: in modifica resta quello della carta.
   const colorSeg = el("div", { class: "seg", role: "group", "aria-label": "Tipo di carta", hidden: card ? "" : null });
@@ -1509,7 +1532,8 @@ function blackCard(s, whites, { canPlay, label, slam, jollyAt = -1 } = {}) {
   return el("div", { class: "black-wrap" },
     el("div", { class: "black" + (slam ? " slam" : ""), role: "region", "aria-label": "Carta nera" },
       el("div", { class: "text" }, ...nodes),
-      el("div", { class: "foot" }, label ?? (s.black.blanks > 1 ? `${s.black.blanks} risposte` : "1 risposta"))));
+      el("div", { class: "foot" }, catIcon(BLACK_CATS[Math.min(3, Math.max(1, s.black.blanks)) - 1], "cat-ico"),
+        el("span", {}, label ?? (s.black.blanks > 1 ? `${s.black.blanks} risposte` : "1 risposta")))));
 }
 
 
@@ -1838,7 +1862,7 @@ function render() {
         node.style.setProperty("--i", i);
         node.style.setProperty("--cat", catColor(c.cat));
         if (c.jolly) node.classList.add("jolly");
-        else node.append(el("span", { class: "kind" }, KIND[c.cat] ?? c.cat));
+        else node.append(el("span", { class: "cat-mark" }, catIcon(c.cat)), el("span", { class: "kind" }, catIcon(c.cat), el("span", {}, KIND[c.cat] ?? c.cat)));
         if (c.jolly) return node;
         return node;
       }));
@@ -2705,35 +2729,88 @@ body.in-game::before { content: ""; position: fixed; inset: 0; z-index: -1; poin
 `));
 }
 
-// Nessuna parola spezzata: se una parola è più larga della carta, il testo si rimpicciolisce.
+// Il testo sta sempre dentro la carta. Si misura quanto il corpo base va ridotto (un rapporto, --fit, da 1 in giù) e il CSS lo applica:
+// con un rapporto, e non con pixel fissi, il testo resta proporzionato quando la carta cambia grandezza (carta scelta, rotazione).
+// Prima si rimpicciolisce senza spezzare le parole. Se così il corpo scenderebbe sotto FIT_READABLE_PX, si lasciano spezzare le parole
+// più lunghe della carta (data-break) e si rimpicciolisce solo quanto serve. Sotto FIT_FLOOR_PX non si scende.
+const FIT_READABLE_PX = 9;
+const FIT_FLOOR_PX = 5.5;
+// Sulle carte piccole (anteprime delle combinazioni) le soglie scalano con la larghezza: a 130 px valgono quelle sopra.
+const fitLimit = (px, box) => Math.min(px, box.clientWidth * (px / 130));
+/** Le misure sono di layout (offset, scroll), non rettangoli a schermo: non cambiano con rotazione e ingrandimento della carta.
+ *  @param {HTMLElement} node */
+function textFits(node) {
+  const box = /** @type {HTMLElement|null} */ (node.closest(".black, .card, .pcard"));
+  if (!box) return true;
+  if (node.scrollWidth > node.clientWidth + 1) return false;                 // una parola più larga della carta
+  // Il testo resta dentro i margini della carta (il padding), non sul bordo.
+  const cs = getComputedStyle(box);
+  const padL = parseFloat(cs.paddingLeft) || 0, padR = parseFloat(cs.paddingRight) || 0, padB = parseFloat(cs.paddingBottom) || 0;
+  if (node.offsetLeft < padL - 1 || node.offsetLeft + node.offsetWidth > box.clientWidth - padR + 1) return false;
+  if (box.matches(".black")) {
+    // Carta nera: il testo sta sopra il piede ("2 risposte") e dentro il bordo alto.
+    // Con i pulsanti X e V (risposta pronta) il testo si ferma sopra di loro.
+    const foot = /** @type {HTMLElement|null} */ (box.querySelector(":scope > .foot"));
+    const ctrl = /** @type {HTMLElement|null} */ (box.querySelector(":scope > .combo-ctrl"));
+    const limit = Math.min(foot ? foot.offsetTop : box.clientHeight - padB, ctrl ? ctrl.offsetTop : Infinity) - 2;
+    return node.offsetTop >= 0 && node.offsetTop + node.offsetHeight <= limit + 0.5;
+  }
+  // Carta bianca (mano, griglia): il testo parte sotto l'etichetta della categoria e finisce dentro la carta.
+  const label = /** @type {HTMLElement|null} */ (box.querySelector(":scope > .kind, :scope > .tag"));
+  const top = label ? label.offsetTop + label.offsetHeight + 3 : 0;
+  return node.offsetTop >= top - 0.5 && node.offsetTop + node.offsetHeight <= box.clientHeight - padB + 0.5;
+}
+/** Il rapporto più grande (tra floor e 1) con cui il testo sta nella carta, oppure null se nemmeno al minimo.
+ *  @param {HTMLElement} node @param {number} floor */
+function bestFit(node, floor) {
+  const set = (r) => node.style.setProperty("--fit", String(r));
+  set(floor);
+  if (!textFits(node)) return null;
+  let lo = floor, hi = 1;
+  for (let i = 0; i < 9; i++) {
+    const mid = (lo + hi) / 2;
+    set(mid);
+    if (textFits(node)) lo = mid; else hi = mid;
+  }
+  set(lo);
+  return lo;
+}
+/** @param {HTMLElement} node @returns {number} il rapporto applicato */
+function fitNode(node) {
+  const box = /** @type {HTMLElement} */ (node.closest(".black, .card, .pcard") || node);
+  // Stessa misura e stesso testo di prima: niente da rifare (le rotazioni e i ridimensionamenti la cambiano).
+  const sig = `${box.clientWidth}x${box.clientHeight}|${node.textContent}`;
+  if (node.dataset.fitSig === sig) return parseFloat(node.style.getPropertyValue("--fit")) || 1;
+  node.removeAttribute("data-break");
+  node.style.setProperty("--fit", "1");
+  let r = 1;
+  if (!textFits(node)) {
+    const base = parseFloat(getComputedStyle(node).fontSize) || 16;   // corpo con rapporto 1
+    const floor = Math.min(1, fitLimit(FIT_FLOOR_PX, box) / base);
+    const plain = bestFit(node, floor);
+    if (plain !== null && base * plain >= fitLimit(FIT_READABLE_PX, box)) r = plain;
+    else {
+      node.setAttribute("data-break", "");
+      const broken = bestFit(node, floor);
+      // Si spezzano le parole solo se il corpo cresce davvero (almeno un quarto): per un testo normale non ne vale la pena.
+      if (broken !== null && (plain === null || broken > plain * 1.25)) r = broken;
+      else if (plain !== null) { node.removeAttribute("data-break"); r = plain; }
+      else r = floor;   // nemmeno al minimo: resta il minimo, la carta taglia il resto
+    }
+  }
+  node.style.setProperty("--fit", String(r));
+  node.dataset.fitSig = sig;
+  return r;
+}
 /** @param {ParentNode} [root] */
 function fitText(root = document) {
-  /** @type {NodeListOf<HTMLElement>} */ (root.querySelectorAll(".black .text, .rail .card .txt, .pcard .txt")).forEach((node) => {
-    // Le combinazioni affiancate hanno una grandezza unica (CSS): non si ridimensionano a ogni aggiornamento.
-    if (node.closest(".combo-row")) return;
-    const tileEl = /** @type {HTMLElement|null} */ (node.closest(".pcard"));
-    if (tileEl && node.closest(".cgrid")) tileEl.style.setProperty("--fit", "1");
-    node.style.fontSize = "";
-    let size = parseFloat(getComputedStyle(node).fontSize);
-    let guard = 0;
-    // Il testo deve stare nella carta in larghezza e in altezza, senza invadere l'etichetta in alto.
-    // Carta nera: conta il riquadro intero (testo più etichetta), così il testo non esce né si sovrappone.
-    const box = /** @type {HTMLElement} */ (node.closest(".black") || node);
-    const fits = () => box.scrollWidth <= box.clientWidth + 1 && box.scrollHeight <= box.clientHeight + 1
-      && node.scrollWidth <= node.clientWidth + 1 && node.scrollHeight <= node.clientHeight + 1;
-    const floor = node.closest(".cgrid") ? 2 : (box !== node ? 9 : 8); // nella griglia il testo scende in proporzione alla carta
-    while (!fits() && size > floor && guard++ < 120) {
-      size -= 0.5;
-      node.style.fontSize = `${size}px`;
-    }
-    if (tileEl && node.closest(".cgrid")) {
-      // Nella griglia il testo è una frazione della carta: si salva il rapporto, così resta proporzionale.
-      const k = parseFloat(getComputedStyle(tileEl).getPropertyValue("--k")) || 1;
-      tileEl.style.setProperty("--fit", String(size / (12 * k)));
-      node.style.fontSize = "";
-    }
-  });
+  /** @type {NodeListOf<HTMLElement>} */ (root.querySelectorAll(".black .text, .rail .card .txt, .pcard .txt")).forEach(fitNode);
 }
+let fitTimer = 0;
+// Rotazione o finestra che cambia: si ricalcola (solo dove la carta ha cambiato misura).
+const refit = () => { clearTimeout(fitTimer); fitTimer = window.setTimeout(() => fitText(app), 120); };
+window.addEventListener("resize", refit);
+window.addEventListener("orientationchange", refit);
 document.head.append(el("style", {}, `
 /* Testi: niente trattini né parole spezzate, ovunque. */
 *, *::before, *::after { hyphens: none !important; -webkit-hyphens: none !important; }
