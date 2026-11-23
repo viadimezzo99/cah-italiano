@@ -67,7 +67,7 @@ function pickForm(lemma, cat, g, n) {
 }
 const PROPER_OVERRIDE = new Set(["babbo", "dio", "hitler", "maometto", "gandhi", "skeletor", "robocop", "scientology", "nickelback", "gengis", "obama", "reagan", "sean", "keanu", "tom", "lady", "natalie", "kim", "sarah", "michael", "barack", "shaquille", "britney", "stephen", "christopher", "nicolas", "martin", "arnold", "hulk", "darth", "mr", "totò", "dario", "gigi", "benny", "justin", "giorgio", "christian", "giuliano", "bruno", "diego", "winx", "batman", "platinette", "kitekat", "mosè", "messico", "francia", "spagna", "italia", "russia", "america", "cina", "giappone", "germania", "inghilterra", "egitto", "brasile", "india", "canada", "londra", "parigi", "roma",
   // Nomi propri che iniziano una carta e il lessico non conosce (le carte del gioco), più qualche nome noto per le carte personali.
-  "auschwitz", "mac", "psyco", "pacman", "oompaloompa", "makeawish", "amish", "euphoria", "hustle", "rufis", "trump", "biden", "putin", "zelensky", "meloni", "salvini", "renzi", "draghi", "mussolini", "napoleone",
+  "auschwitz", "mac", "psyco", "schiaccianoci", "pacman", "oompaloompa", "makeawish", "euphoria", "hustle", "rufis", "trump", "biden", "putin", "zelensky", "meloni", "salvini", "renzi", "draghi", "mussolini", "napoleone",
   "garibaldi", "beyoncé", "rihanna", "eminem", "shakira", "ligabue", "jovanotti", "pausini", "fedez", "ferragni", "belen", "cristo", "allah", "buddha", "zeus", "satana", "lucifero",
   "topolino", "paperino", "pluto", "superman", "spiderman", "wolverine", "goku", "pikachu", "sonic", "zelda", "yoda", "chewbacca", "gandalf", "frodo", "voldemort", "dumbledore",
   "shrek", "simba", "lunchables", "eminflex", "world", "nutella", "kellogg's", "warcraft", "vodafone", "netflix", "google", "facebook", "instagram", "tiktok", "amazon", "ikea", "nokia", "samsung", "apple", "microsoft", "starbucks", "coca-cola", "pepsi"]);
@@ -189,6 +189,7 @@ function solveNounPhrase(tokens) {
 const NUM_WORDS = /^(due|tre|quattro|cinque|sei|sette|otto|nove|dieci|undici|dodici|tredici|quindici|venti|trenta|quaranta|cinquanta|sessanta|settanta|ottanta|novanta|cento|duecento|mille)$/i;
 const QUANT_MP = /^(alcuni|molti|tanti|pochi|troppi|parecchi|tutti|diversi|numerosi|vari|altri|certi|quanti)$/i;
 const QUANT_FP = /^(alcune|molte|tante|poche|troppe|parecchie|tutte|diverse|numerose|varie|altre|certe|quante)$/i;
+const QUANT_SG = /^(troppo|troppa|molto|molta|poco|poca|tanto|tanta|parecchio|parecchia|abbastanza)$/i;
 const DET_FORMS = (() => {
   /** @type {Record<string, {g:string, n:string}>} */
   const t = {};
@@ -228,6 +229,7 @@ export function whiteAgreement(text) {
     if (QUANT_FP.test(first)) return { g: "f", n: "p" };
     if (NUM_WORDS.test(first) || (/^\d+$/.test(first) && Number(first) > 1)) return { g: nounOf(rest)?.g ?? "m", n: "p" };
     if (/^(ogni|qualche)$/.test(first)) return { g: nounOf(rest)?.g ?? "m", n: "s" };
+    if (QUANT_SG.test(first)) return { g: /a$/i.test(first) ? "f" : (nounOf(rest)?.g ?? "m"), n: "s" };
     // Il nome e i suoi aggettivi, insieme.
     const np = nounOf(text);
     if (np) return { g: np.g, n: np.n };
@@ -508,11 +510,14 @@ function inflectPhrase(text, nNeeded, gForced) {
 // Participi e aggettivi predicativi che concordano col soggetto: "vietato", "accolto", "scolpito", "sconsigliato".
 // Parole che il lessico conosce anche come aggettivi ma qui sono avverbi, preposizioni o determinanti: non concordano ("fino all'ultima goccia").
 // Parole che Morph-it ha solo come aggettivi ma sulle carte sono nomi ("Preadolescente.").
-const FORCE_NOUN = new Set(["preadolescente", "adolescente", "giovane", "anziano", "ricco", "povero", "cieco", "sordo", "muto", "pazzo", "matto", "ubriaco", "sconosciuto", "innocente", "colpevole", "ragazzino"]);
-// Il lessico ha queste parole solo come aggettivi: per le carte valgono anche come nomi (maschili singolari, invariabili in -e).
-for (const w of FORCE_NOUN) {
+const FORCE_NOUN = new Map(/** @type {[string, string][]} */ ([
+  ["preadolescente", "Nms"], ["adolescente", "Nms"], ["mutilato", "Nms"], ["mutilata", "Nfs"], ["mutilati", "Nmp"], ["mutilate", "Nfp"],
+  ["ubriaco", "Nms"], ["sconosciuto", "Nms"], ["colpevole", "Nms"], ["innocente", "Nms"],
+]));
+// Il lessico ha queste parole solo come aggettivi: per le carte valgono anche come nomi.
+for (const [w, code] of FORCE_NOUN) {
   const codes = LEX_DB[w] || (LEX_DB[w] = []);
-  if (!codes.some((c) => c.startsWith("N"))) codes.push("Nms");
+  if (!codes.some((c) => c.startsWith("N"))) codes.push(code);
 }
 const NOT_PREDICATE = new Set(["fino", "tanto", "quanto", "tutto", "altro", "mezzo", "stesso", "primo", "ultimo", "secondo", "terzo", "dietro", "dentro", "fuori", "sopra", "sotto", "lungo", "contro", "oltre", "vicino", "lontano", "dopo", "prima", "circa", "meno", "tale", "certo", "vario", "diverso", "ogni", "quasi", "alto", "basso", "pari", "buono", "bello", "grande", "piccolo", "nuovo", "vecchio", "giusto", "solo", "unico", "intero", "medio"]);
 // Aggettivi che davvero seguono un nome e lo qualificano senza verbo: "ripieno di", "con ____ incluso".
@@ -670,7 +675,7 @@ function adjustAdj(word, n) {
 }
 
 function nounPhrase(text, atStart, opts = {}) {
-  const info0 = nounOf(text);
+  const info0 = nounOf(text) ?? (opts.group ? { g: opts.g ?? "m", n: "p" } : null);
   const info = info0 && opts.g ? { ...info0, g: opts.g } : info0;
   if (!info) return null;
   const n = opts.n || info.n;
@@ -737,6 +742,7 @@ export function subjectFeatures(text) {
     const a = subjectFeatures(co[0]), b = subjectFeatures(co[1]);
     return { g: a.g === "f" && b.g === "f" ? "f" : "m", n: "p" };
   }
+  if (words.length === 1 && PLURAL_BY_DEFAULT.has(words[0].toLowerCase())) return { g: "m", n: "p" };
   // Un nome proprio, a meno che il lessico riconosca un nome comune con i suoi aggettivi ("Post-it passivi aggressivi").
   if (isProperName(t) && !nounOf(t)) return { g: properGender(t), n: "s" };
   const a = whiteAgreement(t);
@@ -953,7 +959,9 @@ function phaseNounAgreement(st, sl) {
   // Il numero lo dice la risposta ("calze" è plurale), non la sola desinenza.
   const own0 = nounOf(sl.stripped);
   const wa = whiteAgreement(sl.stripped);
-  const own = own0 && wa ? { ...own0, n: wa.n, g: wa.g } : own0;
+  // "Gay", "Amish", "Nerd": la risposta è già al plurale anche se il lessico non li conosce come nomi ("i gay sono stati...").
+  const groupWord = wa && PLURAL_BY_DEFAULT.has(sl.stripped.trim().replace(/[.!?]+$/, "").toLowerCase());
+  const own = own0 && wa ? { ...own0, n: wa.n, g: wa.g } : groupWord ? { g: wa.g, n: wa.n } : own0;
   if (!own) return;
   const { cue, stripped, hasArt, artRe } = sl;
   const flexed = inflectPhrase(stripped, cue ?? own.n, own.g ?? undefined) ?? stripped;
@@ -971,7 +979,7 @@ function phaseNounAgreement(st, sl) {
   // Dopo una preposizione semplice il nome nudo non prende "uno/un": ci pensa la contrazione ("allo stupro").
   const bareAfterPrep = !hasArt && (/(^|\s)(a|di|da|in|su)\s*$/i.test(sl.before) || (i === 0 && QUESTION_PREP.test(blackText)));
   // Con la domanda prima ("Di cosa ...? ") la risposta resta minuscola: la preposizione della domanda la introduce.
-  const bare = nounPhrase(flexed, sl.atStart && !(i === 0 && QUESTION_PREP.test(blackText)), { n: cue ?? own.n, kind: kindNow, noArt: det || bareAfterPrep, g: artWord === "un'" ? "f" : (own.g ?? undefined) });
+  const bare = nounPhrase(flexed, sl.atStart && !(i === 0 && QUESTION_PREP.test(blackText)), { n: cue ?? own.n, kind: kindNow, noArt: det || bareAfterPrep || QUANT_SG.test(firstWord(stripped)), g: artWord === "un'" ? "f" : (own.g ?? undefined), group: !!groupWord });
   if (bare) sl.white = bare;
   // Due risposte nella stessa carta: se la prima chiude con "con il ...", la seconda, se è un nome nudo e la domanda è "come?", riprende "con" ("ti domandi come? con dei fantasmi").
   const rawW = (whites[i] ?? "").trim();
@@ -1002,7 +1010,10 @@ function phaseSubjectVerb(st, sl) {
 // Preposizione richiesta dal verbo o già nel nero ("partecipino a ____"), o preposizione della domanda ("A cosa ...?").
 const TRANSFORM_VERB = /(trasform|cambi|convert|divent|riduc|sciogli|trasfigur)\p{L}*$/iu;
 // Nomi e aggettivi dopo i quali "di" introduce il contenuto o la quantità, senza articolo: "pieno di", "un pizzico di".
-const BARE_DI_HEAD = /^(ripien[oaie]|pien[oaie]|pizzico|po'|poco|mare|sacco|mucchio|tipo|genere|specie|tanto|troppo|abbastanza|colm[oaie]|caric[oaie]|ricc[oaie]|priv[oaie]|vuot[oaie]|pezzo|fetta|bicchiere|tazza|cumulo|montagna|valanga|gocci[ao]|goccia|strato|nuvola|dose)$/iu;
+const BARE_DI_HEAD = /^(ripien[oaie]|pien[oaie]|pizzico|po'|poco|mare|sacco|mucchio|tipo|genere|specie|tanto|troppo|abbastanza|colm[oaie]|caric[oaie]|ricc[oaie]|priv[oaie]|vuot[oaie]|pezzo|fetta|bicchiere|tazza|cumulo|montagna|valanga|gocci[ao]|goccia|strato|nuvola|dose|spruzzat[ae]|manciata|spolverata|filo|fiotto|rivolo|pugno|cucchiaio|cucchiaino|litro|chilo|etto|grammo|porzione|boccata|sorso|goccio)$/iu;
+// Misure e porzioni: "un pizzico di", "una manciata di", "un sorso di" + contenuto senza articolo.
+const MEASURE_DI_HEAD = /^(pizzico|spruzzat[ae]|manciata|spolverata|goccia|gocci[ao]|goccio|sorso|filo|fiotto|rivolo|cucchiaio|cucchiaino|litro|chilo|etto|grammo|porzione|boccata|dose|strato|bicchiere|tazza|mucchio|sacco|cumulo|montagna|valanga|nuvola)$/iu;
+const POSSESSIVE_OR_DEMONSTRATIVE = /^(mi[oa]|mie|miei|tu[oa]|tue|tuoi|su[oa]|sue|suoi|nostr[oaie]|vostr[oaie]|loro|quest[oaie]|quell[oaie]|quegli|quei|quel|quello|codest[oaie])$/iu;
 function phaseGovernPreposition(st, sl) {
   const { blackText } = st;
   const i = sl.i;
@@ -1020,6 +1031,13 @@ function phaseGovernPreposition(st, sl) {
   const barInfo = barePlain ? (whiteAgreement(white.trim()) ?? nounOf(white.trim()) ?? (/^\p{Ll}+e[.!?]*$/u.test(white.trim()) && !/(ole|ile|ule|ate|ose)[.!?]*$/.test(white.trim()) ? { g: "m", n: "s" } : null)) : null;
   // "ripiena di caccole", "un pizzico di sale", "si è trasformata in caccole": qui il nome resta nudo.
   const wordBefore = ((before.replace(/\s*(a|di|da|in|su)\s*$/i, "").match(/[\p{L}']+\s*$/u) || [])[0] ?? "").trim().toLowerCase();
+  // "una spruzzata di selezione naturale", non "della selezione naturale": dopo una misura il contenuto non ha l'articolo
+  // (resta con possessivi e dimostrativi: "un pizzico del mio rispetto", "una dose di questa roba").
+  if (prepKey === "di" && !sl.coord && MEASURE_DI_HEAD.test(wordBefore)) {
+    const t = sl.white.trim();
+    const art = t.match(/^(?:(?:il|lo|la|i|gli|le)\s+|l')(?=\p{L})/iu);
+    if (art && !POSSESSIVE_OR_DEMONSTRATIVE.test(t.slice(art[0].length).split(/\s+/)[0])) sl.white = t.slice(art[0].length);
+  }
   const keepBare = sl.coord || (prepKey === "di" && BARE_DI_HEAD.test(wordBefore)) || (prepKey === "in" && TRANSFORM_VERB.test(wordBefore));
   const govBare = !!prepKey && !!CONTRACT[prepKey] && !!barInfo && !keepBare;
   if (keepBare && !sl.coord && prepKey === "in" && trailPrep && barInfo && barInfo.n === "s") {
@@ -1074,7 +1092,8 @@ function phaseEmit(st, sl) {
   const artMatch = wTrim.match(sl.artRe);
   const restW = artMatch ? wTrim.slice(artMatch[0].length) : wTrim;
   const keepCase = isProperName(restW);
-  if (!atStart) w = keepCase ? w : elideUna(lowerIfMidSentence(w));
+  // L'articolo rimasto davanti al nome ("Lo Schiaccianoci: ...") va comunque in minuscolo in mezzo alla frase.
+  if (!atStart) w = keepCase && !sl.artRe.test(w) ? w : elideUna(lowerIfMidSentence(w));
   else if (w && /^\p{Ll}/u.test(w) && /(^\s*|[.!?]\s*)$/.test(fixed.before)) w = w.charAt(0).toUpperCase() + w.slice(1);
   // Il prefisso aggiunto prima della risposta ("dei ", "di ") apre la frase: anche lui vuole la maiuscola dopo il punto, l'esclamativo e l'interrogativo.
   const fbCap = atStart ? fixed.before.replace(/([.!?]\s+)(\p{Ll})([^.!?]*)$/u, (m, p, c, t) => p + c.toUpperCase() + t) : fixed.before;

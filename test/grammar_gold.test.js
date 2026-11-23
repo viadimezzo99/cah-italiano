@@ -116,6 +116,11 @@ const GOLD = [
   ["nome comune scritto con le maiuscole della carta, con trattino", "Da oggi, sugli aerei, ____ è vietato.", ["Lecca-Lecca gigante."], "Da oggi, sugli aerei, un lecca-lecca gigante è vietato."],
   ["nome proprio con trattino resta com'è", "Il mio hobby preferito è ____.", ["Pac-Man."], "Il mio hobby preferito è Pac-Man."],
   ["nome che il lessico ha solo come aggettivo", "Il regalo perfetto per il mio capo è ____.", ["Preadolescente."], "Il regalo perfetto per il mio capo è un preadolescente."],
+  ["misura + 'di': il contenuto perde l'articolo", "Ingredienti: ____ e una spruzzata di ____.", ["L'AIDS.", "La selezione naturale."], "Ingredienti: l'AIDS e una spruzzata di selezione naturale."],
+  ["misura + 'di': resta il possessivo", "Il segreto è un pizzico di ____.", ["La mia vagina."], "Il segreto è un pizzico della mia vagina."],
+  ["quantificatore singolare senza articolo (troppo gel)", "Ieri ho bevuto troppo ____ per capelli.", ["Il gel."], "Ieri ho bevuto troppo gel per capelli."],
+  ["plurale per natura (Amish): verbo plurale", "____ sono stati il mio regalo.", ["Amish."], "Gli amish sono stati il mio regalo."],
+  ["nome che il lessico dà come aggettivo (mutilati)", "Nel regolamento è scritto: ____ è vietato.", ["Mutilati."], "Nel regolamento è scritto: i mutilati sono vietati."],
 ];
 
 for (const [title, black, whites, expected] of GOLD) {
