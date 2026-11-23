@@ -250,8 +250,8 @@
   {
    "id": "w042",
    "text": "BATMAN!!!",
-   "cat": "Soggetti",
-   "family": "NOME_NUDO"
+   "cat": "Frasi",
+   "family": "CITAZIONE"
   },
   {
    "id": "w043",
@@ -610,8 +610,8 @@
   {
    "id": "w102",
    "text": "Mr. Muscolo, giusto dietro di te.",
-   "cat": "Soggetti",
-   "family": "FRASE"
+   "cat": "Frasi",
+   "family": "CITAZIONE"
   },
   {
    "id": "w103",
@@ -652,8 +652,8 @@
   {
    "id": "w109",
    "text": "Dolce, dolce vendetta.",
-   "cat": "Situazioni",
-   "family": "PARTICIPIO_AGGETTIVO"
+   "cat": "Frasi",
+   "family": "CITAZIONE"
   },
   {
    "id": "w110",
@@ -892,8 +892,8 @@
   {
    "id": "w149",
    "text": "Esattamente quello che ti aspetti.",
-   "cat": "Situazioni",
-   "family": "FRASE"
+   "cat": "Frasi",
+   "family": "CITAZIONE"
   },
   {
    "id": "w150",
@@ -1318,8 +1318,8 @@
   {
    "id": "w220",
    "text": "Servi della gleba. Il pericolo degli sconosciuti.",
-   "cat": "Situazioni",
-   "family": "FRASE"
+   "cat": "Frasi",
+   "family": "CITAZIONE"
   },
   {
    "id": "w474",
@@ -1450,8 +1450,8 @@
   {
    "id": "w242",
    "text": "Cuccioli!",
-   "cat": "Soggetti",
-   "family": "NOME_NUDO"
+   "cat": "Frasi",
+   "family": "CITAZIONE"
   },
   {
    "id": "w243",
@@ -1660,8 +1660,8 @@
   {
    "id": "w277",
    "text": "DEVI COSTRUIRE ALTRI PILONI.",
-   "cat": "Azioni",
-   "family": "NOME_NUDO"
+   "cat": "Frasi",
+   "family": "CITAZIONE"
   },
   {
    "id": "w278",
@@ -1858,8 +1858,8 @@
   {
    "id": "w310",
    "text": "Sesso a sorpresa!",
-   "cat": "Situazioni",
-   "family": "NOME_NUDO"
+   "cat": "Frasi",
+   "family": "CITAZIONE"
   },
   {
    "id": "w311",
@@ -2110,8 +2110,8 @@
   {
    "id": "w352",
    "text": "Api?",
-   "cat": "Soggetti",
-   "family": "NOME_NUDO"
+   "cat": "Frasi",
+   "family": "CITAZIONE"
   },
   {
    "id": "w353",
@@ -3918,6 +3918,114 @@
   {
    "id": "b211",
    "text": "Nel finale della serie: ____ e ____ compaiono insieme.",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b212",
+   "text": "Le ultime parole di mio nonno: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b213",
+   "text": "Mia madre mi ha guardato negli occhi e ha detto: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b214",
+   "text": "Sulla mia lapide ci sarà scritto: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b215",
+   "text": "Il mio motto di vita: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b216",
+   "text": "L'allenatore ha urlato negli spogliatoi: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b217",
+   "text": "Sulla maglietta del mio ex c'era scritto: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b218",
+   "text": "Il pilota ha annunciato dagli altoparlanti: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b219",
+   "text": "Il mio terapeuta mi ha fermato e ha detto: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b220",
+   "text": "Il messaggio in segreteria diceva soltanto: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b221",
+   "text": "Il cartello all'ingresso della chiesa avvisa: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b222",
+   "text": "Il titolo del mio prossimo film: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b223",
+   "text": "Quando ho aperto la porta, il vicino ha gridato: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b224",
+   "text": "Dopo la proposta di matrimonio lei ha risposto: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b225",
+   "text": "L'oroscopo di oggi si chiude così: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b226",
+   "text": "Il tatuaggio sulla schiena di mio cugino dice: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b227",
+   "text": "La mia suoneria è una voce che ripete: «____»",
+   "blanks": 1,
+   "cat": "1 risposta"
+  },
+  {
+   "id": "b228",
+   "text": "Lui ha detto: «____» Lei ha risposto: «____»",
+   "blanks": 2,
+   "cat": "2 risposte"
+  },
+  {
+   "id": "b229",
+   "text": "«____» disse il medico. «____» rispose il paziente.",
    "blanks": 2,
    "cat": "2 risposte"
   }

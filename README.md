@@ -32,6 +32,15 @@ e segnala gli errori prima che arrivino nell'app (nomi sbagliati, argomenti manc
 
 Il controllo gira anche su GitHub prima di compilare l'APK.
 
+## Carte "Frasi" e cambia mano
+
+- **Frasi** è una categoria di carte bianche (esclamazioni, meme, battute famose: "DEVI COSTRUIRE ALTRI PILONI."). Hanno la famiglia
+  `CITAZIONE` (la assegna `tools/classify_cards.mjs` dalla categoria) ed entrano solo negli spazi tra virgolette («____»), insieme agli
+  infiniti. Nei turni con una citazione il motore dà a ogni giocatore almeno una Frase. Le nere con citazione sono in `data/carte.txt`.
+  Una carta personale con categoria "Frasi" si comporta allo stesso modo.
+- **Cambia mano**: all'avvio si sceglie Mai / 3 a testa / A ogni turno (`reshuffles` 0 / 3 / 99). Si cambia tutta la mano al massimo
+  una volta per turno, chi non è il Re e non ha ancora risposto. Online lo sceglie l'ospite (`setReshuffles`).
+
 ## Avatar del profilo
 
 I primi quattro sono i personaggi del Memory (`tools/memory`). Gli altri sono disegnati da `tools/avatars/make_avatars.py`

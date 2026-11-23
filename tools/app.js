@@ -28,7 +28,7 @@ function saveSettings() {
 let settings = loadSettings();
 let unlocked = false;   // l'audio parte solo dopo un gesto dell'utente
 let game = null;
-let cfg = { names: ["Tu"], bots: [], winScore: 5 }; // partita locale: persone e bot, mazzo scelto prima (niente jolly: vale solo online)
+let cfg = { names: ["Tu"], bots: [], winScore: 5, reshuffles: 3 }; // partita locale: persone e bot, mazzo scelto prima (niente jolly: vale solo online)
 
 // Nomi di fantasia suggeriti per i bot: chi aggiunge il bot può cambiarli.
 const BOT_SUGGEST = ["Tana", "Tega", "Tino", "Tone", "Jack"];
@@ -451,6 +451,15 @@ const HOME_ICONS = {
   "hc-accent": `<svg ${HOME_ICON_ATTRS}><g transform="rotate(-13 16 28)"><rect x="4" y="9" width="24" height="33" rx="4.5" fill="#111" stroke="#fbf8f0" stroke-width="1.8"/><path d="M10 33h12" stroke="#fbf8f0" stroke-width="2.4"/></g><g transform="rotate(9 31 25)"><rect x="18" y="7" width="24" height="33" rx="4.5" fill="#fff" stroke="#111" stroke-width="2.4"/><path d="M23.5 16h13M23.5 22h13M23.5 28h7" stroke="#111" stroke-width="2.4"/></g></svg>`,
 };
 
+// Cambia mano: quante volte a testa (una per turno) si possono scartare tutte le carte e pescarne di nuove.
+const RESHUFFLE_CHOICES = [["Mai", 0], ["3 a testa", 3], ["A ogni turno", 99]];
+const reshuffleName = (v) => (v === 0 ? "mai" : v >= 99 ? "a ogni turno" : `${v} a testa`);
+const reshuffleHint = (v) => (v === 0 ? "Le carte in mano restano quelle che escono."
+  : v >= 99 ? "Una volta per turno puoi scartare tutta la mano e pescarne di nuove."
+  : `In ogni partita puoi cambiare tutta la mano ${v} volte, al massimo una per turno.`);
+const reshuffleSeg = (current, set) => el("div", { class: "seg" }, RESHUFFLE_CHOICES.map(([label, v]) => el("button", {
+  type: "button", "aria-pressed": String(current === v), onclick: () => set(v) }, label)));
+
 function subHead(title) {
   return el("div", { class: "subhead" },
     el("button", { type: "button", class: "ghost back", onclick: () => { homeTab = "home"; setup(); } }, "← Home"),
@@ -467,12 +476,15 @@ function showOnline() {
 
 function localPanel() {
   const hint = el("p", { class: "hidden-msg" });
-  const startBtn = el("button", { class: "primary", type: "button", onclick: start }, "Inizia la partita");
+  let problem = null;
+  const startBtn = el("button", { class: "primary", type: "button", "aria-live": "polite",
+    onclick: () => { if (problem) nudge(startBtn, problem); else start(); } }, "Inizia la partita");
 
   const refresh = () => {
     const total = cfg.names.length + cfg.bots.length;
     const ok = total >= 3;
-    startBtn.disabled = !ok || !!deckProblem();
+    problem = !ok ? `Servono almeno 3 giocatori (ora ${total})` : deckProblemShort();
+    setBlocked(startBtn, !!problem);
     hint.textContent = ok
       ? `${total} giocatori${cfg.bots.length ? ` (${cfg.bots.length} bot)` : ""} · vittoria a ${cfg.winScore} punti`
       : "Servono almeno 3 giocatori: aggiungi dei bot se siete meno.";
@@ -505,6 +517,9 @@ function localPanel() {
     cfg.names.length + cfg.bots.length < 10 ? el("button", { type: "button", class: "ghost", onclick: () => askBotName(cfg.bots.length, (name) => { cfg.bots.push(name); setup(); }) }, "+ Aggiungi bot") : null,
     el("span", { class: "label" }, "Vittoria · decidetela prima di iniziare"),
     el("div", { class: "seg" }, winBtns),
+    el("span", { class: "label" }, "Cambia mano · carte nuove"),
+    reshuffleSeg(cfg.reshuffles, (v) => { cfg.reshuffles = v; setup(); }),
+    el("p", { class: "hidden-msg" }, reshuffleHint(cfg.reshuffles)),
     el("span", { class: "label" }, "Carte · quali mazzi entrano"),
     deckBox,
     hint,
@@ -528,7 +543,7 @@ function start() {
   }
   localGameSeq++;
   botsScheduled = null;
-  game = new Game(players, deck, { winScore: cfg.winScore, pool: localPool, jolly: false });   // il jolly (e il Memory del Re) esiste solo online
+  game = new Game(players, deck, { winScore: cfg.winScore, pool: localPool, jolly: false, reshuffles: cfg.reshuffles });   // il jolly (e il Memory del Re) esiste solo online
   selected = [];
   judgeSel = null;
   viewer = null;
@@ -544,13 +559,13 @@ function start() {
 
 const CUSTOM_KEY = "cah-custom";
 // Categorie fisse. Bianche: soggetti, luoghi, oggetti, azioni, situazioni. Nere: divise per numero di risposte.
-const WHITE_CATS = ["Soggetti", "Luoghi", "Oggetti", "Azioni", "Situazioni"];
+const WHITE_CATS = ["Soggetti", "Luoghi", "Oggetti", "Azioni", "Situazioni", "Frasi"];
 const BLACK_CATS = ["1 risposta", "2 risposte", "3 risposte"];
 const CAT_COLOR = {
-  "Soggetti": "#c4502a", "Luoghi": "#2f6fa3", "Oggetti": "#b8862b", "Azioni": "#7a4fb0", "Situazioni": "#2f8f7f",
+  "Soggetti": "#c4502a", "Luoghi": "#2f6fa3", "Oggetti": "#b8862b", "Azioni": "#7a4fb0", "Situazioni": "#2f8f7f", "Frasi": "#c0397f",
   "1 risposta": "#5f7d2e", "2 risposte": "#b04a7a", "3 risposte": "#3d5a80",
 };
-const KIND = { "Soggetti": "Soggetto", "Luoghi": "Luogo", "Oggetti": "Oggetto", "Azioni": "Azione", "Situazioni": "Situazione" };
+const KIND = { "Soggetti": "Soggetto", "Luoghi": "Luogo", "Oggetti": "Oggetto", "Azioni": "Azione", "Situazioni": "Situazione", "Frasi": "Frase" };
 // Loghi di categoria: stesso tratto per tutti (24 x 24, 2 px, colore del testo). Bianche: persona, luogo, scatola, fulmine, fumetto.
 // Nere: una carta con 1, 2 o 3 spazi da riempire.
 const CAT_ICON_ATTRS = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"';
@@ -561,6 +576,8 @@ const CAT_ICONS = {
   "Oggetti": '<path d="M12 2.8l8.2 4.3v9.8L12 21.2l-8.2-4.3V7.1z"/><path d="M3.8 7.1L12 11.4l8.2-4.3M12 11.4v9.8"/>',
   "Azioni": '<path d="M13.2 2.5L5 13.3h6.2l-.8 8.2L19 10.4h-6.1z"/>',
   "Situazioni": '<path d="M4 5.5h16v11h-8.8l-4.7 4v-4H4z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01" stroke-width="2.6"/>',
+  // Frasi: le virgolette di una citazione.
+  "Frasi": '<path d="M10.2 7.5H6.4a1 1 0 0 0-1 1v4.2h3.6c0 1.9-.9 3-2.6 3.8"/><path d="M18.6 7.5h-3.8a1 1 0 0 0-1 1v4.2h3.6c0 1.9-.9 3-2.6 3.8"/>',
   "1 risposta": slotsIcon("M8.5 12h7"),
   "2 risposte": slotsIcon("M8.5 9.5h7M8.5 15h7"),
   "3 risposte": slotsIcon("M8.5 8h7M8.5 12h7M8.5 16h7"),
@@ -580,7 +597,7 @@ const BASE_ID = "base";
 
 const catsOf = (color) => (color === "b" ? BLACK_CATS : WHITE_CATS);
 const validCat = (name, color) => catsOf(color).includes(name);
-const defaultCat = (color) => (color === "b" ? BLACK_CATS[0] : WHITE_CATS[WHITE_CATS.length - 1]);
+const defaultCat = (color) => (color === "b" ? BLACK_CATS[0] : "Situazioni");   // le carte importate senza categoria vanno in Situazioni; "Frasi" si sceglie a mano
 
 // Spazio da riempire: due o più trattini bassi. Nelle carte si scrive sempre "____".
 const hasBlank = (t) => /_{2,}/.test(t);
@@ -669,7 +686,8 @@ const withOverrides = (cards) => {
   const { catOverride: o, textOverride: t, hidden } = loadCustom();
   const tag = (color) => (c) => {
     const text = t[c.id] ?? c.text;
-    return { ...c, text, cat: color === "b" ? blackCatFor(text) : (o[c.id] ?? c.cat) };
+    const cat = color === "b" ? blackCatFor(text) : (o[c.id] ?? c.cat);
+    return { ...c, text, cat, ...(color === "w" && cat === "Frasi" ? { family: "CITAZIONE" } : {}) };
   };
   const keep = (c) => !hidden[c.id];
   return { white: cards.white.filter(keep).map(tag("w")), black: cards.black.filter(keep).map(tag("b")) };
@@ -765,6 +783,13 @@ function deckTotals() {
     for (const c of deckPool(dk, orig, mine)) c.color === "w" ? t.w++ : t.b++;
   }
   return t;
+}
+/** Come deckProblem, ma una riga breve da scrivere sul pulsante. */
+function deckProblemShort(t = deckTotals()) {
+  if (!t.decks) return "Scegli almeno un mazzo";
+  if (!t.b) return "I mazzi scelti non hanno carte nere";
+  if (!t.w) return "I mazzi scelti non hanno carte bianche";
+  return null;
 }
 /** Perché con questi mazzi la partita non può partire (oppure null). */
 function deckProblem(t = deckTotals()) {
@@ -1730,6 +1755,13 @@ function previewWhites(s) {
  */
 function blackCard(s, whites, { canPlay, label, slam, jollyAt = -1 } = {}) {
   const segs = fillSentence(s.black.text, whites);
+  // La virgoletta che apre una citazione ("«") sta con la risposta: non resta sola in fondo alla riga.
+  /** @type {Map<number, string>} */
+  const openQuote = new Map();
+  segs.forEach((x, idx) => {
+    const prev = segs[idx - 1];
+    if (x.t === "word" && prev && prev.t === "text" && /[«“]$/.test(prev.v)) { openQuote.set(idx, prev.v.slice(-1)); prev.v = prev.v.slice(0, -1); }
+  });
   // Solo le parole appena inserite si animano; le altre restano ferme quando si tocca altro.
   let k = 0;
   let wi = -1;
@@ -1744,12 +1776,12 @@ function blackCard(s, whites, { canPlay, label, slam, jollyAt = -1 } = {}) {
       const fresh = canPlay && k >= wordsShown; k += 1;
       // Il punto (o la virgola) che segue la risposta resta attaccato all'ultima parola: non va mai a capo da solo.
       const next = segs[idx + 1];
-      const punct = next && next.t === "text" ? (next.v.match(/^[.,;:!?]+/) || [""])[0] : "";
+      const punct = next && next.t === "text" ? (next.v.match(/^[.,;:!?»”]+/) || [""])[0] : "";
       if (punct && next.t === "text") { next.v = next.v.slice(punct.length); }
       const m = x.v.match(/^(.*?)(\S+)$/s);
       const body = m ? m[1] : "";
       const last = (m ? m[2] : x.v) + punct;
-      return el("span", { class: "word" + (fresh ? " fresh" : "") }, body, el("span", { class: "nw" }, last));
+      return el("span", { class: "word" + (fresh ? " fresh" : "") }, openQuote.get(idx) ?? "", body, el("span", { class: "nw" }, last));
     }
     return el("span", { class: canPlay ? "slot lit" : "slot" }, "_____");
   });
@@ -2093,8 +2125,18 @@ function render() {
       }));
   }
 
+  // Cambia mano: sopra la mano, finché hai da rispondere. Dice quanti cambi restano e, a conferma, scarta tutto.
+  let reshuffleRow = null;
+  if (rail && s.phase === "playing" && !isJudge && !me.hasPlayed && s.reshuffleRule > 0) {
+    const left = s.reshufflesLeft, unlimited = s.reshuffleRule >= 99, can = !!s.canReshuffle;
+    const label = can ? (unlimited ? "↻ Cambia mano" : `↻ Cambia mano · ${left} ${left === 1 ? "rimasto" : "rimasti"}`)
+      : s.reshuffledNow ? "Mano cambiata" : "Cambi finiti";
+    reshuffleRow = el("div", { class: "rail-tools" },
+      el("button", { type: "button", class: "ghost reshuffle", disabled: !can, onclick: () => askReshuffle(me.id, left, unlimited) }, label));
+  }
   const railBlock = rail ? el("div", { class: "col rail-block", style: "gap:6px" },
     railLabel ? el("span", { class: "label" }, railLabel) : null,
+    reshuffleRow,
     rail) : null;
 
   // Passaggio di turno: "Passa a" · una barra che si riempie · il nome · "il telefono".
@@ -2252,6 +2294,23 @@ function toast(msg) {
   const t = el("div", { class: "toast", role: "status" }, msg);
   document.body.append(t);
   setTimeout(() => t.remove(), 3000);
+}
+
+// Pulsante che non può ancora partire: sembra spento ma si tocca, e al tocco scrive sul pulsante perché (e non parte).
+const nudgeTimers = new Map();
+function setBlocked(btn, blocked) {
+  btn.classList.toggle("blocked", blocked);
+  btn.setAttribute("aria-disabled", String(blocked));
+}
+function nudge(btn, text) {
+  if (!btn.dataset.label) btn.dataset.label = btn.textContent ?? "";
+  btn.textContent = text;
+  btn.classList.remove("shake");
+  void btn.offsetWidth;   // fa ripartire l'animazione anche al secondo tocco
+  btn.classList.add("shake");
+  Sound.play("error");
+  clearTimeout(nudgeTimers.get(btn));
+  nudgeTimers.set(btn, setTimeout(() => { btn.textContent = btn.dataset.label ?? ""; btn.classList.remove("shake"); }, 2600));
 }
 
 function netId() {
@@ -2445,7 +2504,11 @@ function onMessage(m) {
         slamPending = true;
         selected = [];
         judgeSel = null;
+      } else if (reshuffleSent) {
+        dealPending = true;   // la mano appena cambiata arriva con questo stato
+        selected = [];
       }
+      reshuffleSent = false;
       game = makeAdapter(m);
     } else {
       game = null;
@@ -2475,6 +2538,28 @@ function makeAdapter(m) {
     nextRound: () => netSend({ type: "next" }),
     reshuffleHand: () => netSend({ type: "reshuffle" }),
   };
+}
+
+// Cambia mano: chiede conferma (le carte scartate non tornano), poi scarta tutta la mano e ne pesca di nuove.
+let reshuffleSent = false;   // online: la mano nuova arriva con il prossimo stato e va distribuita con l'animazione
+function askReshuffle(id, left, unlimited) {
+  let bg;
+  const close = () => closeSheet(bg);
+  const go = () => {
+    close();
+    selected = []; wordsShown = 0;
+    try {
+      if (online) { reshuffleSent = true; game.reshuffleHand(id); return; }
+      game.reshuffleHand(id);
+    } catch { reshuffleSent = false; return; }
+    dealPending = true;
+    Sound.play("deal");
+    render();
+  };
+  const text = unlimited ? "Scarti le tue carte e ne peschi di nuove. Lo puoi fare una volta per turno."
+    : `Scarti le tue carte e ne peschi di nuove. Dopo questo cambio te ne restano ${left - 1}.`;
+  bg = openSheet({ title: "Cambiare tutta la mano?", body: [el("p", { class: "hidden-msg" }, text)],
+    actions: [cancelBtn(close), primaryBtn("Cambia mano", go)] });
 }
 
 function exitGame() {
@@ -2653,9 +2738,11 @@ function renderLobby() {
     onclick: () => { onlineWin = n; render(); },
   }, `${n} punti`));
   // Mazzi: li sceglie l'ospite con le stesse tessere del locale. Il Base, se spento, viaggia nel messaggio di avvio.
-  const startBtn = el("button", { type: "button", class: "primary", disabled: !ok || !!deckProblem(),
-    onclick: () => netSend({ type: "start", winScore: onlineWin, custom: customPayload(), base: !!loadCustom().baseUse }) }, "Avvia partita");
-  const deckBox = isHost ? deckPicker(() => { startBtn.disabled = !ok || !!deckProblem(); }) : null;
+  const problemNow = () => (!ok ? `Servono almeno 3 giocatori (ora ${total})` : deckProblemShort());
+  const startBtn = el("button", { type: "button", class: "primary", "aria-live": "polite",
+    onclick: () => { const why = problemNow(); if (why) nudge(startBtn, why); else netSend({ type: "start", winScore: onlineWin, custom: customPayload(), base: !!loadCustom().baseUse }); } }, "Avvia partita");
+  setBlocked(startBtn, !!problemNow());
+  const deckBox = isHost ? deckPicker(() => setBlocked(startBtn, !!problemNow())) : null;
   const jollyNow = st.jolly !== false;   // scelta dell'ospite: la vedono tutti
   const jollySeg = [["Sì", true], ["No", false]].map(([label, v]) => el("button", {
     type: "button", "aria-pressed": String(jollyNow === v),
@@ -2677,6 +2764,9 @@ function renderLobby() {
           `${p.name}${p.id === st.hostId ? " · host" : ""}${p.id === online.you ? " (tu)" : ""}${p.ready ? " · pronto" : ""}`))),
         isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Vittoria") : null,
         isHost ? el("div", { class: "seg" }, seg) : null,
+        isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Cambia mano · carte nuove") : null,
+        isHost ? reshuffleSeg(st.reshuffles ?? 3, (v) => netSend({ type: "setReshuffles", reshuffles: v })) : null,
+        el("p", { class: "hidden-msg" }, isHost ? reshuffleHint(st.reshuffles ?? 3) : `Cambia mano: ${reshuffleName(st.reshuffles ?? 3)}. ${reshuffleHint(st.reshuffles ?? 3)}`),
         isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Carte · quali mazzi entrano") : null,
         deckBox,
         isHost ? el("span", { class: "label", style: "margin-top:6px" }, "Jolly · il Re lo vince con il Memory") : null,

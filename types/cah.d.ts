@@ -31,6 +31,8 @@ export interface GameOptions {
   handSize?: number;
   winScore?: number | null;
   jolly?: boolean;
+  /** Cambi mano a testa: 0 mai, 99 a ogni turno. */
+  reshuffles?: number;
   rng?: () => number;
   pool?: CardPool;
 }

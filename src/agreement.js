@@ -808,8 +808,9 @@ function adaptAnaphora(text, feat) {
 
 // Una carta nera con uno o più spazi: ogni spazio attraversa le stesse fasi, nello stesso ordine.
 export function fillSentence(blackText, whitesIn) {
-  const whites = whitesIn.map((w) => (w == null ? w : lowerTitleCase(w)));
   const parts = blackText.split("____");
+  // Dentro le virgolette la risposta resta com'è scritta (maiuscole, punteggiatura): è una battuta, non un nome da accordare.
+  const whites = whitesIn.map((w, i) => (w == null ? w : isQuoteSlot(parts[i] ?? "") ? w : lowerTitleCase(w)));
   /** Segmenti della frase: testo fisso, spazio vuoto o parola inserita. */
   /** @type {({t:"text", v:string} | {t:"slot", i:number} | {t:"word", v:string, i:number})[]} */
   const segs = [];
@@ -828,6 +829,13 @@ export function fillSentence(blackText, whitesIn) {
 // Uno spazio: le fasi in ordine. Lo stato dello spazio è in `sl`, quello della frase in `st`.
 function fillSlot(st, i) {
   const orig = st.whites[i];
+  // Citazione: nessuna fase grammaticale, solo la prima lettera maiuscola.
+  if (orig != null && isQuoteSlot(st.parts[i])) {
+    st.chain = []; st.chainOpen = false;
+    const q = orig.replace(/\s+/g, " ").trim();
+    st.segs.push({ t: "text", v: st.parts[i] }, { t: "word", v: q.charAt(0).toUpperCase() + q.slice(1), i });
+    return;
+  }
   // Genere e numero si leggono dalla carta com'è, prima che le fasi la trasformino (articolo, partitivo, preposizione).
   const sl = { i, before: st.parts[i], white: orig, fusedPrep: false, subjNum: null, feat: orig == null ? null : subjectFeatures(orig), isSubj: false };
   phasePrepareWhite(st, sl);
@@ -1162,6 +1170,10 @@ export function sentencePlain(blackText, whites) {
 // Dopo "che" entrano solo frasi; in inizio frase, dopo due punti o nelle liste entrano nomi, infiniti e frasi;
 // dopo una preposizione, un verbo o una congiunzione entrano quasi tutti; dopo un nome solo nomi.
 export const ALL_FAMILIES = ["NOME_NUDO", "NOME_DETERMINATO", "INFINITO", "FRASE"];
+// Le carte "Frasi" (esclamazioni, meme, battute famose) stanno solo dentro le virgolette: «____». Lì entrano anche gli infiniti ("Bere da solo.").
+export const QUOTE_FAMILIES = ["CITAZIONE", "INFINITO"];
+/** Lo spazio che segue `before` sta dentro virgolette basse o alte aperte: una citazione. */
+export const isQuoteSlot = (before) => /[«“]\s*$/.test(before);
 export const NOUN_FAMILIES = ["NOME_NUDO", "NOME_DETERMINATO"];
 const SLOT_PREP = new Set("a da di in con su per tra fra nel nella nei sul sulla dopo prima senza contro verso sotto sopra".split(" "));
 const SLOT_VERB = new Set("è sono ho ha hanno vorrei cerco regalo prevede consiglia chiede compaiono promesso votato bevuto usare sa parla dice".split(" "));
@@ -1170,6 +1182,7 @@ const SLOT_LIST = new Set(["e", "o", "ma", "oppure"]);
 /** Famiglie di carta bianca accettate dallo spazio che segue il testo `before`. */
 export function acceptsAt(before) {
   const raw = before.replace(/\s+$/, "");
+  if (isQuoteSlot(before)) return QUOTE_FAMILIES;
   if (raw === "" || /[:.,;!?"]$/.test(raw)) return ALL_FAMILIES;
   if (/\bche$/i.test(raw)) return ["FRASE"];
   const last = (raw.toLowerCase().match(/[a-zàèéìòù']+$/) || [""])[0];

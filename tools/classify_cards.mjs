@@ -57,7 +57,8 @@ export function familyOf(text) {
 const cards = JSON.parse(readFileSync(cardsPath, "utf8"));
 const counts = {};
 for (const c of cards.white) {
-  c.family = familyOf(c.text);
+  // La categoria "Frasi" (esclamazioni, meme, battute famose) è una famiglia a sé: entra solo negli spazi tra virgolette.
+  c.family = c.cat === "Frasi" ? "CITAZIONE" : familyOf(c.text);
   counts[c.family] = (counts[c.family] || 0) + 1;
 }
 writeFileSync(cardsPath, JSON.stringify(cards, null, 1) + "\n", "utf8");

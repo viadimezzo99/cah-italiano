@@ -47,6 +47,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
       hostId: room.hostId,
       turnSeconds,
       jolly: room.jollyChoice !== false,   // scelta dell'ospite per la prossima partita: la vedono tutti
+      reshuffles: room.reshufflesChoice ?? 3,   // idem per i cambi mano a testa (0 mai, 99 a ogni turno)
       players: room.players.map((p) => ({ id: p.id, name: p.name, isBot: !!p.isBot, connected: !!p.conn || !!p.isBot, ready: !!p.isBot || !!p.ready })),
       game: g ? { ...g.publicState(player.id), winScore: g.opts.winScore, lastWinner: g.lastWinner } : null,
     };
@@ -142,7 +143,7 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
     room.game = new Game(
       room.players.map((p) => ({ id: p.id, name: p.name, isBot: !!p.isBot })),
       deck,
-      { winScore, pool: room.pool, jolly },
+      { winScore, pool: room.pool, jolly, reshuffles: room.reshufflesChoice ?? 3 },
     );
     room.game.start();
     afterChange(room);
@@ -338,6 +339,15 @@ function createRoomHost({ cards, turnSeconds = 60, reconnectMs = 10 * 60 * 1000,
         room.game = null;
         for (const p of room.players) p.ready = false;
         afterChange(room);
+        return;
+      }
+      case "setReshuffles": {
+        // Come il jolly: nella lobby l'ospite sceglie quanti cambi mano a testa; li vedono tutti.
+        const { room, player } = requireRoom(conn);
+        if (room.hostId !== player.id) throw new Error("Solo chi ha creato la stanza può cambiare questa regola");
+        if (room.game) throw new Error("La partita è già in corso");
+        room.reshufflesChoice = [0, 3, 99].includes(msg.reshuffles) ? msg.reshuffles : 3;
+        broadcast(room);
         return;
       }
       case "setJolly": {

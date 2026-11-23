@@ -1,4 +1,4 @@
-import { blankAccepts } from "./agreement.js";
+import { blankAccepts, isQuoteSlot } from "./agreement.js";
 // Motore delle regole di Cards Against Humanity (versione italiana).
 // Nessuna dipendenza esterna: gira identico nel server Node e nel client.
 // Ogni mutazione restituisce una lista di eventi, utile per animare la UI.
@@ -15,6 +15,7 @@ export const DEFAULTS = {
   handSize: 10,
   winScore: 8, // le regole non fissano una fine: è un'opzione della stanza
   jolly: true, // la regola del jolly (il Re vince il jolly con il Memory): si sceglie a inizio partita
+  reshuffles: 3, // quante volte a testa si può cambiare tutta la mano (0 = mai, 99 = a ogni turno): si sceglie a inizio partita
 };
 
 // Generatore pseudo-casuale deterministico (mulberry32) per test ripetibili.
@@ -67,7 +68,7 @@ export class Game {
     this.whiteById = new Map(cards.white.map((c) => [c.id, c]));
     this.blackById = new Map(cards.black.map((c) => [c.id, c]));
 
-    /** @type {{id:string, name:string, isBot:boolean, hand:string[], score:number, reshuffledRound:number|null}[]} */
+    /** @type {{id:string, name:string, isBot:boolean, hand:string[], score:number, reshuffledRound:number|null, reshufflesLeft:number}[]} */
     this.players = players.map((p) => ({
       id: p.id,
       name: p.name,
@@ -75,6 +76,7 @@ export class Game {
       hand: [],
       score: 0,
       reshuffledRound: null,   // ultimo turno in cui ha rimescolato la mano
+      reshufflesLeft: Math.max(0, Math.min(99, Math.floor(Number(this.opts.reshuffles) || 0))),   // cambi mano ancora a disposizione
     }));
     // Registro delle carte già uscite nella stanza: sopravvive alle partite, si azzera solo quando i mazzi sono finiti.
     /** @type {import("../types/cah.js").CardPool} */
@@ -277,19 +279,25 @@ export class Game {
     const fitsSlot = (acc) => (id) => { const w = this.whiteById.get(id); return !!w && acc.includes(w.family); };
     for (const p of this.players) {
       if (this.judge && p.id === this.activeJudge().id) continue;
-      for (const acc of accepts) {
+      accepts.forEach((acc, slot) => {
         const fits = fitsSlot(acc);
-        while (p.hand.filter(fits).length < 2) {
-          const idx = this.deck.findIndex(fits);
-          if (idx < 0) break;
-          const victim = p.hand.findIndex((id) => id !== JOLLY && !fits(id));
-          if (victim < 0) break;
-          const [incoming] = this.deck.splice(idx, 1);
-          const [out] = p.hand.splice(victim, 1, incoming);
-          this.deck.push(out);
-          this.pool.white.add(incoming);
+        // Almeno due carte che entrano; nelle citazioni almeno una è una vera "Frase" (esclamazione, meme), non solo un infinito.
+        const quote = isQuoteSlot(black.text.split("____")[slot] ?? "");
+        const isFrase = (id) => this.whiteById.get(id)?.family === "CITAZIONE";
+        const wants = quote ? [{ ok: fits, min: 2 }, { ok: isFrase, min: 1 }] : [{ ok: fits, min: 2 }];
+        for (const { ok, min } of wants) {
+          while (p.hand.filter(ok).length < min) {
+            const idx = this.deck.findIndex(ok);
+            if (idx < 0) break;
+            const victim = p.hand.findIndex((id) => id !== JOLLY && !fits(id));
+            if (victim < 0) break;
+            const [incoming] = this.deck.splice(idx, 1);
+            const [out] = p.hand.splice(victim, 1, incoming);
+            this.deck.push(out);
+            this.pool.white.add(incoming);
+          }
         }
-      }
+      });
     }
   }
 
@@ -432,13 +440,14 @@ export class Game {
     if (!p || this.phase !== "playing") return false;
     if (this.judge && this.activeJudge().id === playerId) return false;
     if (this.submissions.has(playerId)) return false;
-    return p.reshuffledRound !== this.round;
+    return p.reshuffledRound !== this.round && p.reshufflesLeft > 0;
   }
 
   reshuffleHand(playerId) {
     if (!this.canReshuffle(playerId)) throw new Error("Non puoi rimescolare la mano adesso");
     const p = this.player(playerId);
     p.reshuffledRound = this.round;
+    p.reshufflesLeft -= 1;
     // Il jolly resta in mano: non si rimescola.
     const keep = p.hand.filter((id) => id === JOLLY);
     this.discard.push(...p.hand.splice(0).filter((id) => id !== JOLLY));
@@ -463,7 +472,16 @@ export class Game {
   autoPlay(playerId) {
     const p = this.player(playerId);
     const n = this.activeBlack().blanks;
-    const picks = shuffle(p.hand.filter((id) => id !== JOLLY), this.rng).slice(0, n);
+    // Per ogni spazio una carta che ci sta (la sua famiglia è accettata); se non c'è, una qualsiasi: così i bot non giocano "BATMAN!!!" dopo "è vietato".
+    const pool = shuffle(p.hand.filter((id) => id !== JOLLY), this.rng);
+    const accepts = blankAccepts(this.activeBlack().text);
+    /** @type {string[]} */
+    const picks = [];
+    for (let slot = 0; slot < n; slot++) {
+      const acc = accepts[slot] ?? [];
+      const i = pool.findIndex((id) => acc.includes(this.whiteById.get(id)?.family ?? ""));
+      picks.push(...pool.splice(i >= 0 ? i : 0, 1));
+    }
     return this.play(playerId, picks);
   }
 
@@ -502,6 +520,9 @@ export class Game {
       phase: this.phase,
       round: this.round,
       canReshuffle: forPlayerId ? this.canReshuffle(forPlayerId) : false,
+      reshuffleRule: Math.max(0, Math.min(99, Math.floor(Number(this.opts.reshuffles) || 0))),   // 0 = non c'è, 99 = a ogni turno
+      reshufflesLeft: forPlayerId ? this.players.find((p) => p.id === forPlayerId)?.reshufflesLeft ?? 0 : 0,
+      reshuffledNow: forPlayerId ? this.players.find((p) => p.id === forPlayerId)?.reshuffledRound === this.round : false,
       judgeId: this.judge?.id ?? null,
       black: this.currentBlack ? { id: this.currentBlack.id, text: this.currentBlack.text, blanks: this.currentBlack.blanks } : null,
       players: this.players.map((p) => ({
@@ -544,7 +565,8 @@ export function sanitizeCustom(c) {
   const whiteIn = Array.isArray(c?.white) ? c.white : [];
   const white = whiteIn.filter((x) => !hasBlank(x)).slice(0, CUSTOM_MAX_WHITE)
     .map((x) => ({ text: clean(x), cat: catOf(x) })).filter((x) => x.text)
-    .map((x, i) => ({ id: `u${i}`, ...x }));
+    // La categoria "Frasi" è una famiglia a sé: queste carte entrano solo negli spazi di citazione.
+    .map((x, i) => ({ id: `u${i}`, ...x, ...(x.cat === "Frasi" ? { family: "CITAZIONE" } : {}) }));
   const blackIn = [...(Array.isArray(c?.black) ? c.black : []), ...whiteIn.filter(hasBlank)];
   const black = blackIn.slice(0, CUSTOM_MAX_BLACK)
     .map((x) => {
