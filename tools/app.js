@@ -862,6 +862,19 @@ function packOf(dk) {
   };
 }
 
+// Dove sta un mazzo: prima decks/<codice>. Se le regole del database non lo permettono si usa rooms/dk<codice>,
+// cioè lo stesso percorso delle stanze, che funziona già: così non serve cambiare nessuna regola.
+const DECK_PLACES = [(c) => `decks/${c}`, (c) => `rooms/dk${c}`];
+const isDenied = (e) => /permission|denied/i.test(String(e?.code ?? e?.message ?? ""));
+/** Prova un'operazione su ogni posto, passando al successivo solo se il permesso è negato. @param {(place: (c: string) => string) => Promise<any>} fn */
+async function tryPlaces(fn) {
+  let last = null;
+  for (const place of DECK_PLACES) {
+    try { return await fn(place); } catch (e) { last = e; if (!isDenied(e)) throw e; }
+  }
+  throw last;
+}
+
 /** Carica il mazzo e restituisce il codice. @param {{name: string, white: any[], black: any[]}} pack */
 async function sendDeckCode(pack) {
   initNet();
@@ -872,16 +885,19 @@ async function sendDeckCode(pack) {
   // I codici miei più vecchi di 14 giorni si tolgono ora: nessun altro li può più usare.
   const keep = [];
   for (const x of sentDecks()) {
-    if (Date.now() - x.t > DECK_SHARE_DAYS * 864e5) fbDb.ref(`decks/${x.code}`).remove().catch(() => {});
+    if (Date.now() - x.t > DECK_SHARE_DAYS * 864e5) for (const place of DECK_PLACES) fbDb.ref(place(x.code)).remove().catch(() => {});
     else keep.push(x);
   }
-  let code = "";
-  for (let tries = 0; tries < 8; tries++) {
-    code = Array.from({ length: DECK_CODE_LEN }, () => DECK_CODE_CHARS[Math.floor(Math.random() * DECK_CODE_CHARS.length)]).join("");
-    const snap = await withTimeout(fbDb.ref(`decks/${code}`).once("value"));
-    if (!snap.exists()) break;
-  }
-  await withTimeout(fbDb.ref(`decks/${code}`).set({ v: 1, created: Date.now(), name: pack.name, white: pack.white, black: pack.black }));
+  const code = await tryPlaces(async (place) => {
+    let c = "";
+    for (let tries = 0; tries < 8; tries++) {
+      c = Array.from({ length: DECK_CODE_LEN }, () => DECK_CODE_CHARS[Math.floor(Math.random() * DECK_CODE_CHARS.length)]).join("");
+      const snap = await withTimeout(fbDb.ref(place(c)).once("value"));
+      if (!snap.exists()) break;
+    }
+    await withTimeout(fbDb.ref(place(c)).set({ v: 1, created: Date.now(), name: pack.name, white: pack.white, black: pack.black }));
+    return c;
+  });
   saveSent([...keep, { code, t: Date.now() }]);
   return code;
 }
@@ -889,7 +905,13 @@ async function sendDeckCode(pack) {
 /** Toglie il mazzo dal servizio: il codice smette di funzionare. */
 async function retractDeckCode(code) {
   initNet();
-  if (fbDb) await withTimeout(fbDb.ref(`decks/${code}`).remove());
+  if (fbDb) {
+    let done = false, last = null;
+    for (const place of DECK_PLACES) {
+      try { await withTimeout(fbDb.ref(place(code)).remove()); done = true; } catch (e) { last = e; if (!isDenied(e)) throw e; }
+    }
+    if (!done && last) throw last;
+  }
   saveSent(sentDecks().filter((x) => x.code !== code));
 }
 
@@ -899,7 +921,16 @@ async function receiveDeck(raw) {
   if (code.length !== DECK_CODE_LEN) throw new Error(`Il codice ha ${DECK_CODE_LEN} caratteri.`);
   initNet();
   if (!fbDb) throw new Error("Serve la rete: il servizio non è disponibile su questo telefono.");
-  const v = (await withTimeout(fbDb.ref(`decks/${code}`).once("value"))).val();
+  // Il mazzo può stare in uno dei due posti: si guarda in entrambi. Se in nessuno si può nemmeno leggere, è un problema di permessi.
+  let v = null, read = false, denied = null;
+  for (const place of DECK_PLACES) {
+    try {
+      const got = (await withTimeout(fbDb.ref(place(code)).once("value"))).val();
+      read = true;
+      if (got) { v = got; break; }
+    } catch (e) { if (!isDenied(e)) throw e; denied = e; }
+  }
+  if (!v && !read && denied) throw denied;
   if (!v || typeof v !== "object") throw new Error("Codice non trovato. Controlla di averlo scritto giusto.");
   if (Date.now() - Number(v.created || 0) > DECK_SHARE_DAYS * 864e5) throw new Error("Codice scaduto: chiedi di crearne uno nuovo.");
   const list = (x) => (Array.isArray(x) ? x : x && typeof x === "object" ? Object.values(x) : []);
