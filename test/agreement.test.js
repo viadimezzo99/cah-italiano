@@ -79,8 +79,8 @@ test("accordo riconosciuto dalla prima parola", () => {
 });
 
 test("preposizione richiesta da domanda + nome plurale: 'ai Ditalini'", () => {
-  assert.equal(sentencePlain("A cosa rinuncio per la quaresima? ____.", ["Ditalini."]), "A cosa rinuncio per la quaresima? ai ditalini.");
-  assert.equal(sentencePlain("A cosa rinuncio per la quaresima? ____.", ["Roma."]), "A cosa rinuncio per la quaresima? a Roma.");
+  assert.equal(sentencePlain("A cosa rinuncio per la quaresima? ____.", ["Ditalini."]), "A cosa rinuncio per la quaresima? Ai ditalini.");
+  assert.equal(sentencePlain("A cosa rinuncio per la quaresima? ____.", ["Roma."]), "A cosa rinuncio per la quaresima? A Roma.");
 });
 
 test("preposizione del nero + nome senza articolo: 'Sapore del pane', 'partecipino ai compiti'", () => {
@@ -127,7 +127,7 @@ test("soggetto coordinato con 'e' è plurale", () => {
 
 test("il participio concorda col soggetto plurale: sono vietati", () => {
   assert.equal(sentencePlain("Da oggi, sugli aerei, ____ è vietato.", ["Bambini con il cancro al culo."]),
-    "Da oggi, sugli aerei, dei bambini con il cancro al culo sono vietati.");
+    "Da oggi, sugli aerei, i bambini con il cancro al culo sono vietati.");
 });
 
 test("femminile singolare: è vietata", () => {
@@ -156,12 +156,12 @@ test("determinante dopo preposizione: 'di quel tipo' non si contrae", () => {
 
 test("domanda 'di cosa' con risposta 'Dei ...': niente 'dei Dei'", () => {
   assert.equal(sentencePlain("Di cosa odorano le persone anziane? ____", ["Dei serpenti volanti."]),
-    "Di cosa odorano le persone anziane? dei serpenti volanti.");
+    "Di cosa odorano le persone anziane? Dei serpenti volanti.");
 });
 
 test("soggetto plurale senza lemma nel lessico concorda col verbo", () => {
   assert.equal(sentencePlain("Per la mia nonna, ____ è semplice come respirare.", ["Centauri."]),
-    "Per la mia nonna, dei centauri sono semplice come respirare.");
+    "Per la mia nonna, i centauri sono semplici come respirare.");
 });
 
 test("nomi integrati a mano: genere e plurale corretti", () => {
