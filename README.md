@@ -32,6 +32,12 @@ e segnala gli errori prima che arrivino nell'app (nomi sbagliati, argomenti manc
 
 Il controllo gira anche su GitHub prima di compilare l'APK.
 
+## Avatar del profilo
+
+I primi quattro sono i personaggi del Memory (`tools/memory`). Gli altri sono disegnati da `tools/avatars/make_avatars.py`
+(SVG, retino e grana di stampa; serve Playwright per Node, numpy e Pillow) e finiscono in `tools/avatars` insieme a `order.json`,
+che `tools/build_web.py` legge per costruire l'elenco. Per aggiungerne uno basta una nuova funzione di testa e una riga in `build()`.
+
 ## Mazzi: codice di condivisione
 
 "Mazzi → Opzioni → Condividi o importa → Crea il codice" carica il mazzo su Firebase (6 caratteri, 14 giorni) e

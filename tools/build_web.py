@@ -38,9 +38,18 @@ app = spell + "\n" + read("tools/room.js") + "\n" + read("tools/app.js")
 mem_names = ["gatto", "cactus", "patata", "pinguino", "fantasma", "frigorifero", "ombrello", "vasca"]
 mem_uris = ["data:image/jpeg;base64," + base64.b64encode((root / f"tools/memory/{n}.jpg").read_bytes()).decode() for n in mem_names]
 app = app.replace("/*MEMORY_IMGS*/[]", json.dumps(mem_uris))
-# Ritagli senza sfondo dei personaggi, per la carta profilo (PNG trasparenti).
-prof_uris = ["data:image/png;base64," + base64.b64encode((root / f"tools/memory/cut/{n}.png").read_bytes()).decode() for n in mem_names]
-app = app.replace("/*PROFILE_IMGS*/[]", json.dumps(prof_uris))
+# Avatar del profilo: il ritaglio senza sfondo (PNG trasparente) e l'illustrazione intera (da cui viene il colore della carta).
+# I primi quattro sono dei Memory; gli altri stanno in tools/avatars (generati da tools/avatars/make_avatars.py).
+avatar_names = ["gatto", "cactus", "patata", "pinguino"] + json.loads((root / "tools/avatars/order.json").read_text(encoding="utf-8"))
+def avatar_path(kind, n):
+    for d in ("tools/avatars", "tools/memory"):
+        p = root / d / (("cut/" + n + ".png") if kind == "cut" else (n + ".jpg"))
+        if p.exists():
+            return p
+    raise FileNotFoundError(f"avatar {n}: manca {kind}")
+avatars = [{"cut": "data:image/png;base64," + base64.b64encode(avatar_path("cut", n).read_bytes()).decode(),
+            "bg": "data:image/jpeg;base64," + base64.b64encode(avatar_path("bg", n).read_bytes()).decode()} for n in avatar_names]
+app = app.replace("/*AVATARS*/[]", json.dumps(avatars))
 jolly_uri = "data:image/jpeg;base64," + base64.b64encode((root / "tools/memory/jolly.jpg").read_bytes()).decode()
 app = app.replace('"/*JOLLY_IMG*/"', json.dumps(jolly_uri))
 # Strato di design: un foglio di stile a parte, messo in app.js come ultimo <style> (il file non deve contenere apici inversi né "${").

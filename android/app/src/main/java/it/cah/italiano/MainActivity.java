@@ -104,6 +104,10 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setMediaPlaybackRequiresUserGesture(false);
+        // Nessuna barra di scorrimento disegnata dal telefono: la pagina scorre lo stesso, ma senza la striscia a destra.
+        web.setVerticalScrollBarEnabled(false);
+        web.setHorizontalScrollBarEnabled(false);
+        web.setScrollbarFadingEnabled(true);
         web.setWebChromeClient(new WebChromeClient());
         web.setWebViewClient(new WebViewClient());
         web.addJavascriptInterface(new Bridge(), "AndroidBridge");

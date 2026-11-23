@@ -246,6 +246,21 @@ button.dpk.on .dpk-stack .w1 { transform: rotate(-1deg); }
   transition: transform var(--t-base) var(--ease-out), background-color var(--t-base), border-color var(--t-base), color var(--t-base);
 }
 button.dpk.on .dpk-tick { background: var(--accent); border-color: var(--accent); color: var(--on-accent); transform: scale(1); }
+/* Gestione dei mazzi: stessa tessera del selettore; il tocco apre il mazzo, la spunta (un pulsante a parte, 48 px) lo accende o spegne. */
+.dpk-wrap { position: relative; display: flex; min-width: 0; }
+button.dpk.mg.on {
+  background: var(--paper); color: var(--fg); border: 2px solid var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow-card);
+}
+button.dpk-toggle, button.dpk-toggle[aria-pressed] {
+  position: absolute; top: 0; right: 0; width: 48px; height: 48px; min-height: 0; padding: 0; margin: 0;
+  background: none; border: 0; box-shadow: none; border-radius: 0 var(--r-l) 0 0; color: inherit;
+}
+button.dpk-toggle[aria-pressed="true"] .dpk-tick { background: var(--accent); border-color: var(--accent); color: var(--on-accent); transform: scale(1); }
+button.dpk.mg:not(.on) .dpk-stack { filter: grayscale(1); opacity: .55; }
+/* Tessere "Nuovo mazzo" e "Ricevi mazzo": sempre tratteggiate, con un segno grande al posto delle carte. */
+button.dpk.dpk-new { color: var(--muted); }
+.dpk-plus { display: grid; place-items: center; width: 100%; height: 76px; margin-bottom: 8px; font-size: 44px; font-weight: 300; line-height: 1; color: var(--accent); }
 .dpk-name { font-size: 19px; font-weight: 800; line-height: 1.1; max-width: 100%; overflow-wrap: anywhere; }
 .dpk-count { font-size: 12px; line-height: 1.3; color: var(--muted); }
 .dpk-sum { margin: 0; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
@@ -348,3 +363,26 @@ button.chip { display: inline-flex; align-items: center; justify-content: center
 }
 /* L'ultima parola di ogni risposta sta in un blocco che non va a capo (tiene attaccata la punteggiatura): per una parola più larga della carta deve poterlo fare. */
 .black .text[data-break] .nw { white-space: normal; }
+
+/* --- Nessuna barra di scorrimento visibile, in nessun contenitore (pagina, fogli, elenchi, caselle di testo) ----------- */
+/* Lo scorrimento resta com'è: si scorre col dito o con la rotella, ma la barra non si disegna. */
+html, body, * { scrollbar-width: none !important; -ms-overflow-style: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; background: transparent !important; }
+
+/* --- Home: le carte della stessa riga allineano i titoli ("Locale" e il nome del giocatore, "Online" e "Le carte") ------------ */
+/* Ogni carta occupa tre righe della griglia (spazio libero / titolo / testo sotto) e le righe sono condivise (subgrid):
+   il titolo più alto spinge giù quello vicino, e i titoli restano sulla stessa linea a ogni larghezza. Senza subgrid resta il disegno di prima. */
+@supports (grid-template-rows: subgrid) {
+  @media (min-height: 561px) {
+    .hand { grid-template-rows: 1fr auto auto 1fr auto auto; row-gap: 0; }
+    .hand > .hcard:nth-child(-n+2) { grid-row: 1 / span 3; }
+    .hand > .hcard:nth-child(n+3) { grid-row: 4 / span 3; margin-top: 12px; }
+    .hand > .hcard { display: grid; grid-template-rows: subgrid; row-gap: 0; align-items: end; justify-items: start; }
+    .hand > .hcard > .hc-title { grid-row: 2; }
+    .hand > .hcard > .hc-sub, .hand > .hcard > .hc-nums { grid-row: 3; align-self: start; margin-top: 6px; }
+  }
+}
+/* Statistiche più compatte: due righe che stanno nello spazio del testo delle altre carte. */
+.hc-stats .hc-nums { gap: 4px 10px; margin-top: 0; }
+.hc-stats .hc-num .n { font-size: 19px; }
+.hc-stats .hc-num .l { font-size: 10.5px; }
