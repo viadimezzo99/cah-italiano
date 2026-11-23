@@ -3987,6 +3987,7 @@ function localPanel() {
 }
 
 function start() {
+  dropFocus();   // un nome appena scritto: la tastiera non deve restare aperta (né ricomparire) in partita
   unlocked = true;
   applySettings();
   const names = cfg.names.map((n, i) => (n || "").trim().slice(0, 16) || `Giocatore ${i + 1}`);
@@ -4979,22 +4980,41 @@ function scheduleLocalBots() {
 // Una volta per turno: la mano viene sostituita con 10 carte nuove. Le carte selezionate spariscono con la mano.
 
 // Campo nascosto che apre la tastiera: il testo si vede direttamente sulla carta nera, mentre si scrive.
+// Esiste solo mentre si scrive il jolly: un campo di testo sempre presente (anche invisibile e di un pixel) può essere
+// "agganciato" da un tocco vicino, e la tastiera compariva toccando sotto le carte. Per questo si crea al bisogno, non
+// riceve i tocchi (pointer-events: none) e se prende il focus senza che l'abbiamo chiesto lo lascia subito.
+/** @type {HTMLInputElement|null} */
 let jollyKeys = null;
+let jollyWanted = false;   // il focus è stato chiesto da noi (tocco sulla carta jolly)
 function jollyKeyboard() {
   if (!jollyKeys) {
-    jollyKeys = document.createElement("input");
-    jollyKeys.type = "text";
-    jollyKeys.maxLength = JOLLY_MAX;
-    jollyKeys.autocomplete = "off";
-    jollyKeys.autocapitalize = "sentences";
-    jollyKeys.setAttribute("aria-label", "Testo del jolly");
-    jollyKeys.className = "jolly-keys";
-    jollyKeys.addEventListener("input", () => { jollyDraft = jollyKeys.value; updateJollyPreview(); });
-    jollyKeys.addEventListener("focus", () => app.classList.add("typing"));
-    jollyKeys.addEventListener("blur", () => app.classList.remove("typing"));
-    document.body.append(jollyKeys);
+    const k = document.createElement("input");
+    k.type = "text";
+    k.maxLength = JOLLY_MAX;
+    k.autocomplete = "off";
+    k.autocapitalize = "sentences";
+    k.tabIndex = -1;
+    k.setAttribute("aria-label", "Testo del jolly");
+    k.className = "jolly-keys";
+    k.addEventListener("input", () => { jollyDraft = k.value; updateJollyPreview(); });
+    k.addEventListener("focus", () => { if (!jollyWanted) { k.blur(); return; } app.classList.add("typing"); });
+    // Finito di scrivere (tastiera chiusa): il campo sparisce; il testo resta in jollyDraft.
+    k.addEventListener("blur", () => { app.classList.remove("typing"); jollyWanted = false; setTimeout(() => { if (jollyKeys === k && document.activeElement !== k) closeJollyKeyboard(); }, 0); });
+    document.body.append(k);
+    jollyKeys = k;
   }
   return jollyKeys;
+}
+function openJollyKeyboard() {
+  jollyWanted = true;
+  const k = jollyKeyboard();
+  k.value = jollyDraft;
+  k.focus();
+}
+function closeJollyKeyboard() {
+  jollyWanted = false;
+  if (jollyKeys) { const k = jollyKeys; jollyKeys = null; k.blur(); k.remove(); }   // prima il blur, così la tastiera si chiude
+  app.classList.remove("typing");
 }
 // Aggiorna la carta nera a ogni tasto: il testo si adatta alla lunghezza.
 function updateJollyPreview() {
@@ -5397,6 +5417,8 @@ function render() {
   if (online && !online.state?.game) { Sound.setTheme("menu"); return renderLobby(); }
   if (!game) return setup();
   app.classList.remove("still"); paintKey = "game"; // in partita le animazioni restano sempre attive
+  // Entrando in partita nessun campo di testo deve restare attivo (e con lui la tastiera): fa eccezione solo il jolly mentre si scrive.
+  { const ae = document.activeElement; if (ae && !ae.closest(".sheet-bg") && !ae.classList.contains("jolly-keys")) dropFocus(); }
   Sound.setTheme("game");
   document.body.classList.add("in-game");
   const next = viewerFor();
@@ -5530,7 +5552,7 @@ function render() {
     const canPlay = s.phase === "playing" && !isJudge && !me.hasPlayed && showPrivate;
     const slam = slamPending;
     slamPending = false;
-    if (!selected.includes(JOLLY)) { jollyDraft = ""; if (jollyKeys) { jollyKeys.value = ""; if (document.activeElement === jollyKeys) jollyKeys.blur(); } }
+    if (!selected.includes(JOLLY)) { jollyDraft = ""; closeJollyKeyboard(); }
     // Chi deve rispondere vede a che punto è: "1 di 2 scelte", poi "Pronta" quando compaiono la X e la V.
     const progress = canPlay && need > 0 && selected.length > 0
       ? (selected.length >= need ? "Pronta" : `${selected.length} di ${need} scelte`)
@@ -5566,7 +5588,7 @@ function render() {
           disabled: !canSelect || full,
           "aria-pressed": String(idx >= 0),
           onclick: () => {
-            if (c.jolly) { if (idx >= 0) jollyKeyboard().blur(); else { const k = jollyKeyboard(); k.value = jollyDraft; k.focus(); } }
+            if (c.jolly) { if (idx >= 0) closeJollyKeyboard(); else openJollyKeyboard(); }
             // Scelte in ordine: deselezionando la prima, la seconda diventa la prima.
             if (idx >= 0) selected.splice(idx, 1);
             else if (need === 1) { selected = [c.id]; wordsShown = 0; }   // la parola nuova deve comparire con l'animazione
@@ -5754,6 +5776,13 @@ function toast(msg) {
   const t = el("div", { class: "toast", role: "status" }, msg);
   document.body.append(t);
   setTimeout(() => t.remove(), 3000);
+}
+
+// Lascia il campo di testo attivo (se c'è) prima di toglierlo dalla pagina: su Android, se un campo col focus sparisce senza
+// aver perso il focus, la tastiera resta "agganciata" e ricompare al tocco successivo, anche sotto le carte.
+function dropFocus() {
+  const a = document.activeElement;
+  if (a instanceof HTMLInputElement || a instanceof HTMLTextAreaElement) a.blur();
 }
 
 // Pulsante che non può ancora partire: sembra spento ma si tocca, e al tocco scrive sul pulsante perché (e non parte).
@@ -6611,7 +6640,7 @@ document.head.append(el("style", {}, `
 .jolly-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .jolly-typed { color: var(--accent); border-bottom: 3px solid var(--accent); padding: 0 3px; min-width: 6ch; display: inline-block; white-space: pre-wrap; }
 .jolly-typed.empty { min-width: 8ch; }
-.jolly-keys { position: fixed; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; font-size: 16px; }
+.jolly-keys { position: fixed; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; font-size: 16px; pointer-events: none; z-index: -1; }
 .typing .rail-block { display: none; }
 .jolly-won { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.65); cursor: pointer; }
 .jolly-won img { width: min(72vw, calc((100svh - 80px) * 5 / 7)); aspect-ratio: 5 / 7; border-radius: 14px; }
@@ -6655,6 +6684,7 @@ document.addEventListener("pointerdown", (e) => { downTarget = e.target; }, true
 function closeSheet(bg) {
   if (!bg || bg.dataset.closing) return;
   bg.dataset.closing = "1";
+  if (bg.contains(document.activeElement)) dropFocus();   // il campo del foglio lascia la tastiera prima di sparire
   bg.style.pointerEvents = "none";
   if (!motionOn() || !bg.animate) { bg.remove(); return; }
   const sheet = bg.querySelector(".sheet");
