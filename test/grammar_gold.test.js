@@ -138,6 +138,11 @@ const GOLD = [
   ["'Cosa' soggetto con 'sarà' (lettera accentata)", "Cosa sarà disponibile a volontà in paradiso? ____", ["Tetano."], "Cosa sarà disponibile a volontà in paradiso? Il tetano."],
   ["'Perché' : determinativo", "Perché ho male ovunque? ____", ["Razzismo."], "Perché ho male ovunque? Il razzismo."],
   ["'Cosa' complemento: partitivo", "Cosa usano gli insegnanti per motivare i ragazzi? ____", ["Tetano."], "Cosa usano gli insegnanti per motivare i ragazzi? Del tetano."],
+  ["nome astratto nuovo (non in elenco storico): partitivo", "Il dottore mi ha prescritto ____.", ["Ansia sociale."], "Il dottore mi ha prescritto dell'ansia sociale."],
+  ["nome astratto nuovo come soggetto: determinativo", "Da oggi, in ufficio, ____ è vietato.", ["Pigrizia."], "Da oggi, in ufficio, la pigrizia è vietata."],
+  ["suffisso -fobia riconosciuto", "Ho confessato a mia madre ____.", ["Xenofobia."], "Ho confessato a mia madre della xenofobia."],
+  ["dopo la negazione: determinativo (massa)", "Mia nonna non sopporta ____.", ["Pigrizia."], "Mia nonna non sopporta la pigrizia."],
+  ["dopo la negazione: determinativo (plurale)", "Mia nonna non sopporta ____.", ["Antibiotici."], "Mia nonna non sopporta gli antibiotici."],
   ["nome astratto numerabile resta indeterminativo", "Ho scoperto ____ nel mio armadio.", ["Stupro su appuntamento."], "Ho scoperto uno stupro su appuntamento nel mio armadio."],
 ];
 

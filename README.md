@@ -32,6 +32,21 @@ e segnala gli errori prima che arrivino nell'app (nomi sbagliati, argomenti manc
 
 Il controllo gira anche su GitHub prima di compilare l'APK.
 
+## Mazzi: codice di condivisione
+
+"Mazzi → Opzioni → Condividi o importa → Crea il codice" carica il mazzo su Firebase in `decks/<codice>` (6 caratteri, 14 giorni)
+e "Mazzi → Ricevi mazzo" lo scarica come mazzo nuovo. Serve che le regole del Realtime Database lascino leggere e scrivere
+quel percorso. Da aggiungere accanto alla regola già presente per `rooms` (console Firebase → Realtime Database → Regole):
+
+```json
+"decks": {
+  "$code": { ".read": true, ".write": "!data.exists() || !newData.exists()" }
+}
+```
+
+Si può creare o cancellare un codice, non sovrascriverlo; l'elenco di `decks` non è leggibile, solo il singolo codice.
+Se le regole lo vietano l'app lo dice ("Il servizio dei codici non è attivo") e resta la copia delle frasi come testo.
+
 ## Decisioni aperte
 
 - Punteggio per la vittoria: le regole non lo fissano; ora è 8 di default, configurabile.

@@ -588,7 +588,7 @@ function loadCustom() {
     .filter((x) => x && typeof x.id === "string" && x.id !== BASE_ID && x.id.length <= 40)
     .map((x) => ({ id: x.id, name: String(x.name || "Mazzo").replace(/\s+/g, " ").trim().slice(0, 30) || "Mazzo", use: x.use !== false }));
   if (!decks.some((x) => x.id === "senza")) decks.unshift({ id: "senza", name: "Senza mazzo", use: true });
-  const ids = new Set(decks.map((x) => x.id));
+  const ids = new Set([BASE_ID, ...decks.map((x) => x.id)]);   // anche il mazzo base può avere carte aggiunte a mano
   // Una carta bianca con lo spazio ____ è in realtà una nera (es. scritta o importata nel tipo sbagliato): passa tra le nere.
   const rawWhite = Array.isArray(d.white) ? d.white : [];
   const rawBlack = Array.isArray(d.black) ? d.black : [];
@@ -655,6 +655,7 @@ const handForRail = (hand) => {
 const activeCustom = () => {
   const d = loadCustom();
   const on = new Set(d.decks.filter((x) => x.use).map((x) => x.id));
+  if (d.baseUse) on.add(BASE_ID);   // le carte aggiunte al mazzo base seguono il suo interruttore
   return { white: d.white.filter((c) => on.has(c.deck)), black: d.black.filter((c) => on.has(c.deck)) };
 };
 // Categorie scelte dall'utente per le carte ufficiali.
@@ -724,6 +725,11 @@ function decksList() {
   return [{ id: BASE_ID, name: "Base", official: true, use: d.baseUse }, ...d.decks.map((x) => ({ ...x, official: false }))];
 }
 
+// Le carte di un mazzo. Il base ha le ufficiali (con le tue modifiche) e quelle che gli hai aggiunto.
+function deckPool(dk, orig, mine) {
+  return dk.official ? [...orig, ...mine.filter((c) => c.deck === BASE_ID)] : mine.filter((c) => c.deck === dk.id);
+}
+
 // Interruttore di un mazzo: entra o no nelle partite.
 function toggleDeck(id, refresh) {
   const x = loadCustom();
@@ -740,7 +746,7 @@ function deckTotals() {
   for (const dk of decksList()) {
     if (!dk.use) continue;
     t.decks++;
-    for (const c of dk.official ? orig : mine.filter((x) => x.deck === dk.id)) c.color === "w" ? t.w++ : t.b++;
+    for (const c of deckPool(dk, orig, mine)) c.color === "w" ? t.w++ : t.b++;
   }
   return t;
 }
@@ -758,7 +764,7 @@ function deckProblem(t = deckTotals()) {
 function deckPicker(onChange) {
   const { orig, mine } = allCards();
   const rows = decksList().map((dk) => {
-    const cs = dk.official ? orig : mine.filter((c) => c.deck === dk.id);
+    const cs = deckPool(dk, orig, mine);
     return { id: dk.id, dk, w: cs.filter((c) => c.color === "w").length, b: cs.filter((c) => c.color === "b").length };
   });
   const sum = el("p", { class: "dpk-sum", role: "status" });
@@ -820,39 +826,199 @@ function deckMenu(dk, deckId) {
   const removable = !dk.official && dk.id !== "senza";
   openMenu(dk.name, [
     !dk.official ? { label: "Rinomina", run: () => openDeckForm(dk, () => cardsScreen({ keep: true })) } : null,
-    !dk.official ? { label: "Condividi o importa", run: () => openPackSheet(dk, deckId) } : null,
+    { label: "Condividi o importa", run: () => openPackSheet(dk, deckId) },
     dk.official && hidden ? { label: `Ripristina ${hidden} carte eliminate`, run: () => { const y = loadCustom(); y.hidden = {}; saveCustom(y); cardsScreen(); } } : null,
     removable ? { label: "Elimina mazzo", danger: true, run: () => deleteDeck(dk) } : null,
   ]);
 }
 
-// Condividi o importa: stesso formato nei due sensi, una frase per riga (con ____ per la nera). Niente codice.
+// ---- Passare un mazzo a un altro telefono con un codice breve: niente file, niente messaggi troppo lunghi.
+// Il mazzo si carica su Firebase (decks/<codice>) e dura 14 giorni; l'altro telefono scrive il codice e lo riceve.
+const DECK_CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+const DECK_CODE_LEN = 6;
+const DECK_SHARE_DAYS = 14;
+const DECK_SHARE_MAX = 1500;
+const SENT_KEY = "cah-decks-sent";
+// Oltre questa lunghezza un messaggio di testo rischia di essere tagliato o rifiutato.
+const LONG_TEXT = 3500;
+
+const withTimeout = (p, ms = NET_TIMEOUT_MS) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error("La rete non risponde. Riprova.")), ms))]);
+const shareError = (e) => /permission|denied/i.test(String(e?.code ?? e?.message ?? ""))
+  ? "Il servizio dei codici non è attivo. Copia le frasi qui sotto, oppure riprova più tardi."
+  : String(e?.message || "Qualcosa è andato storto. Riprova.");
+const sentDecks = () => {
+  try { const a = JSON.parse(localStorage.getItem(SENT_KEY) || "[]"); return Array.isArray(a) ? a.filter((x) => x && typeof x.code === "string") : []; } catch { return []; }
+};
+const saveSent = (a) => { try { localStorage.setItem(SENT_KEY, JSON.stringify(a.slice(-30))); } catch { /* niente storage: si perde solo la pulizia */ } };
+
+/** Le carte di un mazzo come si mandano: testo pulito, e la categoria per le bianche. */
+function packOf(dk) {
+  const { orig, mine } = allCards();
+  const cards = deckPool(dk, orig, mine);
+  return {
+    name: dk.name,
+    white: cards.filter((c) => c.color === "w").map((c) => [c.text, c.cat]),
+    black: cards.filter((c) => c.color === "b").map((c) => c.text),
+  };
+}
+
+/** Carica il mazzo e restituisce il codice. @param {{name: string, white: any[], black: any[]}} pack */
+async function sendDeckCode(pack) {
+  initNet();
+  if (!fbDb) throw new Error("Serve la rete: il servizio non è disponibile su questo telefono.");
+  const total = pack.white.length + pack.black.length;
+  if (!total) throw new Error("Il mazzo è vuoto.");
+  if (total > DECK_SHARE_MAX) throw new Error(`Troppe carte (${total}): ne entrano al massimo ${DECK_SHARE_MAX}.`);
+  // I codici miei più vecchi di 14 giorni si tolgono ora: nessun altro li può più usare.
+  const keep = [];
+  for (const x of sentDecks()) {
+    if (Date.now() - x.t > DECK_SHARE_DAYS * 864e5) fbDb.ref(`decks/${x.code}`).remove().catch(() => {});
+    else keep.push(x);
+  }
+  let code = "";
+  for (let tries = 0; tries < 8; tries++) {
+    code = Array.from({ length: DECK_CODE_LEN }, () => DECK_CODE_CHARS[Math.floor(Math.random() * DECK_CODE_CHARS.length)]).join("");
+    const snap = await withTimeout(fbDb.ref(`decks/${code}`).once("value"));
+    if (!snap.exists()) break;
+  }
+  await withTimeout(fbDb.ref(`decks/${code}`).set({ v: 1, created: Date.now(), name: pack.name, white: pack.white, black: pack.black }));
+  saveSent([...keep, { code, t: Date.now() }]);
+  return code;
+}
+
+/** Toglie il mazzo dal servizio: il codice smette di funzionare. */
+async function retractDeckCode(code) {
+  initNet();
+  if (fbDb) await withTimeout(fbDb.ref(`decks/${code}`).remove());
+  saveSent(sentDecks().filter((x) => x.code !== code));
+}
+
+/** Scarica il mazzo del codice e lo salva come mazzo nuovo. @returns {Promise<{id: string, name: string, w: number, b: number}>} */
+async function receiveDeck(raw) {
+  const code = String(raw).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (code.length !== DECK_CODE_LEN) throw new Error(`Il codice ha ${DECK_CODE_LEN} caratteri.`);
+  initNet();
+  if (!fbDb) throw new Error("Serve la rete: il servizio non è disponibile su questo telefono.");
+  const v = (await withTimeout(fbDb.ref(`decks/${code}`).once("value"))).val();
+  if (!v || typeof v !== "object") throw new Error("Codice non trovato. Controlla di averlo scritto giusto.");
+  if (Date.now() - Number(v.created || 0) > DECK_SHARE_DAYS * 864e5) throw new Error("Codice scaduto: chiedi di crearne uno nuovo.");
+  const list = (x) => (Array.isArray(x) ? x : x && typeof x === "object" ? Object.values(x) : []);
+  const x = loadCustom();
+  const name = String(v.name || "").replace(/\s+/g, " ").trim().slice(0, 30) || "Mazzo ricevuto";
+  const id = `m${Date.now().toString(36)}`;
+  const seen = new Set();
+  let w = 0, b = 0;
+  const add = (text0, cat0, wantBlack) => {
+    const text = normBlanks(String(text0 ?? "").replace(/\s+/g, " ").trim().slice(0, 200));
+    if (!text || seen.has(text.toLowerCase()) || w + b >= DECK_SHARE_MAX) return;
+    if (wantBlack || hasBlank(text)) {
+      const t = text.includes("____") ? text : `${text} ____`;
+      if (t.split("____").length - 1 > 3) return;
+      seen.add(text.toLowerCase());
+      x.black.push({ text: t, cat: blackCatFor(t), deck: id });
+      b++;
+    } else {
+      seen.add(text.toLowerCase());
+      x.white.push({ text, cat: validCat(cat0, "w") ? cat0 : defaultCat("w"), deck: id });
+      w++;
+    }
+  };
+  for (const c of list(v.white)) add(Array.isArray(c) ? c[0] : c?.text, Array.isArray(c) ? c[1] : c?.cat, false);
+  for (const c of list(v.black)) add(Array.isArray(c) ? c[0] : c?.text ?? c, null, true);
+  if (!w && !b) throw new Error("Il mazzo ricevuto è vuoto.");
+  x.decks.push({ id, name, use: true });
+  saveCustom(x);
+  return { id, name, w, b };
+}
+
+async function copyText(text, okMsg, field = null) {
+  try { await navigator.clipboard.writeText(text); toast(okMsg); return; } catch { /* ripiego sotto */ }
+  const box = field ?? el("textarea", { readonly: "", style: "position:fixed;opacity:0;pointer-events:none" });
+  if (!field) { box.value = text; document.body.append(box); }
+  box.focus(); box.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch { ok = false; }
+  if (!field) box.remove();
+  toast(ok ? okMsg : "Tieni premuto sul testo, poi copia");
+}
+
+// "Ricevi mazzo": si scrive il codice, il mazzo arriva come mazzo nuovo.
+function openReceiveSheet() {
+  let bg;
+  const close = () => closeSheet(bg);
+  const input = el("input", { type: "text", class: "code-input", maxlength: "10", autocapitalize: "characters", autocomplete: "off",
+    spellcheck: "false", inputmode: "text", placeholder: "K7M2QX", "aria-label": "Codice del mazzo" });
+  const msg = el("p", { class: "hidden-msg", role: "status" }, "Scrivi il codice di 6 caratteri che ti hanno mandato.");
+  const go = el("button", { type: "button", class: "primary" }, "Ricevi il mazzo");
+  const run = async () => {
+    go.disabled = true; go.textContent = "Cerco il mazzo…"; msg.classList.remove("err");
+    try {
+      const r = await receiveDeck(input.value);
+      close();
+      cardsView.deck = r.id; cardsView.tab = "white"; cardsView.cat = "Tutte"; cardsView.q = "";
+      Sound.play("saved");
+      toast(`Mazzo «${r.name}» ricevuto: ${r.w} bianche, ${r.b} nere`);
+      cardsScreen();
+    } catch (e) {
+      msg.textContent = shareError(e); msg.classList.add("err");
+      go.disabled = false; go.textContent = "Ricevi il mazzo";
+    }
+  };
+  go.onclick = run;
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") run(); });
+  bg = openSheet({ title: "Ricevi un mazzo", body: [input, msg], actions: [cancelBtn(close), go] });
+  input.focus({ preventScroll: true });
+}
+
+// Condividi o importa. Per un altro telefono: un codice. Per il testo: una frase per riga (con ____ per la nera), nei due sensi.
 function openPackSheet(dk, deckId) {
   let bg;
   const close = () => closeSheet(bg);
   const packText = () => {
-    const d = loadCustom();
-    return [...d.white, ...d.black].filter((c) => c.deck === deckId)
-      .map((c) => String(c.text).replace(/\s+/g, " ").trim()).filter(Boolean).join("\n");
+    const p = packOf(dk);
+    return [...p.white.map((c) => c[0]), ...p.black].map((t) => String(t).replace(/\s+/g, " ").trim()).filter(Boolean).join("\n");
   };
-  const exportBox = el("textarea", { class: "pack-text", rows: "6", readonly: "", "aria-label": "Frasi del mazzo",
+
+  // Codice per un altro telefono.
+  const codeArea = el("div", { class: "code-area" });
+  const retract = async (code) => {
+    try { await retractDeckCode(code); toast("Codice ritirato"); showStart(); } catch (e) { toast(shareError(e)); }
+  };
+  const showCode = (code) => codeArea.replaceChildren(
+    el("div", { class: "code-big", "aria-label": `Codice ${code.split("").join(" ")}` }, code),
+    el("p", { class: "hidden-msg" }, "Mandalo con un messaggio. Sull'altro telefono: Mazzi, Ricevi mazzo. Dura 14 giorni."),
+    el("div", { class: "actions" },
+      el("button", { type: "button", class: "ghost", onclick: () => retract(code) }, "Ritira il codice"),
+      el("button", { type: "button", class: "primary", onclick: () => copyText(code, "Codice copiato") }, "Copia il codice")));
+  const make = async (ev) => {
+    const btn = ev.currentTarget;
+    btn.disabled = true; btn.textContent = "Carico il mazzo…";
+    try { showCode(await sendDeckCode(packOf(dk))); } catch (e) { showStart(shareError(e)); }
+  };
+  function showStart(problem = "") {
+    codeArea.replaceChildren(...[
+      el("p", { class: "hidden-msg" }, "Crea un codice di 6 caratteri e mandalo con un messaggio: l'altro telefono lo scrive e riceve il mazzo."),
+      problem ? el("p", { class: "hidden-msg err", role: "alert" }, problem) : null,
+      el("button", { type: "button", class: "primary", onclick: make }, "Crea il codice"),
+    ].filter(Boolean));
+  }
+  showStart();
+
+  // Testo.
+  const exportBox = el("textarea", { class: "pack-text", rows: "5", readonly: "", "aria-label": "Frasi del mazzo",
     placeholder: "Nessuna carta in questo mazzo" });
   exportBox.value = packText();
-  const copy = async () => {
-    const text = exportBox.value;
-    if (!text) { toast("Il mazzo è vuoto"); return; }
-    try { await navigator.clipboard.writeText(text); toast("Frasi copiate"); return; } catch { /* ripiego sotto */ }
-    exportBox.focus(); exportBox.select();
-    let ok = false;
-    try { ok = document.execCommand("copy"); } catch { ok = false; }
-    toast(ok ? "Frasi copiate" : "Premi Seleziona tutto, poi copia");
-  };
-  const pasteIn = el("textarea", { class: "pack-text", rows: "6", placeholder: "Una frase per riga\nCon ____ diventa una nera",
+  const copy = () => { if (!exportBox.value) { toast("Il mazzo è vuoto"); return; } copyText(exportBox.value, "Frasi copiate", exportBox); };
+  const long = exportBox.value.length > LONG_TEXT;
+  const pasteIn = el("textarea", { class: "pack-text", rows: "5", placeholder: "Una frase per riga\nCon ____ diventa una nera",
     "aria-label": "Frasi da incollare" });
   bg = openSheet({
     title: `Mazzo ${dk.name}`,
     body: [
-      el("span", { class: "label" }, "Copia"),
+      el("span", { class: "label" }, "A un altro telefono"),
+      codeArea,
+      el("span", { class: "label" }, "Come testo"),
+      long ? el("p", { class: "hidden-msg" }, `Sono ${exportBox.value.length.toLocaleString("it-IT")} caratteri: in un messaggio rischiano di essere tagliati. Meglio il codice.`) : null,
       exportBox,
       el("div", { class: "actions" }, el("button", { type: "button", class: "ghost", onclick: copy }, "Copia le frasi")),
       el("span", { class: "label" }, "Incolla"),
@@ -938,7 +1104,7 @@ function renderDecks() {
   const { orig, mine } = allCards();
   // Ogni mazzo è una carta della stessa famiglia della home: il base in nero, i personali in crema.
   const tile = (dk) => {
-    const cards = dk.official ? orig : mine.filter((c) => c.deck === dk.id);
+    const cards = deckPool(dk, orig, mine);
     const nW = cards.filter((c) => c.color === "w").length;
     const nB = cards.filter((c) => c.color === "b").length;
     const go = () => { v.deck = dk.id; v.tab = "white"; v.cat = "Tutte"; v.q = ""; cardsScreen(); };
@@ -957,7 +1123,9 @@ function renderDecks() {
       el("button", { type: "button", class: "ghost back", onclick: () => { homeTab = "home"; setup(); } }, "← Home"),
       el("div", { class: "head-row" },
         el("h2", { class: "display" }, "Mazzi"),
-        el("button", { type: "button", class: "add", onclick: () => openDeckForm(null, (id) => { cardsView.deck = id; cardsScreen(); }) }, "+ Nuovo mazzo"))),
+        el("div", { class: "head-actions" },
+          el("button", { type: "button", class: "add", onclick: openReceiveSheet }, "Ricevi mazzo"),
+          el("button", { type: "button", class: "add", onclick: () => openDeckForm(null, (id) => { cardsView.deck = id; cardsScreen(); }) }, "+ Nuovo mazzo")))),
     el("p", { class: "hidden-msg" }, "Tocca un mazzo per modificarne le carte. L'interruttore decide se entra nelle partite."),
     el("div", { class: "deck-list" }, decksList().map(tile))));
 }
@@ -968,7 +1136,7 @@ function renderDeck(deckId, partial = false) {
   const v = cardsView;
   const dk = decksList().find((x) => x.id === deckId);
   const { orig, mine } = allCards();
-  const pool = dk.official ? orig : mine.filter((c) => c.deck === deckId);
+  const pool = deckPool(dk, orig, mine);
   const color = v.tab === "black" ? "b" : "w";
   let list = pool.filter((c) => c.color === color);
   if (v.cat !== "Tutte") list = list.filter((c) => c.cat === v.cat);
@@ -1003,7 +1171,7 @@ function renderDeck(deckId, partial = false) {
       el("button", { type: "button", class: "ghost", "aria-label": "Opzioni del mazzo", onclick: () => deckMenu(dk, deckId) }, "Opzioni")),
     el("div", { class: "deck-title" },
       el("h2", { class: "display" }, dk.name),
-      el("span", { class: "label" }, dk.official ? "Carte ufficiali" : `${count("w")} bianche · ${count("b")} nere`)),
+      el("span", { class: "label" }, dk.official ? `Carte ufficiali · ${count("w")} bianche · ${count("b")} nere` : `${count("w")} bianche · ${count("b")} nere`)),
     search);
 
   const body = el("div", { class: "deck-body" },
@@ -1015,7 +1183,7 @@ function renderDeck(deckId, partial = false) {
         : dk.official ? "Nessuna carta." : "Il mazzo è vuoto. Premi + per aggiungere una carta."));
 
   // Pulsante per aggiungere: sempre in basso a destra, come in tutte le schermate di gestione.
-  const fab = dk.official ? null : el("button", { type: "button", class: "fab", "aria-label": "Nuova carta",
+  const fab = el("button", { type: "button", class: "fab", "aria-label": "Nuova carta",
     onclick: () => openCardForm({ deckId, done: (c) => { v.tab = c === "b" ? "black" : "white"; v.cat = "Tutte"; v.q = ""; cardsScreen(); } }) }, "+");
 
   const current = /** @type {HTMLElement|null} */ (app.querySelector(".deck-shell"));
@@ -2064,7 +2232,7 @@ function hostConn(id) {
 
 function startHosting(code) {
   hostCode = code;
-  hostRoom = createRoomHost({ cards: CARDS, turnSeconds: 60, onRoomGone: () => {} });
+  hostRoom = createRoomHost({ cards: withOverrides(CARDS), turnSeconds: 60, onRoomGone: () => {} });
   hostSelf = hostRoom.connection(netId(), (raw) => { try { onMessage(JSON.parse(raw)); } catch { /* ignorato */ } });
   const base = fbDb.ref(`rooms/${code}`);
   base.child("inbox").on("child_added", (snap) => {
@@ -2577,6 +2745,12 @@ html, body, p, button, input, textarea, h1, h2 { hyphens: none !important; -webk
 .pack-row { display: flex; gap: 10px; }
 .pack-text { width: 100%; box-sizing: border-box; min-height: 120px; padding: 12px 14px; font: inherit; font-size: 15px; line-height: 1.45; color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 14px; resize: vertical; }
 .pack-text::placeholder { color: var(--muted); }
+.head-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0 16px; }
+.head-actions .add { white-space: nowrap; }
+.code-area { display: flex; flex-direction: column; gap: 10px; }
+.code-big { font-size: 34px; font-weight: 800; letter-spacing: .22em; text-align: center; padding: 14px 10px 14px 20px; border: 2px dashed var(--line); border-radius: 14px; background: var(--paper); user-select: all; -webkit-user-select: all; }
+.card-form input.code-input { font-size: 24px; font-weight: 700; letter-spacing: .25em; text-align: center; text-transform: uppercase; padding: 12px; }
+.card-form .hidden-msg.err { color: var(--accent-ink, var(--accent)); }
 .net-banner { position: fixed; z-index: 90; top: calc(env(safe-area-inset-top, 0px) + 10px); left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
   padding: 10px 14px; border-radius: 14px; background: var(--accent); color: #1a130f; font-size: 14px; font-weight: 700; text-align: center; box-shadow: 0 10px 24px -12px #000c; animation: fade .2s both; }
 .pack-text[readonly] { color: var(--fg); }

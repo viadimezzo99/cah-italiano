@@ -653,7 +653,22 @@ const MASS_NOUNS = new Set(["tetano", "smegma", "alcolismo", "allattamento", "cr
   "sovracompensazione", "razzismo", "sesso", "carisma", "violenza", "pubertà", "obesità", "scienza", "agricoltura", "lebbra",
   "incesto", "masturbazione", "repressione", "speranza", "seduzione", "lievito", "stupidità", "nudità", "selezione",
   "riscaldamento", "suffragio", "musica", "pulizia", "distruzione", "fuoco", "disgusto", "ascolto", "carne", "tensione", "sessismo",
-  "nazismo", "fascismo", "bullismo", "odio", "rabbia", "violenza"]);
+  "nazismo", "fascismo", "bullismo", "odio", "rabbia",
+  // Stati d'animo, vizi, qualità, malattie, sostanze, materie: con "un" suonano male, col partitivo no ("della pigrizia").
+  "ansia", "pigrizia", "imbarazzo", "frustrazione", "tristezza", "noia", "depressione", "vergogna", "gelosia", "solitudine",
+  "nostalgia", "malinconia", "ira", "panico", "stress", "entusiasmo", "euforia", "fiducia", "pazienza", "coraggio", "sfortuna",
+  "pace", "amore", "rispetto", "ignoranza", "intelligenza", "bellezza", "cattiveria", "bontà", "onestà", "arroganza", "avidità",
+  "lussuria", "gola", "superbia", "vanità", "umiltà", "ipocrisia", "corruzione", "burocrazia", "politica", "economia",
+  "matematica", "religione", "filosofia", "letteratura", "tecnologia", "informatica", "fame", "sete", "sonno", "stanchezza",
+  "fatica", "salute", "malattia", "raffreddore", "diabete", "tubercolosi", "anoressia", "bulimia", "insonnia", "sangue",
+  "sudore", "sperma", "saliva", "urina", "piscio", "vomito", "diarrea", "pus", "muco", "forfora", "sporcizia", "polvere", "fango",
+  "ruggine", "sabbia", "ghiaccio", "neve", "nebbia", "fumo", "smog", "inquinamento", "elettricità", "benzina", "petrolio",
+  "plastica", "cemento", "colla", "glitter", "alcol", "cocaina", "eroina", "marijuana", "cannabis", "metanfetamina", "nicotina",
+  "caffeina", "miele", "zucchero", "burro", "aceto"]);
+// Parole in -ismo, -fobia, -filia, -itudine: quasi sempre astratte ("il cinismo", "la xenofobia"); le poche contabili sono escluse.
+const MASS_SUFFIX = /^\p{L}{3,}(ismo|ofobia|filia|itudine)$/u;
+const MASS_SUFFIX_EXCEPT = new Set(["organismo", "meccanismo", "aforismo", "battesimo", "sismo", "attitudine", "latitudine", "altitudine", "longitudine", "abitudine"]);
+const isMassWord = (w) => MASS_NOUNS.has(w) || (MASS_SUFFIX.test(w) && !MASS_SUFFIX_EXCEPT.has(w));
 // Nomi propri o rituali che con il partitivo suonano male ("della Scientology"): restano con il determinativo.
 const MASS_DEFINITE_ONLY = new Set(["scientology", "seppuku", "aids", "herpes", "viagra"]);
 // Risposta che inizia con un determinante ("quel tipo", "questa pizza", "due cani"): la preposizione non si contrae ("di quel tipo").
@@ -978,7 +993,7 @@ function phaseNounAgreement(st, sl) {
   const afterPrep = /(^|\s)(di|a|da|in|su|con|per|tra|fra|senza|contro|dopo|verso|sotto|sopra|oltre|durante|presso|lungo|entro)\s*$/i.test(sl.before) || (i === 0 && QUESTION_PREP.test(blackText));
   const blackArt = /(^|\s)(un|uno|una|un'|il|lo|la|l'|i|gli|le)\s*$/i.test(sl.before);
   // Nomi di massa o astratti: senza articolo nella carta prendono il determinativo ("il tetano"), non "un tetano".
-  const massNoun = !hasArt && !det && MASS_NOUNS.has(firstWord(stripped).toLowerCase());
+  const massNoun = !hasArt && !det && isMassWord(firstWord(stripped).toLowerCase());
   // Soggetto plurale davanti al verbo ("i batteri sono vietati"): articolo determinativo, non il partitivo ("dei batteri sono vietati").
   // Anche con più soggetti uniti da "e" / virgola prima del verbo: "____ e ____ sono vietati".
   const subjectBeforeVerb = () => {
@@ -997,8 +1012,10 @@ function phaseNounAgreement(st, sl) {
   // Dopo la copula ("è la speranza", non "è della speranza": quello vorrebbe dire "appartiene") e davanti a "contro" ("il sexting contro lo sniffare colla").
   const afterCopula = /(^|\s)(è|era|fu|sarà|sarebbe|sembra|diventa|resta|rimane)\s*$/i.test(sl.before);
   const versus = /^\s*(contro|vs\.?)\s/i.test(parts[i + 1] ?? "");
-  const massDef = preverbal || afterPrep || blackArt || afterCopula || versus || answerDef || /^\s*,?\s*(soltanto|solo|proprio)\s+quest[oa]\b/i.test(parts[i + 1] ?? "") || MASS_DEFINITE_ONLY.has(firstWord(stripped).toLowerCase());
-  const kindNow = massNoun ? (massDef ? "def" : "part") : (kind ?? ((cue ?? own.n) === "p" && !afterPrep && !blackArt ? (preverbal || answerDef ? "def" : "indef") : undefined));
+  // Dopo una negazione nella stessa frase il partitivo suona male ("non sopporta della pigrizia"): vuole il determinativo.
+  const negated = /(^|[.!?;:]\s*|\s)non\s[^.,;:?!]*$/i.test(sl.before);
+  const massDef = preverbal || afterPrep || blackArt || afterCopula || versus || answerDef || negated || /^\s*,?\s*(soltanto|solo|proprio)\s+quest[oa]\b/i.test(parts[i + 1] ?? "") || MASS_DEFINITE_ONLY.has(firstWord(stripped).toLowerCase());
+  const kindNow = massNoun ? (massDef ? "def" : "part") : (kind ?? ((cue ?? own.n) === "p" && !afterPrep && !blackArt ? (preverbal || answerDef || negated ? "def" : "indef") : undefined));
   // Dopo una preposizione semplice il nome nudo non prende "uno/un": ci pensa la contrazione ("allo stupro").
   const bareAfterPrep = !hasArt && (/(^|\s)(a|di|da|in|su)\s*$/i.test(sl.before) || (i === 0 && QUESTION_PREP.test(blackText)));
   // Con la domanda prima ("Di cosa ...? ") la risposta resta minuscola: la preposizione della domanda la introduce.
