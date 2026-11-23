@@ -51,7 +51,7 @@ test("elisione davanti a vocale", () => {
 });
 
 test("senza articolo non cambia nulla", () => {
-  assert.equal(sentencePlain("Si, ho ucciso ____ Ti domandi come? ____", ["Tetano.", "Rosso relativo."]), "Si, ho ucciso il tetano Ti domandi come? Un rosso relativo.");
+  assert.equal(sentencePlain("Si, ho ucciso ____ Ti domandi come? ____", ["Tetano.", "Rosso relativo."]), "Si, ho ucciso del tetano Ti domandi come? Un rosso relativo.");
 });
 
 test("la risposta con articolo non raddoppia l'articolo", () => {
@@ -113,7 +113,7 @@ test("di + un ragno: del ragno", () => {
 });
 
 test("carta bianca che è un nome proprio dopo 'a' non crea errori di articolo", () => {
-  assert.equal(sentencePlain("Oggi ho visto ____.", ["Carisma."]), "Oggi ho visto un carisma.");
+  assert.equal(sentencePlain("Oggi ho visto ____.", ["Carisma."]), "Oggi ho visto del carisma.");
 });
 
 test("il cuore resta cuore al singolare (non 'cuor')", () => {
@@ -169,8 +169,8 @@ test("nomi integrati a mano: genere e plurale corretti", () => {
   assert.equal(sentencePlain("Oggi ho visto ____.", ["Caccole."]), "Oggi ho visto delle caccole.");
 });
 
-test("nome di massa senza articolo prende il determinativo: il tetano", () => {
-  assert.equal(sentencePlain("Oggi ho visto ____.", ["Tetano."]), "Oggi ho visto il tetano.");
+test("nome di massa senza articolo prende il partitivo: del tetano", () => {
+  assert.equal(sentencePlain("Oggi ho visto ____.", ["Tetano."]), "Oggi ho visto del tetano.");
 });
 
 test("infinito sconosciuto come soggetto: resta invariato", () => {

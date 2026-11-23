@@ -55,7 +55,7 @@ const GOLD = [
   ["'uno' del testo fisso, femminile", "Ecco la mia offerta: ____. Scommetto che non ne desideri soltanto uno!", ["Allusione sul ceto sociale."], "Ecco la mia offerta: un'allusione sul ceto sociale. Scommetto che non ne desideri soltanto una!"],
   ["'uno' del testo fisso, maschile", "Ecco la mia offerta: ____. Scommetto che non ne desideri soltanto uno!", ["Neonati morti."], "Ecco la mia offerta: dei neonati morti. Scommetto che non ne desideri soltanto uno!"],
   ["'questo' del testo fisso, plurale", "Per il mio compleanno: ____, soltanto questo.", ["Centauri."], "Per il mio compleanno: dei centauri, soltanto questi."],
-  ["'questo' del testo fisso, femminile", "Per il mio compleanno: ____, soltanto questo.", ["Stupidità incomprensibile."], "Per il mio compleanno: una stupidità incomprensibile, soltanto questa."],
+  ["'questo' del testo fisso, femminile", "Per il mio compleanno: ____, soltanto questo.", ["Stupidità incomprensibile."], "Per il mio compleanno: la stupidità incomprensibile, soltanto questa."],
 
   // --- Infinito: dopo preposizione serve l'articolo; con i pronomi attaccati resta un infinito
   ["infinito dopo 'contro'", "Nel nuovo film della Disney, Hannah Montana si scontra per la prima volta contro ____", ["Rimorchiare ragazze all'ospedale dopo un aborto."], "Nel nuovo film della Disney, Hannah Montana si scontra per la prima volta contro il rimorchiare ragazze all'ospedale dopo un aborto."],
@@ -99,8 +99,8 @@ const GOLD = [
   ["infinito dopo 'a' (verbo che regge a)", "È un peccato che i ragazzini al giorno d'oggi partecipino a ____", ["Barare alle Paraolimpiadi."], "È un peccato che i ragazzini al giorno d'oggi partecipino a barare alle Paraolimpiadi"],
 
   // --- Secondo giro di revisione (campione a occhio cieco): difetti trovati e corretti
-  ["nome proprio inglese con 'of' resta maiuscolo", "Per il mio prossimo numero, ____ farà ridere e ____ farà piangere.", ["World of Warcraft.", "Sesso a sorpresa."], "Per il mio prossimo numero, World of Warcraft farà ridere e un sesso a sorpresa farà piangere."],
-  ["intestazione 'Passo 2:' non è un aggettivo", "Passo 1: ____ Passo 2: ____ Passo 3: Guadagno!", ["Selezione naturale.", "Spassarsela."], "Passo 1: una selezione naturale Passo 2: spassarsela Passo 3: Guadagno!"],
+  ["nome proprio inglese con 'of' resta maiuscolo", "Per il mio prossimo numero, ____ farà ridere e ____ farà piangere.", ["World of Warcraft.", "Sesso a sorpresa."], "Per il mio prossimo numero, World of Warcraft farà ridere e il sesso a sorpresa farà piangere."],
+  ["intestazione 'Passo 2:' non è un aggettivo", "Passo 1: ____ Passo 2: ____ Passo 3: Guadagno!", ["Selezione naturale.", "Spassarsela."], "Passo 1: della selezione naturale Passo 2: spassarsela Passo 3: Guadagno!"],
   ["'fino' non concorda", "Ho bevuto ____ fino all'ultima goccia.", ["Un'antilope che soffre di flatulenza."], "Ho bevuto un'antilope che soffre di flatulenza fino all'ultima goccia."],
   ["sigla in maiuscolo dopo 'a'", "Hai mai pensato a ____? C'è un'app per quello.", ["AIDS."], "Hai mai pensato ad AIDS? C'è un'app per quello."],
   ["sigla in maiuscolo con l'articolo", "Sul curriculum, alla voce hobby: ____.", ["AIDS."], "Sul curriculum, alla voce hobby: l'AIDS."],
@@ -121,6 +121,19 @@ const GOLD = [
   ["quantificatore singolare senza articolo (troppo gel)", "Ieri ho bevuto troppo ____ per capelli.", ["Il gel."], "Ieri ho bevuto troppo gel per capelli."],
   ["plurale per natura (Amish): verbo plurale", "____ sono stati il mio regalo.", ["Amish."], "Gli amish sono stati il mio regalo."],
   ["nome che il lessico dà come aggettivo (mutilati)", "Nel regolamento è scritto: ____ è vietato.", ["Mutilati."], "Nel regolamento è scritto: i mutilati sono vietati."],
+  // --- Nomi di massa e astratti: partitivo, non "un"
+  ["nome astratto come complemento: partitivo", "Ho scoperto ____ nel mio armadio.", ["Razzismo."], "Ho scoperto del razzismo nel mio armadio."],
+  ["nome di massa con aggettivi: partitivo", "Alla fiera del paese ho comprato ____.", ["Sesso orale non ricambiato."], "Alla fiera del paese ho comprato del sesso orale non ricambiato."],
+  ["nome di massa in un elenco: partitivo come il plurale", "Ingredienti: ____, ____ e una spruzzata di ____.", ["Carisma.", "Mutilati.", "Selezione naturale."], "Ingredienti: del carisma, dei mutilati e una spruzzata di selezione naturale."],
+  ["nome di massa come soggetto: determinativo", "Da oggi, sugli aerei, ____ è vietato.", ["Razzismo."], "Da oggi, sugli aerei, il razzismo è vietato."],
+  ["più soggetti prima del verbo: determinativo", "Nel regolamento è scritto: ____ e ____ sono vietati.", ["Razzismo.", "Mutilati."], "Nel regolamento è scritto: il razzismo e i mutilati sono vietati."],
+  ["risposta a 'Qual è': determinativo (massa)", "Qual è il mio antidroga? ____", ["Carisma."], "Qual è il mio antidroga? Il carisma."],
+  ["risposta a 'Qual è': determinativo (plurale)", "Qual è il mio antidroga? ____", ["Mutilati."], "Qual è il mio antidroga? I mutilati."],
+  ["risposta a 'Cosa': partitivo", "Cosa ho portato dal Messico? ____", ["Razzismo."], "Cosa ho portato dal Messico? Del razzismo."],
+  ["dopo preposizione: determinativo contratto", "Il mio ex mi ha lasciato per colpa di ____.", ["Razzismo."], "Il mio ex mi ha lasciato per colpa del razzismo."],
+  ["dopo la copula: determinativo", "Il colpo di scena finale: è ____, ma in realtà è ____.", ["Speranza.", "Una disfunzione erettile."], "Il colpo di scena finale: è la speranza, ma in realtà è una disfunzione erettile."],
+  ["'X contro Y': determinativo", "Il nuovo reality show: ____ contro ____, e vince chi resiste di più.", ["Sexting.", "Sniffare colla."], "Il nuovo reality show: il sexting contro lo sniffare colla, e vince chi resiste di più."],
+  ["nome astratto numerabile resta indeterminativo", "Ho scoperto ____ nel mio armadio.", ["Stupro su appuntamento."], "Ho scoperto uno stupro su appuntamento nel mio armadio."],
 ];
 
 for (const [title, black, whites, expected] of GOLD) {

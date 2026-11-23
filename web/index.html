@@ -2037,7 +2037,12 @@ const DET_FAMILIES = [["questo", "questa", "questi", "queste"], ["quel", "quella
 // Nomi di massa o astratti (niente "un" davanti): "il tetano", "lo smegma".
 const MASS_NOUNS = new Set(["tetano", "smegma", "alcolismo", "allattamento", "creazionismo", "autocannibalismo", "petting",
   "eugenetica", "necrofilia", "scientology", "herpes", "flato", "invidia", "sexting", "viagra", "bukkake", "aids", "seppuku",
-  "sovracompensazione"]);
+  "sovracompensazione", "razzismo", "sesso", "carisma", "violenza", "pubertà", "obesità", "scienza", "agricoltura", "lebbra",
+  "incesto", "masturbazione", "repressione", "speranza", "seduzione", "lievito", "stupidità", "nudità", "selezione",
+  "riscaldamento", "suffragio", "musica", "pulizia", "distruzione", "fuoco", "disgusto", "ascolto", "carne", "tensione", "sessismo",
+  "nazismo", "fascismo", "bullismo", "odio", "rabbia", "violenza"]);
+// Nomi propri o rituali che con il partitivo suonano male ("della Scientology"): restano con il determinativo.
+const MASS_DEFINITE_ONLY = new Set(["scientology", "seppuku", "aids", "herpes", "viagra"]);
 // Risposta che inizia con un determinante ("quel tipo", "questa pizza", "due cani"): la preposizione non si contrae ("di quel tipo").
 const DET_START = /^(questo|questa|questi|queste|quest'|quel|quello|quella|quei|quegli|quelle|mio|mia|miei|mie|tuo|tua|tuoi|tue|suo|sua|suoi|sue|nostro|nostra|nostri|nostre|vostro|vostra|vostri|vostre|loro|ogni|alcuni|alcune|qualche|nessun|nessuno|nessuna|molto|molti|molte|poco|pochi|poche|tanto|tanti|tante|troppo|troppi|troppe|parecchi|parecchie|due|tre|quattro|cinque|sei|sette|otto|nove|dieci)\s/iu;
 function fixDeterminer(before, g, n) {
@@ -2082,6 +2087,7 @@ function nounPhrase(text, atStart, opts = {}) {
     const kind = opts.kind || (n === "s" ? "indef" : "def");
     let art;
     if (kind === "def") art = defForm(info.g, n, next, null);
+    else if (kind === "part" && n === "s") art = CONTRACT.di[defForm(info.g, "s", next, null)];
     else art = indefForm(info.g, n, next);
     out = (art.endsWith("'") ? art : art + " ") + noun;
   }
@@ -2361,8 +2367,23 @@ function phaseNounAgreement(st, sl) {
   // Nomi di massa o astratti: senza articolo nella carta prendono il determinativo ("il tetano"), non "un tetano".
   const massNoun = !hasArt && !det && MASS_NOUNS.has(firstWord(stripped).toLowerCase());
   // Soggetto plurale davanti al verbo ("i batteri sono vietati"): articolo determinativo, non il partitivo ("dei batteri sono vietati").
-  const preverbal = sl.isSubj && startsWithVerb(parts[i + 1] ?? "");
-  const kindNow = massNoun ? "def" : (kind ?? ((cue ?? own.n) === "p" && !afterPrep && !blackArt ? (preverbal ? "def" : "indef") : undefined));
+  // Anche con più soggetti uniti da "e" / virgola prima del verbo: "____ e ____ sono vietati".
+  const subjectBeforeVerb = () => {
+    for (let j = i + 1; j < parts.length; j++) {
+      if (startsWithVerb(parts[j] ?? "")) return true;
+      if (!/^\s*[,;]?\s*(e|ed|o|oppure)?\s*$/i.test(parts[j] ?? "")) return false;
+    }
+    return false;
+  };
+  const preverbal = sl.isSubj && subjectBeforeVerb();
+  // Risposta a "Qual è ...?", "Chi è ...?": dopo la copula la risposta ha il determinativo ("I mutilati", "Il razzismo"), non il partitivo.
+  const answerDef = /(^|[.!?]\s+)(qual[ei]?|chi|che cos['’]è|cos['’]è)\b[^?]*\?\s*$/i.test(sl.before);
+  // Nomi di massa: partitivo ("del razzismo", come "dei mutilati" al plurale); determinativo per soggetto, dopo preposizione e nelle risposte.
+  // Dopo la copula ("è la speranza", non "è della speranza": quello vorrebbe dire "appartiene") e davanti a "contro" ("il sexting contro lo sniffare colla").
+  const afterCopula = /(^|\s)(è|era|fu|sarà|sarebbe|sembra|diventa|resta|rimane)\s*$/i.test(sl.before);
+  const versus = /^\s*(contro|vs\.?)\s/i.test(parts[i + 1] ?? "");
+  const massDef = preverbal || afterPrep || blackArt || afterCopula || versus || answerDef || /^\s*,?\s*(soltanto|solo|proprio)\s+quest[oa]\b/i.test(parts[i + 1] ?? "") || MASS_DEFINITE_ONLY.has(firstWord(stripped).toLowerCase());
+  const kindNow = massNoun ? (massDef ? "def" : "part") : (kind ?? ((cue ?? own.n) === "p" && !afterPrep && !blackArt ? (preverbal || answerDef ? "def" : "indef") : undefined));
   // Dopo una preposizione semplice il nome nudo non prende "uno/un": ci pensa la contrazione ("allo stupro").
   const bareAfterPrep = !hasArt && (/(^|\s)(a|di|da|in|su)\s*$/i.test(sl.before) || (i === 0 && QUESTION_PREP.test(blackText)));
   // Con la domanda prima ("Di cosa ...? ") la risposta resta minuscola: la preposizione della domanda la introduce.
