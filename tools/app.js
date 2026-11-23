@@ -2798,6 +2798,8 @@ function fitNode(node) {
       else r = floor;   // nemmeno al minimo: resta il minimo, la carta taglia il resto
     }
   }
+  // Un filo di margine (3%): la misura esatta è al limite e un arrotondamento o un carattere diverso la farebbe uscire di un pixel.
+  if (r < 1) r *= 0.97;
   node.style.setProperty("--fit", String(r));
   node.dataset.fitSig = sig;
   return r;
@@ -2811,6 +2813,15 @@ let fitTimer = 0;
 const refit = () => { clearTimeout(fitTimer); fitTimer = window.setTimeout(() => fitText(app), 120); };
 window.addEventListener("resize", refit);
 window.addEventListener("orientationchange", refit);
+// I caratteri del gioco arrivano dalla rete dopo il primo disegno e cambiano le misure del testo: appena sono pronti si rifà tutto.
+if (document.fonts) {
+  const refitFonts = () => {
+    app.querySelectorAll("[data-fit-sig]").forEach((n) => { delete (/** @type {HTMLElement} */ (n)).dataset.fitSig; });
+    refit();
+  };
+  document.fonts.ready.then(refitFonts);
+  document.fonts.addEventListener("loadingdone", refitFonts);
+}
 document.head.append(el("style", {}, `
 /* Testi: niente trattini né parole spezzate, ovunque. */
 *, *::before, *::after { hyphens: none !important; -webkit-hyphens: none !important; }

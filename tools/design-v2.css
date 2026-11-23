@@ -346,3 +346,5 @@ button.chip { display: inline-flex; align-items: center; justify-content: center
 @container (max-width: 230px) {
   .black:has(> .combo-ctrl) .foot > span { display: none; }
 }
+/* L'ultima parola di ogni risposta sta in un blocco che non va a capo (tiene attaccata la punteggiatura): per una parola più larga della carta deve poterlo fare. */
+.black .text[data-break] .nw { white-space: normal; }
