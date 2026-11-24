@@ -743,12 +743,121 @@ function allCards() {
 }
 
 // Un'unica schermata: carte, categorie, interruttori per le proprie carte, pacchetti.
-// Griglia delle carte: 2, 4 o 6 colonne. Due dita che si avvicinano aumentano le colonne, che si allontanano le riducono.
-// Griglia delle carte: sempre due colonne. Niente zoom né cambio di colonne con le dita.
-const GRID_COLS = 2;
+// Griglia delle carte negli elenchi dei mazzi. Due dita che si allontanano ingrandiscono le carte (meno colonne), che si
+// avvicinano le rimpiccioliscono (più colonne); sul computer vale Ctrl + rotella (il pizzico del trackpad arriva così).
+const GRID_STEPS = [1, 2, 3, 4, 6];
+let gridCols = (() => { try { const v = Number(localStorage.getItem("cah-grid-cols")); return GRID_STEPS.includes(v) ? v : 2; } catch { return 2; } })();
+// Cambio di colonne: la carta che si sta guardando resta dove sta sullo schermo, e solo le carte visibili si animano.
+function regrid(node, next) {
+  const tiles = /** @type {HTMLElement[]} */ ([...node.children]);
+  const vh = window.innerHeight;
+  const before = tiles.map((t) => t.getBoundingClientRect());
+  let anchor = before.findIndex((r) => r.bottom > vh * 0.4 && r.top < vh * 0.6);
+  if (anchor < 0) anchor = before.findIndex((r) => r.bottom > 0);
+  const anchorTop = anchor >= 0 ? before[anchor].top : 0;
+  gridCols = next;
+  try { localStorage.setItem("cah-grid-cols", String(next)); } catch { /* memoria del browser non disponibile */ }
+  node.style.setProperty("--cols", String(next));
+  node.style.setProperty("--k", String(2 / next));
+  if (anchor >= 0) window.scrollBy(0, tiles[anchor].getBoundingClientRect().top - anchorTop);
+  fitText(node);
+  if (document.body.classList.contains("no-motion") || !node.animate) return;
+  tiles.forEach((t, i) => {
+    const a = before[i];
+    if (a.bottom < -vh || a.top > vh * 2) return;   // fuori dallo schermo: nessuna animazione
+    const b = t.getBoundingClientRect();
+    if (!a.width || !b.width || !b.height) return;
+    t.animate([
+      { transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width}, ${a.height / b.height})`, transformOrigin: "0 0" },
+      { transform: "none", transformOrigin: "0 0" },
+    ], { duration: 240, easing: "cubic-bezier(.2,.8,.2,1)" });
+  });
+}
 function gridNode(children) {
-  const node = el("div", { class: "cgrid", style: `--cols:${GRID_COLS};--k:${2 / GRID_COLS}` }, children);
+  const node = el("div", { class: "cgrid", style: `--cols:${gridCols};--k:${2 / gridCols}` }, children);
+  /** @param {number} dir  -1 carte più grandi, +1 più piccole */
+  const step = (dir) => {
+    const j = GRID_STEPS.indexOf(gridCols) + dir;
+    if (j >= 0 && j < GRID_STEPS.length) { regrid(node, GRID_STEPS[j]); Sound.play("tick"); }
+  };
+  const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  let d0 = 0;
+  node.addEventListener("touchstart", (e) => { if (e.touches.length === 2) d0 = dist(e.touches); }, { passive: true });
+  node.addEventListener("touchmove", (e) => {
+    if (e.touches.length !== 2 || !d0) return;
+    e.preventDefault();   // durante il pizzico la pagina non scorre
+    const d = dist(e.touches);
+    if (d > d0 * 1.3) { step(-1); d0 = d; }          // si allontanano: carte più grandi
+    else if (d < d0 * 0.77) { step(1); d0 = d; }     // si avvicinano: più carte
+  }, { passive: false });
+  node.addEventListener("touchend", (e) => { if (e.touches.length < 2) d0 = 0; }, { passive: true });
+  node.addEventListener("touchcancel", () => { d0 = 0; }, { passive: true });
+  let wheelAt = 0;
+  node.addEventListener("wheel", (e) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    if (Date.now() - wheelAt < 220) return;
+    wheelAt = Date.now();
+    step(e.deltaY < 0 ? -1 : 1);
+  }, { passive: false });
   requestAnimationFrame(() => fitText(node)); // il testo si adatta alla densità scelta
+  return node;
+}
+
+// Scorrimento rapido negli elenchi lunghi: un cursore sul bordo destro compare mentre si scorre e si trascina per salire o
+// scendere in fretta; mentre lo si trascina un cartellino dice a che carta si è ("120 / 480"). Si tocca solo il cursore:
+// il resto del bordo resta delle carte. Negli elenchi corti non compare.
+/** @type {{node: HTMLElement, setCount: (n: number) => void}|null} */
+let fastScroll = null;
+function fastScrollNode() {
+  const thumb = el("button", { type: "button", class: "fs-thumb", role: "slider", "aria-label": "Scorri l'elenco", "aria-orientation": "vertical" }, "⇅");
+  const bubble = el("div", { class: "fs-bubble", "aria-hidden": "true" });
+  const node = el("div", { class: "fs" }, thumb, bubble);
+  let count = 0, dragging = false, hideT = 0;
+  const maxScroll = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  const long = () => maxScroll() > window.innerHeight * 1.5;
+  const show = () => { if (!long()) { node.classList.remove("on"); return; } node.classList.add("on"); clearTimeout(hideT); if (!dragging) hideT = window.setTimeout(() => node.classList.remove("on"), 1500); };
+  const place = () => {
+    const room = node.clientHeight - thumb.offsetHeight;
+    const r = maxScroll() ? Math.min(1, Math.max(0, window.scrollY / maxScroll())) : 0;
+    thumb.style.transform = `translateY(${Math.round(r * room)}px)`;
+    thumb.setAttribute("aria-valuenow", String(Math.round(r * 100)));
+    bubble.style.transform = `translateY(${Math.round(r * room)}px)`;
+    if (count) bubble.textContent = `${Math.min(count, Math.round(r * (count - 1)) + 1)} / ${count}`;
+  };
+  const onScroll = () => {
+    if (!node.isConnected) { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); return; }
+    place(); show();
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+  const scrollToY = (clientY) => {
+    const r = node.getBoundingClientRect();
+    const k = Math.min(1, Math.max(0, (clientY - r.top - thumb.offsetHeight / 2) / Math.max(1, r.height - thumb.offsetHeight)));
+    window.scrollTo(0, k * maxScroll());
+  };
+  thumb.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    dragging = true;
+    thumb.setPointerCapture(e.pointerId);
+    node.classList.add("on", "drag");
+    clearTimeout(hideT);
+    Sound.play("tick");
+  });
+  thumb.addEventListener("pointermove", (e) => { if (dragging) scrollToY(e.clientY); });
+  const end = () => { if (!dragging) return; dragging = false; node.classList.remove("drag"); show(); };
+  thumb.addEventListener("pointerup", end);
+  thumb.addEventListener("pointercancel", end);
+  thumb.addEventListener("keydown", (e) => {
+    const page = window.innerHeight * 0.8;
+    const to = { ArrowUp: -120, ArrowDown: 120, PageUp: -page, PageDown: page }[e.key];
+    if (to !== undefined) { e.preventDefault(); window.scrollBy(0, to); }
+    else if (e.key === "Home") { e.preventDefault(); window.scrollTo(0, 0); }
+    else if (e.key === "End") { e.preventDefault(); window.scrollTo(0, maxScroll()); }
+  });
+  fastScroll = { node, setCount: (n) => { count = n; requestAnimationFrame(() => { place(); }); } };
+  // Appena si apre l'elenco il cursore si fa vedere un attimo, così si sa che c'è.
+  requestAnimationFrame(() => { place(); show(); });
   return node;
 }
 
@@ -1280,8 +1389,10 @@ function renderDeck(deckId, partial = false) {
   const current = /** @type {HTMLElement|null} */ (app.querySelector(".deck-shell"));
   if (partial && current && current.dataset.deck === deckId) {
     app.querySelector(".deck-body").replaceWith(body);
+    if (fastScroll && fastScroll.node.isConnected) fastScroll.setCount(list.length);
   } else {
-    app.replaceChildren(el("section", { class: "cards-screen" }, shell, body, fab));
+    app.replaceChildren(el("section", { class: "cards-screen" }, shell, body, fab, fastScrollNode()));
+    if (fastScroll) fastScroll.setCount(list.length);
   }
 }
 
@@ -2986,7 +3097,7 @@ document.head.append(el("style", {}, `
 .action-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .action-list button { width: 100%; justify-content: flex-start; text-align: left; font: inherit; font-size: 16px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--paper); color: var(--fg); cursor: pointer; }
 .action-list button.danger { color: var(--accent); }
-.cgrid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 10px; touch-action: pan-y; background: var(--bg); } /* niente puntini del fondo tra le carte */
+.cgrid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: calc(10px * max(var(--k, 1), .6)); touch-action: pan-y; background: var(--bg); min-height: 50dvh; align-content: start; } /* niente puntini del fondo tra le carte */
 .pcard { position: relative; aspect-ratio: 5 / 7; border-radius: calc(11px * var(--k, 1)); padding: calc(9px * var(--k, 1)) calc(9px * var(--k, 1)) calc(10px * var(--k, 1)); text-align: left; display: flex; flex-direction: column; justify-content: flex-end;
   font-family: var(--card-font); font-weight: 600; font-size: calc(12px * var(--k, 1)); line-height: 1.28; hyphens: auto; -webkit-hyphens: auto; overflow: hidden; border: 1px solid #d6d0c2; box-shadow: 0 8px 16px -12px rgba(0,0,0,.5); }
 .pcard.w { background: #fff; color: #111; }
@@ -3008,7 +3119,9 @@ boot();
 
 document.head.append(el("style", {}, `
 /* Transizioni e feedback: brevi, con il rispetto dell'impostazione "Movimento". */
-.enter { animation: screenIn var(--t-slow) var(--ease-out) both; }
+/* "backwards" e non "both": a fine animazione la schermata non deve restare con una trasformazione attiva, perché renderebbe
+   "fisso" (il pulsante + e il cursore di scorrimento) relativo alla pagina intera invece che allo schermo. */
+.enter { animation: screenIn var(--t-slow) var(--ease-out) backwards; }
 @keyframes screenIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 .no-motion .enter, .no-motion .splash .logo { animation: none; }
 button { transition: transform var(--t-fast) ease, background-color var(--t-base) ease, opacity var(--t-base) ease, color var(--t-base) ease; }
