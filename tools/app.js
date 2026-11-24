@@ -244,6 +244,7 @@ function still(key) {
 }
 
 function setup() {
+  dropStrayFocus();   // nome o codice appena scritti: la tastiera si chiude prima che i campi spariscano
   game = null;
   localGameSeq++;
   still("setup:" + homeTab);
@@ -1965,7 +1966,7 @@ function render() {
   if (!game) return setup();
   app.classList.remove("still"); paintKey = "game"; // in partita le animazioni restano sempre attive
   // Entrando in partita nessun campo di testo deve restare attivo (e con lui la tastiera): fa eccezione solo il jolly mentre si scrive.
-  { const ae = document.activeElement; if (ae && !ae.closest(".sheet-bg") && !ae.classList.contains("jolly-keys")) dropFocus(); }
+  dropStrayFocus();
   Sound.setTheme("game");
   document.body.classList.add("in-game");
   const next = viewerFor();
@@ -2330,6 +2331,13 @@ function toast(msg) {
 function dropFocus() {
   const a = document.activeElement;
   if (a instanceof HTMLInputElement || a instanceof HTMLTextAreaElement) a.blur();
+}
+
+// Come dropFocus, ma solo per un campo che sta per sparire insieme alla schermata: non tocca i campi di un foglio aperto
+// né il jolly mentre si scrive. Si chiama dove la pagina cambia schermata (menu, sala d'attesa, partita).
+function dropStrayFocus() {
+  const ae = document.activeElement;
+  if (ae && !ae.closest(".sheet-bg") && !ae.classList.contains("jolly-keys")) dropFocus();
 }
 
 // Pulsante che non può ancora partire: sembra spento ma si tocca, e al tocco scrive sul pulsante perché (e non parte).
@@ -2758,6 +2766,7 @@ function lobbyHead() {
 }
 
 function renderLobby() {
+  dropStrayFocus();
   still("lobby");
   const st = online.state;
   if (!st) {
